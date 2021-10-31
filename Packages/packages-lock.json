@@ -1,5 +1,17 @@
 {
   "dependencies": {
+    "com.unity.audio.dspgraph": {
+      "version": "0.1.0-preview.17",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.burst": "1.4.1",
+        "com.unity.media.utilities": "0.1.0-preview.9",
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.modules.video": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.burst": {
       "version": "1.6.0",
       "depth": 1,
@@ -110,6 +122,16 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.media.utilities": {
+      "version": "0.1.0-preview.9",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.burst": "1.4.1"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.mono-cecil": {
