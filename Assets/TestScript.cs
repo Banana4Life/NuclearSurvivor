@@ -18,16 +18,23 @@ public class TestScript : SystemBase
     {
         public float deltaTime;
         public ComponentTypeHandle<Rotation> rotatationHandle;
+        public ComponentTypeHandle<Translation> translationHandle;
         public ComponentTypeHandle<Speed> speedHandle;
 
         public void Execute(ArchetypeChunk batchInChunk, int batchIndex)
         {
             var tChunk = batchInChunk.GetNativeArray(rotatationHandle);
+            var pChunk = batchInChunk.GetNativeArray(translationHandle);
             var sChunk = batchInChunk.GetNativeArray(speedHandle);
             for (var i = 0; i < tChunk.Length; i++)
             {
                 var rotation = tChunk[i];
                 var speed = sChunk[i];
+                var pos = pChunk[i];
+                pChunk[i] = new Translation()
+                {
+                    Value = pos.Value + new float3(0, 0.5f * deltaTime, 0)
+                };
                 tChunk[i] = new Rotation()
                 {
                     Value = math.mul(math.normalize(rotation.Value),
@@ -42,9 +49,11 @@ public class TestScript : SystemBase
     {
         var rot = GetComponentTypeHandle<Rotation>();
         var speed = GetComponentTypeHandle<Speed>();
+        var pos = GetComponentTypeHandle<Translation>();
         var moveJob = new MoveJob()
         {
             rotatationHandle = rot,
+            translationHandle = pos,
             speedHandle = speed,
             deltaTime = Time.DeltaTime
         };
