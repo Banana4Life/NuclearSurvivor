@@ -37,4 +37,7 @@ public struct Bobbing : IComponentData
 public struct AttackRange : IComponentData
 {
     public float value;
+    public bool inRange;
+    public float timeUntil;
+    public float timeUntilMax;
 }

@@ -24,7 +24,8 @@ public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
         });
         em.AddComponentData(entity, new AttackRange()
         {
-            value = 5f
+            value = 5f,
+            timeUntilMax = 1
         });
     }
 }

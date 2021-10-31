@@ -1,4 +1,3 @@
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -8,6 +7,7 @@ using Random = UnityEngine.Random;
 public class Spawner : MonoBehaviour
 {
     public GameObject prefab;
+    public ParticleSystem shotParticles;
     private float timeUntil;
     public float delay = 0.1f;
     public GameObject target;
@@ -18,8 +18,15 @@ public class Spawner : MonoBehaviour
     private void Start()
     {
         blobAssetStore = new BlobAssetStore();
-        entityPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(prefab,
-            GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, blobAssetStore));
+
+        var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, blobAssetStore);
+        entityPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(prefab, settings);
+
+        var ps = Instantiate(shotParticles);
+        var emissionModule = ps.emission;
+        emissionModule.enabled = false;
+
+        World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VfxSystem>().Init(ps);
     }
 
     private void OnDestroy()

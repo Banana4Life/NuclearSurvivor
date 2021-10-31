@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public class MovementSystem : SystemBase
 {
@@ -17,22 +18,24 @@ public class MovementSystem : SystemBase
     }
 }
 
+[UpdateBefore(typeof(VfxSystem))]
 public class AttackSystem : SystemBase
 {
     protected override void OnUpdate()
     {
         float dt = Time.DeltaTime;
-        Entities.ForEach((ref Translation pos, ref Speed speed, in Target target, in AttackRange range) =>
+        Entities.ForEach((ref Translation pos, ref AttackRange range, ref Speed speed, in Target target) =>
         {
             var distance = math.distancesq(pos.Value, target.value);
             if (distance > range.value * range.value)
             {
                 speed.value = speed.max;
+                range.inRange = false;
             }
             else
             {
                 speed.value = 0;
-                // TODO attack stuff
+                range.inRange = true;
             }
         }).ScheduleParallel();
     }
@@ -129,7 +132,6 @@ public class UpdateTargetSystem : SystemBase
 [UpdateBefore(typeof(UpdateTargetSystem))]
 public class RotateToTargetSystem : SystemBase
 {
-
     protected override void OnUpdate()
     {
         Entities.ForEach((ref Rotation rotation, in Translation translation, in Target target) =>
@@ -139,6 +141,39 @@ public class RotateToTargetSystem : SystemBase
             var direction = new float3(targetPos.x - pos.x, 0, targetPos.z - pos.z);
             rotation.Value = quaternion.LookRotation(direction, math.up());
         }).ScheduleParallel();
+    }
+}
+
+public class VfxSystem : SystemBase
+{
+    private ParticleSystem ps;
+    private ParticleSystem.EmitParams param;
+    protected override void OnUpdate()
+    {
+        var dt = Time.DeltaTime;
+        if (ps != null)
+        {
+            Entities.ForEach((ref AttackRange range, in Translation pos, in Target target, in Rotation rot) =>
+            {
+                if (range.inRange)
+                {
+                    range.timeUntil -= dt;
+                    if (range.timeUntil < 0)
+                    {
+                        range.timeUntil = range.timeUntilMax;
+                        param.position = pos.Value;
+                        ps.transform.LookAt(math.forward(rot.Value));
+                        ps.Emit(param, 1);
+                    }
+                        
+                }
+            }).WithoutBurst().Run();
+        }   
+    }
+
+    public void Init(ParticleSystem ps)
+    {
+        this.ps = ps;
     }
 }
 
