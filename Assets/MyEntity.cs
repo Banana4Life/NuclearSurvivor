@@ -40,7 +40,7 @@ public class MyEntity : MonoBehaviour
             });
             em.AddComponentData(entity, new NonUniformScale()
             {
-                Value = new float3(Random.Range(0.5f, 2f), Random.Range(0.5f, 2f) , Random.Range(0.5f, 2f))
+                Value = new float3(0.5f)
             });
         }
     }

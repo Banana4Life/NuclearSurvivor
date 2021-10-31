@@ -33,7 +33,12 @@ public class TestScript : SystemBase
                 var pos = pChunk[i];
                 pChunk[i] = new Translation()
                 {
-                    Value = pos.Value + new float3(0, 0.5f * deltaTime, 0)
+                    Value = pos.Value + new float3(0,  (speed.up ? speed.speed : -speed.speed) * deltaTime, 0)
+                };
+                sChunk[i] = new Speed()
+                {
+                    speed = speed.speed,
+                    up = !(pos.Value.y > 1) && (pos.Value.y < 0 || speed.up)
                 };
                 tChunk[i] = new Rotation()
                 {
