@@ -17,6 +17,7 @@ public class MovementSystem : SystemBase
         query = GetEntityQuery(typeof(Rotation), typeof(Speed));
     }
 
+    [BurstCompile]
     struct MoveJob : IJobEntityBatch
     {
         public float deltaTime;
@@ -52,7 +53,6 @@ public class MovementSystem : SystemBase
         }
     }
 
-    [BurstCompile]
     protected override void OnUpdate()
     {
         var rot = GetComponentTypeHandle<Rotation>();
@@ -80,6 +80,7 @@ public class DespawnSystem : SystemBase
         m_EndSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
+    [BurstCompile]
     struct DespawnJob : IJobEntityBatch
     {
         public float deltaTime;
@@ -100,7 +101,6 @@ public class DespawnSystem : SystemBase
         }
     }
 
-    [BurstCompile]
     protected override void OnUpdate()
     {
         var cmdBuf = m_EndSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
