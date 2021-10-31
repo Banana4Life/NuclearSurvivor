@@ -8,7 +8,7 @@ public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
 
     public void Convert(Entity entity, EntityManager em, GameObjectConversionSystem conversionSystem)
     {
-        em.AddComponentData(entity, Speed.Of(1));
+        em.AddComponentData(entity, Speed.Of(3));
         em.AddComponentData(entity, new NonUniformScale()
         {
             Value = new float3(0.5f)
@@ -21,6 +21,10 @@ public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
         em.AddComponentData(entity, new Bobbing()
         {
             speed = 1f
+        });
+        em.AddComponentData(entity, new AttackRange()
+        {
+            value = 5f
         });
     }
 }

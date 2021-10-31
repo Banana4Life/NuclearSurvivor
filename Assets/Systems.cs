@@ -17,6 +17,27 @@ public class MovementSystem : SystemBase
     }
 }
 
+public class AttackSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        float dt = Time.DeltaTime;
+        Entities.ForEach((ref Translation pos, ref Speed speed, in Target target, in AttackRange range) =>
+        {
+            var distance = math.distancesq(pos.Value, target.value);
+            if (distance > range.value * range.value)
+            {
+                speed.value = speed.max;
+            }
+            else
+            {
+                speed.value = 0;
+                // TODO attack stuff
+            }
+        }).ScheduleParallel();
+    }
+}
+
 public class BobbingSystem : SystemBase
 {
     protected override void OnUpdate()
