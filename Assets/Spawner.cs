@@ -1,52 +1,57 @@
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class Spawner : MonoBehaviour
 {
     public GameObject prefab;
-    public ParticleSystem shotParticles;
+
     private float timeUntil;
     public float delay = 0.1f;
-    public GameObject target;
+    public Team spawnTeam;
+    
+    private static Queue<GameObject> free = new();
+    private static List<GameObject> live = new();
 
-    private Entity entityPrefab;
-    private BlobAssetStore blobAssetStore;
+    private GameObject pool;
     
     private void Start()
     {
-        blobAssetStore = new BlobAssetStore();
-
-        var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, blobAssetStore);
-        entityPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(prefab, settings);
-
-        var ps = Instantiate(shotParticles);
-        var emissionModule = ps.emission;
-        emissionModule.enabled = false;
-
-        World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VfxSystem>().Init(ps);
+        pool = new GameObject("UnitPool");
+        pool.transform.parent = transform;
     }
 
-    private void OnDestroy()
+    private GameObject PooledUnit(Vector3 pos)
     {
-        blobAssetStore.Dispose();
-    }
+        if (!free.TryDequeue(out GameObject unit))
+        {
+            unit = Instantiate(prefab, pool.transform);
+        }
 
+        unit.transform.position = pos;
+        live.Add(unit);
+        return unit;
+    }
+    
     private void Update()
     {
+        // Refill Pool with freed GameObjects
+        var freed = live.Where(go => !go.activeSelf).ToList();
+        foreach (var go in freed)
+        {
+            live.Remove(go);
+            free.Enqueue(go);
+        }
+
         timeUntil -= Time.deltaTime;
         if (timeUntil < 0)
         {
             timeUntil = delay;
-            
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = em.Instantiate(entityPrefab);
-            em.SetComponentData(entity, new Translation()
-            {
-                Value = new float3(Random.Range(-15f, 15f), 0, Random.Range(-15f, 15f))
-            });
+            var pos = new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f)) + transform.position;
+            var unit = PooledUnit(pos);
+            var unitScript = unit.GetComponent<Unit>();
+            unitScript.Init("Unit (" + spawnTeam + ")", spawnTeam, live);
         }
     }
 

@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 442715588326198174}
   - component: {fileID: 5809791266786097128}
   - component: {fileID: 7188038884714680813}
-  - component: {fileID: 1681857800529090191}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -84,19 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1681857800529090191
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 93010311770282574}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2068509992235102771
 GameObject:
   m_ObjectHideFlags: 0
@@ -109,9 +95,9 @@ GameObject:
   - component: {fileID: 2068509992235102782}
   - component: {fileID: 2068509992235102769}
   - component: {fileID: 2068509992235102768}
-  - component: {fileID: 2068509992235102780}
-  m_Layer: 0
-  m_Name: Cube
+  - component: {fileID: 791739364401532110}
+  m_Layer: 6
+  m_Name: Unit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -191,12 +177,12 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2068509992235102771}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2068509992235102780
+--- !u!114 &791739364401532110
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -205,6 +191,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2068509992235102771}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 795c0b056733d057985b2776b4871b8c, type: 3}
+  m_Script: {fileID: 11500000, guid: 794a28b453d57b718ab2edb197e329e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  team: 0
+  speed: 3
+  maxSpeed: 3
+  target: {fileID: 0}
+  attackRange: 5
+  attacksPerSecond: 1
+  bobbingSpeed: 1
