@@ -45,7 +45,7 @@ public class Spawner : MonoBehaviour
             var entity = em.Instantiate(entityPrefab);
             em.SetComponentData(entity, new Translation()
             {
-                Value = new float3(Random.Range(-15f, 15f), 0, Random.Range(-5f, 5f))
+                Value = new float3(Random.Range(-15f, 15f), 0, Random.Range(-15f, 15f))
             });
         }
     }
