@@ -43,11 +43,11 @@ public class MovementSystem : SystemBase
                     speed = speed.speed,
                     up = !(pos.Value.y > 1) && (pos.Value.y < 0 || speed.up)
                 };
-                tChunk[i] = new Rotation()
-                {
-                    Value = math.mul(math.normalize(rotation.Value),
-                        quaternion.AxisAngle(math.up(), speed.speed * deltaTime))
-                };
+                // tChunk[i] = new Rotation()
+                // {
+                //     Value = math.mul(math.normalize(rotation.Value),
+                //         quaternion.AxisAngle(math.up(), speed.speed * deltaTime))
+                // };
             }
         }
     }
@@ -122,3 +122,22 @@ public class DespawnSystem : SystemBase
         m_EndSimulationEcbSystem.AddJobHandleForProducer(Dependency);
     }
 }
+
+
+
+public class RotateToTargetSystem : SystemBase
+{
+
+    [BurstCompile]
+    protected override void OnUpdate()
+    {
+        Entities.ForEach((ref Rotation rotation, in Translation translation, in Target target) =>
+        {
+            var pos = translation.Value;
+            var targetPos = target.value;
+            var direction = new float3(targetPos.x - pos.x, 0, targetPos.z - pos.z);
+            rotation.Value = quaternion.LookRotation(direction, math.up());
+        }).ScheduleParallel();
+    }
+}
+

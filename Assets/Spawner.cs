@@ -5,11 +5,12 @@ using Unity.Transforms;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MyEntity : MonoBehaviour
+public class Spawner : MonoBehaviour
 {
     public GameObject prefab;
     private float timeUntil;
     public float delay = 0.1f;
+    public GameObject target;
 
     private Entity entityPrefab;
     private BlobAssetStore blobAssetStore;
@@ -45,6 +46,10 @@ public class MyEntity : MonoBehaviour
             em.AddComponentData(entity, new Ttl()
             {
                 value = 5f
+            });
+            em.AddComponentData(entity, new Target()
+            {
+                value = target.transform.position
             });
         }
     }
