@@ -1,16 +1,24 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
 {
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    public void Convert(Entity entity, EntityManager em, GameObjectConversionSystem conversionSystem)
     {
-        var speed = new Speed()
+        em.AddComponentData(entity, Speed.Of(1));
+        em.AddComponentData(entity, new NonUniformScale()
         {
-            speed = 1f
-        };
-        dstManager.AddComponentData(entity, speed);
+            Value = new float3(0.5f)
+        });
+        em.AddComponentData(entity, new Ttl()
+        {
+            value = 5f
+        });
+        em.AddComponent<Target>(entity);
     }
 }

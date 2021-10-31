@@ -33,23 +33,12 @@ public class Spawner : MonoBehaviour
         if (timeUntil < 0)
         {
             timeUntil = delay;
+            
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
             var entity = em.Instantiate(entityPrefab);
             em.SetComponentData(entity, new Translation()
             {
                 Value = new float3(Random.Range(-15f, 15f), 0, Random.Range(-5f, 5f))
-            });
-            em.AddComponentData(entity, new NonUniformScale()
-            {
-                Value = new float3(0.5f)
-            });
-            em.AddComponentData(entity, new Ttl()
-            {
-                value = 5f
-            });
-            em.AddComponentData(entity, new Target()
-            {
-                value = target.transform.position
             });
         }
     }

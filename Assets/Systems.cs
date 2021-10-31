@@ -35,20 +35,18 @@ public class MovementSystem : SystemBase
                 var rotation = tChunk[i];
                 var speed = sChunk[i];
                 var pos = pChunk[i];
+                var forward = math.forward(rotation.Value);
+
+                var multiplier = speed.value * deltaTime;
                 pChunk[i] = new Translation()
                 {
-                    Value = pos.Value + new float3(0,  (speed.up ? speed.speed : -speed.speed) * deltaTime, 0)
+                    Value = pos.Value + new float3(forward.x * multiplier,  (speed.up ? 1 : -1) * multiplier, forward.z * multiplier)
                 };
                 sChunk[i] = new Speed()
                 {
-                    speed = speed.speed,
+                    value = speed.value,
                     up = !(pos.Value.y > 1) && (pos.Value.y < 0 || speed.up)
                 };
-                // tChunk[i] = new Rotation()
-                // {
-                //     Value = math.mul(math.normalize(rotation.Value),
-                //         quaternion.AxisAngle(math.up(), speed.speed * deltaTime))
-                // };
             }
         }
     }
@@ -123,12 +121,27 @@ public class DespawnSystem : SystemBase
     }
 }
 
+public class UpdateTargetSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        Entities.ForEach((ref Target target, in Translation translation) =>
+        {
+            Translation tt = translation;
+            Entities.ForEach((in PotentialTargetTag potentialTarget, in Translation pos) =>
+            {
+                tt = pos;
+            }).WithoutBurst().Run();
 
+            target.value = tt.Value;
+        }).WithoutBurst().Run();
+    }
+}
 
+[UpdateBefore(typeof(UpdateTargetSystem))]
 public class RotateToTargetSystem : SystemBase
 {
 
-    [BurstCompile]
     protected override void OnUpdate()
     {
         Entities.ForEach((ref Rotation rotation, in Translation translation, in Target target) =>
