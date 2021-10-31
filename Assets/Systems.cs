@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -70,54 +69,58 @@ public class MovementSystem : SystemBase
 
 public class DespawnSystem : SystemBase
 {
-    private EntityQuery query;
-    EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+    private EntityQuery _query;
+    private EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
+    
     protected override void OnCreate()
     {
-        query = GetEntityQuery(typeof(Ttl));
-        m_EndSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        _query = GetEntityQuery(typeof(Ttl));
+        _endSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
+    /// <summary>
+    /// https://forum.unity.com/threads/creating-and-destroying-entities-from-a-job.1119883/#post-7203187
+    /// </summary>
     [BurstCompile]
     struct DespawnJob : IJobEntityBatch
     {
-        public float deltaTime;
-        public ComponentTypeHandle<Ttl> ttl;
+        public float DeltaTime;
+        public ComponentTypeHandle<Ttl> TtlHandle;
+        [ReadOnly]
+        public EntityTypeHandle EntityTypeHandle;
+        public EntityCommandBuffer.ParallelWriter CommandBufferWriter;
 
         public void Execute(ArchetypeChunk batchInChunk, int batchIndex)
         {
-            var chunk = batchInChunk.GetNativeArray(ttl);
+            var entities = batchInChunk.GetNativeArray(EntityTypeHandle);
+            var chunk = batchInChunk.GetNativeArray(TtlHandle);
             for (var i = 0; i < chunk.Length; i++)
             {
                 var ttl = chunk[i];
-                ttl.value -= deltaTime;
-                chunk[i] = new Ttl()
+                ttl.value -= DeltaTime;
+                if (ttl.value < 0)
                 {
-                    value = ttl.value -= deltaTime
-                };
+                    CommandBufferWriter.DestroyEntity(i, entities[i]);
+                }
+                chunk[i] = ttl;
             }
         }
     }
 
     protected override void OnUpdate()
     {
-        var cmdBuf = m_EndSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
-        var despawnJob = new DespawnJob()
+        var destroyBufferWriter = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+        var entityTypeHandle = GetEntityTypeHandle();
+        var job = new DespawnJob()
         {
-            ttl = GetComponentTypeHandle<Ttl>(),
-            deltaTime = Time.DeltaTime,
+            TtlHandle = GetComponentTypeHandle<Ttl>(),
+            EntityTypeHandle = entityTypeHandle,
+            DeltaTime = Time.DeltaTime,
+            CommandBufferWriter = destroyBufferWriter,
         };
-        Dependency = despawnJob.ScheduleParallel(query, 1, Dependency);
+        Dependency = job.ScheduleParallel(_query, 1, Dependency);
         
-        Entities.ForEach((Entity entity, int entityInQueryIndex, ref Ttl ttl) =>
-        {
-            if (ttl.value < 0)
-            {
-                cmdBuf.DestroyEntity(entityInQueryIndex, entity);
-            }
-        }).ScheduleParallel();
-        
-        m_EndSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+        _endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
     }
 }
 
