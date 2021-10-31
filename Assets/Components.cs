@@ -6,7 +6,6 @@ using UnityEngine;
 public struct Speed : IComponentData
 {
     public float value;
-    public bool up;
 
     public static Speed Of(float value) => new()
     {
@@ -26,4 +25,10 @@ public struct Target : IComponentData
 
 public struct PotentialTargetTag : IComponentData
 {
+}
+
+public struct Bobbing : IComponentData
+{
+    public bool up;
+    public float speed;
 }

@@ -1,69 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.CodeGeneratedJobForEach;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 public class MovementSystem : SystemBase
 {
-    private EntityQuery query;
-    protected override void OnCreate()
-    {
-        query = GetEntityQuery(typeof(Rotation), typeof(Speed));
-    }
-
-    [BurstCompile]
-    struct MoveJob : IJobEntityBatch
-    {
-        public float deltaTime;
-        public ComponentTypeHandle<Rotation> rotatationHandle;
-        public ComponentTypeHandle<Translation> translationHandle;
-        public ComponentTypeHandle<Speed> speedHandle;
-
-        public void Execute(ArchetypeChunk batchInChunk, int batchIndex)
-        {
-            var tChunk = batchInChunk.GetNativeArray(rotatationHandle);
-            var pChunk = batchInChunk.GetNativeArray(translationHandle);
-            var sChunk = batchInChunk.GetNativeArray(speedHandle);
-            for (var i = 0; i < tChunk.Length; i++)
-            {
-                var rotation = tChunk[i];
-                var speed = sChunk[i];
-                var pos = pChunk[i];
-                var forward = math.forward(rotation.Value);
-
-                var multiplier = speed.value * deltaTime;
-                pChunk[i] = new Translation()
-                {
-                    Value = pos.Value + new float3(forward.x * multiplier,  (speed.up ? 1 : -1) * multiplier, forward.z * multiplier)
-                };
-                sChunk[i] = new Speed()
-                {
-                    value = speed.value,
-                    up = !(pos.Value.y > 1) && (pos.Value.y < 0 || speed.up)
-                };
-            }
-        }
-    }
-
     protected override void OnUpdate()
     {
-        var rot = GetComponentTypeHandle<Rotation>();
-        var speed = GetComponentTypeHandle<Speed>();
-        var pos = GetComponentTypeHandle<Translation>();
-        var moveJob = new MoveJob()
+        float dt = Time.DeltaTime;
+        Entities.ForEach((ref Translation pos, in Rotation rot, in Speed speed) =>
         {
-            rotatationHandle = rot,
-            translationHandle = pos,
-            speedHandle = speed,
-            deltaTime = Time.DeltaTime
-        };
+            var forward = math.forward(rot.Value) * speed.value * dt;
+            pos.Value = pos.Value + new float3(forward.x, 0, forward.z);
+        }).ScheduleParallel();
+    }
+}
 
-        Dependency = moveJob.ScheduleParallel(query, 1, Dependency);
+public class BobbingSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        float dt = Time.DeltaTime;
+        Entities.ForEach((ref Translation pos, ref Bobbing bobbing) =>
+        {
+            float bob = (bobbing.up ? 1 : -1) * bobbing.speed * dt;
+            pos.Value = pos.Value + new float3(0, bob, 0);
+            bobbing.up = !(pos.Value.y > 1) && (pos.Value.y < 0 || bobbing.up);
+        }).ScheduleParallel();
     }
 }
 

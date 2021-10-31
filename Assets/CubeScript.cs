@@ -1,9 +1,7 @@
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
 {
@@ -20,5 +18,9 @@ public class CubeScript : MonoBehaviour, IConvertGameObjectToEntity
             value = 5f
         });
         em.AddComponent<Target>(entity);
+        em.AddComponentData(entity, new Bobbing()
+        {
+            speed = 1f
+        });
     }
 }
