@@ -42,6 +42,10 @@ public class MyEntity : MonoBehaviour
             {
                 Value = new float3(0.5f)
             });
+            em.AddComponentData(entity, new Ttl()
+            {
+                value = 5f
+            });
         }
     }
 

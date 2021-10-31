@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.CodeGeneratedJobForEach;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public class TestScript : SystemBase
+public class MovementSystem : SystemBase
 {
     private EntityQuery query;
     protected override void OnCreate()
@@ -64,5 +67,58 @@ public class TestScript : SystemBase
         };
 
         Dependency = moveJob.ScheduleParallel(query, 1, Dependency);
+    }
+}
+
+public class DespawnSystem : SystemBase
+{
+    private EntityQuery query;
+    EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+    protected override void OnCreate()
+    {
+        query = GetEntityQuery(typeof(Ttl));
+        m_EndSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+    }
+
+    struct DespawnJob : IJobEntityBatch
+    {
+        public float deltaTime;
+        public ComponentTypeHandle<Ttl> ttl;
+
+        public void Execute(ArchetypeChunk batchInChunk, int batchIndex)
+        {
+            var chunk = batchInChunk.GetNativeArray(ttl);
+            for (var i = 0; i < chunk.Length; i++)
+            {
+                var ttl = chunk[i];
+                ttl.value -= deltaTime;
+                chunk[i] = new Ttl()
+                {
+                    value = ttl.value -= deltaTime
+                };
+            }
+        }
+    }
+
+    [BurstCompile]
+    protected override void OnUpdate()
+    {
+        var cmdBuf = m_EndSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+        var despawnJob = new DespawnJob()
+        {
+            ttl = GetComponentTypeHandle<Ttl>(),
+            deltaTime = Time.DeltaTime,
+        };
+        Dependency = despawnJob.ScheduleParallel(query, 1, Dependency);
+        
+        Entities.ForEach((Entity entity, int entityInQueryIndex, ref Ttl ttl) =>
+        {
+            if (ttl.value < 0)
+            {
+                cmdBuf.DestroyEntity(entityInQueryIndex, entity);
+            }
+        }).ScheduleParallel();
+        
+        m_EndSimulationEcbSystem.AddJobHandleForProducer(Dependency);
     }
 }
