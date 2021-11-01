@@ -38,7 +38,6 @@ public class Projectile : MonoBehaviour
         var particlesAlive = ps.GetParticles(particles);
         for (int i = 0; i < particlesAlive; i++)
         {
-            Debug.Log("no particle life");
             particles[i].remainingLifetime = 0;
         }
         ps.SetParticles(particles);
@@ -49,7 +48,6 @@ public class Projectile : MonoBehaviour
     {
         if (other != source && other.GetComponent<Unit>().team != source.GetComponent<Unit>().team)
         {
-            Debug.Log("killing it");
             KillProjectile();
             GetComponent<Rigidbody>().detectCollisions = false;
             other.SetActive(false);

@@ -12,6 +12,8 @@ public class Unit : MonoBehaviour
     public float speed;
     public float maxSpeed = 3f;
 
+    public float rotSpeed = 5f;
+
     public float spaceBetween = 3f;
 
     public GameObject target;
@@ -64,9 +66,10 @@ public class Unit : MonoBehaviour
         {
             target = enemy.gameObject;
             // Rotate To Target
-            var targetPos = target.transform.position;
-            targetPos = new Vector3(targetPos.x, 0, targetPos.z);
-            transform.LookAt(targetPos);
+            var targetDir = target.transform.position - oldPos;
+            targetDir = new Vector3(targetDir.x, 0, targetDir.z);
+            var toRotation = Quaternion.LookRotation(targetDir, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotSpeed * Time.deltaTime);
         }
 
         // TTL
@@ -117,7 +120,7 @@ public class Unit : MonoBehaviour
                 distance = new Vector3(distance.x, 0, distance.z);
                 if (distance.sqrMagnitude <= spaceBetween * spaceBetween)
                 {
-                    finalPos += distance.normalized * 1/distance.sqrMagnitude * 5f * Time.deltaTime;
+                    finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
                 }
             }
         }
@@ -129,7 +132,6 @@ public class Unit : MonoBehaviour
         var projectile = other.GetComponent<Projectile>();
         if (projectile)
         {
-            Debug.Log("HIT");
             projectile.Collide(gameObject);
         }
     }
