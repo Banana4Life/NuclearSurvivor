@@ -32,10 +32,12 @@ public class Unit : MonoBehaviour
     public bool invincible;
 
     public GameObject projectilePrefab;
+    public GameObject renderObject;
 
     // Sub-Scripts
     private Sensors sensors;
-    private TeamMaterial materials;
+    private TeamMaterial[] materials;
+    private Rigidbody rb;
     
     public void Init(Team team, Vector3 pos)
     {
@@ -45,13 +47,18 @@ public class Unit : MonoBehaviour
         ttl = 5f;
         attackTime = Random.Range(0, 1 / attacksPerSecond);
         gameObject.SetActive(true);
-        materials = GetComponent<TeamMaterial>();
+        materials = GetComponentsInChildren<TeamMaterial>();
         sensors = GetComponentInChildren<Sensors>();
-        GetComponent<MeshRenderer>().materials = materials.teamColors.First(t => t.team == team).materials;
+        rb = GetComponent<Rigidbody>();
+        foreach (var material in materials)
+        {
+            material.GetComponent<MeshRenderer>().materials = material.teamColors.First(t => t.team == team).materials;
+        }
     }
     
     private void Update()
     {
+        sensors.CleanupInactiveUnits();
         var oldPos = transform.position;
 
         var enemy = sensors.LocateNearestEnemy(this);
@@ -62,7 +69,7 @@ public class Unit : MonoBehaviour
             var targetDir = target.transform.position - oldPos;
             targetDir = new Vector3(targetDir.x, 0, targetDir.z);
             var toRotation = Quaternion.LookRotation(targetDir, Vector3.up);
-            transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotSpeed * Time.deltaTime);
+            rb.MoveRotation(Quaternion.Lerp(transform.rotation, toRotation, rotSpeed * Time.deltaTime));
             
             // Check for Attack Range
             if ((enemy.transform.position - oldPos).sqrMagnitude > attackRange * attackRange)
@@ -80,24 +87,27 @@ public class Unit : MonoBehaviour
         }
         else
         {
-            speed = 0;
+            // speed = 0;
             // TODO find enemy base instead
         }
 
         // TTL
-        ttl -= Time.deltaTime;
-        if (ttl < 0)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
+        // ttl -= Time.deltaTime;
+        // if (ttl < 0)
+        // {
+        //     gameObject.SetActive(false);
+        // }
+        
+        // Bobbing
+        float bob = (bobbingUp ? 1 : -1) * bobbingSpeed * Time.deltaTime;
+        var bobY = renderObject.transform.position.y;
+        bobbingUp = !(bobY > 1) && (bobY < 0 || bobbingUp);
+        renderObject.transform.Translate(0, bob, 0);
         
         // Movement
         var forward = transform.forward * speed;
-        float bob = (bobbingUp ? 1 : -1) * bobbingSpeed;
-        bobbingUp = !(oldPos.y > 1) && (oldPos.y < 0 || bobbingUp);
         var finalPos = transform.position;
-        finalPos += new Vector3(forward.x, bob, forward.z) * Time.deltaTime;    
+        finalPos += new Vector3(forward.x, 0, forward.z) * Time.deltaTime;    
         
         if (attacking)
         {
@@ -110,22 +120,15 @@ public class Unit : MonoBehaviour
                 Game.audioPool().PlaySound(ClipGroup.PEW1, transform.position);
             }
         }
-
-        // TODO avoidance/separation
-        // foreach (var liveUnit in liveUnits)
+        
+        // foreach (var liveUnit in sensors.LocateNearbyUnits(this, spaceBetween))
         // {
-        //     if (liveUnit != gameObject)
-        //     {
-        //         var distance = (finalPos - liveUnit.transform.position);
-        //         distance = new Vector3(distance.x, 0, distance.z);
-        //         if (distance.sqrMagnitude <= spaceBetween * spaceBetween)
-        //         {
-        //             finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
-        //         }
-        //     }
+        //     var distance = finalPos - liveUnit.transform.position;
+        //     distance = new Vector3(distance.x, 0, distance.z);
+        //     finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
         // }
 
-        transform.position = finalPos;
+        rb.MovePosition(finalPos);
     }
     
     void OnCollisionEnter(Collision collision)

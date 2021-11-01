@@ -36,7 +36,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    public static T Pooled<T>(GameObject prefab)
+    private static GameObjectPool PoolFor(GameObject prefab)
     {
         if (!INSTANCE.pools.TryGetValue(prefab, out GameObjectPool pool))
         {
@@ -46,6 +46,12 @@ public class Game : MonoBehaviour
             INSTANCE.pools[prefab] = pool;
         }
 
-        return pool.Pooled<T>();
+        return pool;
     }
+
+    public static T Pooled<T>(GameObject prefab)
+    {
+        return PoolFor(prefab).Pooled<T>();
+    }
+
 }

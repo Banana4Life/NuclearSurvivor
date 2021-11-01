@@ -39,4 +39,5 @@ public class GameObjectPool : MonoBehaviour
         name = type + "Pool";
         return this;
     }
+
 }

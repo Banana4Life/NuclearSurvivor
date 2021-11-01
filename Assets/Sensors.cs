@@ -23,9 +23,6 @@ public class Sensors : MonoBehaviour
     public Unit LocateNearestEnemy(Unit self)
     {
         var pos = self.transform.position;
-
-        onSensor.RemoveAll(unit => !unit.activeSelf);
-
         var enemyUnits = onSensor
             .Where(unit => unit != self.gameObject)
             .Select(unit => unit.GetComponent<Unit>())
@@ -45,5 +42,30 @@ public class Sensors : MonoBehaviour
         }
 
         return enemy;
+    }
+
+    public void CleanupInactiveUnits()
+    {
+        onSensor.RemoveAll(unit => !unit.activeSelf);
+    }
+
+    public List<Unit> LocateNearbyUnits(Unit self, float radius, bool ignoreY = true)
+    {
+        var pos = self.transform.position;
+        var enemyUnits = onSensor
+            .Where(unit => unit != self.gameObject)
+            .Select(unit => unit.GetComponent<Unit>())
+            .ToList();
+
+        enemyUnits.RemoveAll(unit =>
+        {
+            var distance = (unit.transform.position - pos);
+            if (ignoreY)
+            {
+                distance = new Vector3(distance.x, 0, distance.z);
+            }
+            return distance.sqrMagnitude > radius * radius;
+        });
+        return enemyUnits;
     }
 }
