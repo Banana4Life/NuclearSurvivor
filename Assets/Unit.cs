@@ -28,40 +28,33 @@ public class Unit : MonoBehaviour
     private bool bobbingUp;
 
     private float ttl = 5f;
-    private List<GameObject> liveUnits;
 
-    public void Init(string name, Team team, List<GameObject> liveUnits)
+    public bool invincible;
+
+    public GameObject projectilePrefab;
+
+    // Sub-Scripts
+    private Sensors sensors;
+    private TeamMaterial materials;
+    
+    public void Init(Team team, Vector3 pos)
     {
-        this.name = name;
-        this.liveUnits = liveUnits;
+        transform.position = pos;
+        name = "Unit " + team;
         this.team = team;
-        this.ttl = 5f;
-        this.attackTime = Random.Range(0, 1 / attacksPerSecond);
+        ttl = 5f;
+        attackTime = Random.Range(0, 1 / attacksPerSecond);
         gameObject.SetActive(true);
+        materials = GetComponent<TeamMaterial>();
+        sensors = GetComponentInChildren<Sensors>();
+        GetComponent<MeshRenderer>().materials = materials.teamColors.First(t => t.team == team).materials;
     }
     
     private void Update()
     {
         var oldPos = transform.position;
-        
-        // Find Target
-        var enemyUnits = liveUnits
-            .Where(unit => unit != gameObject)
-            .Select(unit => unit.GetComponent<Unit>())
-            .Where(unitScript => unitScript.team != team)
-            .ToList();
 
-        Unit enemy = null;
-        float sqrEnemyDistance = float.MaxValue;
-        foreach (var enemyUnit in enemyUnits)
-        {
-            var d = (oldPos - enemyUnit.transform.position).sqrMagnitude;
-            if (sqrEnemyDistance > d)
-            {
-                sqrEnemyDistance = d;
-                enemy = enemyUnit;
-            }
-        }
+        var enemy = sensors.LocateNearestEnemy(this);
         if (enemy != null)
         {
             target = enemy.gameObject;
@@ -70,6 +63,25 @@ public class Unit : MonoBehaviour
             targetDir = new Vector3(targetDir.x, 0, targetDir.z);
             var toRotation = Quaternion.LookRotation(targetDir, Vector3.up);
             transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotSpeed * Time.deltaTime);
+            
+            // Check for Attack Range
+            if ((enemy.transform.position - oldPos).sqrMagnitude > attackRange * attackRange)
+            {
+                // Walk to Enemy
+                speed = maxSpeed; // TODO lerp
+                attacking = false;
+            }
+            else
+            {
+                // Stop to Attack
+                speed = 0;
+                attacking = true;
+            }
+        }
+        else
+        {
+            speed = 0;
+            // TODO find enemy base instead
         }
 
         // TTL
@@ -78,20 +90,6 @@ public class Unit : MonoBehaviour
         {
             gameObject.SetActive(false);
             return;
-        }
-        
-        // Check for Attack Range
-        if (sqrEnemyDistance > attackRange * attackRange)
-        {
-            // Walk to Enemy
-            speed = maxSpeed; // TODO lerp
-            attacking = false;
-        }
-        else
-        {
-            // Stop to Attack
-            speed = 0;
-            attacking = true;
         }
         
         // Movement
@@ -107,39 +105,49 @@ public class Unit : MonoBehaviour
             if (attackTime < 0)
             {
                 attackTime = 1f / attacksPerSecond;
-                Game.projPool().LaunchProjectile(gameObject, target.transform.position);
+                Projectile projectile = Game.Pooled<Projectile>(projectilePrefab);
+                projectile.Init(target.transform.position, gameObject, projectilePrefab);
                 Game.audioPool().PlaySound(ClipGroup.PEW1, transform.position);
             }
         }
 
-        foreach (var liveUnit in liveUnits)
-        {
-            if (liveUnit != gameObject)
-            {
-                var distance = (finalPos - liveUnit.transform.position);
-                distance = new Vector3(distance.x, 0, distance.z);
-                if (distance.sqrMagnitude <= spaceBetween * spaceBetween)
-                {
-                    finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
-                }
-            }
-        }
+        // TODO avoidance/separation
+        // foreach (var liveUnit in liveUnits)
+        // {
+        //     if (liveUnit != gameObject)
+        //     {
+        //         var distance = (finalPos - liveUnit.transform.position);
+        //         distance = new Vector3(distance.x, 0, distance.z);
+        //         if (distance.sqrMagnitude <= spaceBetween * spaceBetween)
+        //         {
+        //             finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
+        //         }
+        //     }
+        // }
 
         transform.position = finalPos;
     }
-    private void OnTriggerEnter(Collider other)
+    
+    void OnCollisionEnter(Collision collision)
     {
-        var projectile = other.GetComponent<Projectile>();
+        var projectile = collision.collider.GetComponent<Projectile>();
         if (projectile)
         {
-            projectile.Collide(gameObject);
+            projectile.Collide(gameObject, invincible);
         }
     }
-
 }
 
 public enum Team
 {
     RED,
-    BLUE
+    BLUE,
+    GREEN
+}
+
+[Serializable]
+public struct TeamColors
+{
+    public Team team;
+    public Material[] materials;
 }
