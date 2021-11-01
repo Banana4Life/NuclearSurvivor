@@ -489,14 +489,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1617792837}
-  m_LocalRotation: {x: 0.2589953, y: -0, z: -0, w: 0.9658786}
-  m_LocalPosition: {x: -5, y: 5.89, z: -10}
+  m_LocalRotation: {x: 0.40501285, y: -0, z: -0, w: 0.914311}
+  m_LocalPosition: {x: -5, y: 12, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 30.021, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 47.784, y: 0, z: 0}
 --- !u!1 &1659697975
 GameObject:
   m_ObjectHideFlags: 0
@@ -627,9 +627,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 2068509992235102771, guid: 7db3cc540284b49abaa7ae1a369665f8, type: 3}
-  projectilePrefab: {fileID: 0}
-  prefabAttackPS: {fileID: 0}
-  delay: 1
+  delay: 0.2
   spawnTeam: 0
 --- !u!4 &1736032303
 Transform:
@@ -783,13 +781,13 @@ MonoBehaviour:
     - {fileID: 8300000, guid: d1de981ce02aa78efb6e4f68a36f62ff, type: 3}
     - {fileID: 8300000, guid: 6cd0941733bbe1c419f6cfd62f3d3a5a, type: 3}
   - clipGroup: 1
-    mixer: {fileID: 24300002, guid: ec9876b2fa176cd3daf866235b59c492, type: 2}
+    mixer: {fileID: 4464875904409426853, guid: ec9876b2fa176cd3daf866235b59c492, type: 2}
     clips:
     - {fileID: 8300000, guid: 75a4dda64d69310f1bfdacaf9eb01ba7, type: 3}
   - clipGroup: 2
-    mixer: {fileID: 24300002, guid: ec9876b2fa176cd3daf866235b59c492, type: 2}
+    mixer: {fileID: -5295761625284174973, guid: ec9876b2fa176cd3daf866235b59c492, type: 2}
     clips:
-    - {fileID: 8300000, guid: 75a4dda64d69310f1bfdacaf9eb01ba7, type: 3}
+    - {fileID: 8300000, guid: 0e1c9ed1ed13ada83a2970e80bd140c7, type: 3}
   - clipGroup: 3
     mixer: {fileID: 24300002, guid: ec9876b2fa176cd3daf866235b59c492, type: 2}
     clips:
@@ -953,7 +951,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 2068509992235102771, guid: 7db3cc540284b49abaa7ae1a369665f8, type: 3}
-  projectilePrefab: {fileID: 0}
-  prefabAttackPS: {fileID: 0}
-  delay: 1
+  delay: 0.2
   spawnTeam: 1

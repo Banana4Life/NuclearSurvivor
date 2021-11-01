@@ -197,7 +197,8 @@ MonoBehaviour:
   team: 0
   speed: 3
   maxSpeed: 3
+  spaceBetween: 1.8
   target: {fileID: 0}
   attackRange: 5
-  attacksPerSecond: 1
+  attacksPerSecond: 3
   bobbingSpeed: 1

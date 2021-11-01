@@ -54,7 +54,7 @@ public class Projectile : MonoBehaviour
             GetComponent<Rigidbody>().detectCollisions = false;
             other.SetActive(false);
             Game.SpawnFloaty("HIT", transform.position);
-            // Game.audioPool().PlaySound(ClipGroup.PROJ_HIT, collisionEvent.intersection);
+            Game.audioPool().PlaySound(ClipGroup.PROJ_HIT, transform.position);
         }
         
     }

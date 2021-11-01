@@ -12,6 +12,8 @@ public class Unit : MonoBehaviour
     public float speed;
     public float maxSpeed = 3f;
 
+    public float spaceBetween = 3f;
+
     public GameObject target;
 
     public float attackRange = 5f;
@@ -93,7 +95,8 @@ public class Unit : MonoBehaviour
         var forward = transform.forward * speed;
         float bob = (bobbingUp ? 1 : -1) * bobbingSpeed;
         bobbingUp = !(oldPos.y > 1) && (oldPos.y < 0 || bobbingUp);
-        transform.position += new Vector3(forward.x, bob, forward.z) * Time.deltaTime;    
+        var finalPos = transform.position;
+        finalPos += new Vector3(forward.x, bob, forward.z) * Time.deltaTime;    
         
         if (attacking)
         {
@@ -105,6 +108,21 @@ public class Unit : MonoBehaviour
                 Game.audioPool().PlaySound(ClipGroup.PEW1, transform.position);
             }
         }
+
+        foreach (var liveUnit in liveUnits)
+        {
+            if (liveUnit != gameObject)
+            {
+                var distance = (finalPos - liveUnit.transform.position);
+                distance = new Vector3(distance.x, 0, distance.z);
+                if (distance.sqrMagnitude <= spaceBetween * spaceBetween)
+                {
+                    finalPos += distance.normalized * 1/distance.sqrMagnitude * 5f * Time.deltaTime;
+                }
+            }
+        }
+
+        transform.position = finalPos;
     }
     private void OnTriggerEnter(Collider other)
     {
