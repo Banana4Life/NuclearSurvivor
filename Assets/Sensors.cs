@@ -20,16 +20,15 @@ public class Sensors : MonoBehaviour
         onSensor.Remove(other.gameObject);
     }
 
-    public Unit LocateNearestEnemy(Unit self)
+    public GameObject LocateNearestEnemy(Unit self)
     {
         var pos = self.transform.position;
         var enemyUnits = onSensor
             .Where(unit => unit != self.gameObject)
-            .Select(unit => unit.GetComponent<Unit>())
-            .Where(unitScript => unitScript.team != self.team)
+            .Where(unit => unit.GetComponent<Unit>().team != self.team)
             .ToList();
 
-        Unit enemy = null;
+        GameObject enemy = null;
         float sqrEnemyDistance = float.MaxValue;
         foreach (var enemyUnit in enemyUnits)
         {

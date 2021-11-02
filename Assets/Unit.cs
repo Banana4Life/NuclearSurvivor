@@ -3,20 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 public class Unit : MonoBehaviour
 {
     public Team team;
 
-    public float speed;
-    public float maxSpeed = 3f;
-
-    public float rotSpeed = 5f;
-
-    public float spaceBetween = 3f;
-
-    public GameObject target;
 
     public float attackRange = 5f;
     private bool attacking;
@@ -29,17 +22,19 @@ public class Unit : MonoBehaviour
 
     private float ttl = 5f;
 
-    public bool invincible;
-
     public GameObject projectilePrefab;
     public GameObject renderObject;
+    
+    public GameObject mainTarget;
+    public GameObject target;
+    private float updateTarget;
 
     // Sub-Scripts
     private Sensors sensors;
     private TeamMaterial[] materials;
-    private Rigidbody rb;
+    private NavMeshAgent agent;
     
-    public void Init(Team team, Vector3 pos)
+    public void Init(Team team, Vector3 pos, GameObject mainTarget)
     {
         transform.position = pos;
         name = "Unit " + team;
@@ -49,47 +44,44 @@ public class Unit : MonoBehaviour
         gameObject.SetActive(true);
         materials = GetComponentsInChildren<TeamMaterial>();
         sensors = GetComponentInChildren<Sensors>();
-        rb = GetComponent<Rigidbody>();
+        agent = GetComponent<NavMeshAgent>();
         foreach (var material in materials)
         {
             material.GetComponent<MeshRenderer>().materials = material.teamColors.First(t => t.team == team).materials;
+        }
+
+        this.mainTarget = mainTarget;
+        foreach (var projTarget in GetComponentsInChildren<ProjectileTarget>())
+        {
+            projTarget.Init(team, gameObject, false);
         }
     }
     
     private void Update()
     {
         sensors.CleanupInactiveUnits();
-        var oldPos = transform.position;
-
-        var enemy = sensors.LocateNearestEnemy(this);
-        if (enemy != null)
+        updateTarget -= Time.deltaTime;
+        if (!target.activeSelf || updateTarget <= 0)
         {
-            target = enemy.gameObject;
-            // Rotate To Target
-            var targetDir = target.transform.position - oldPos;
-            targetDir = new Vector3(targetDir.x, 0, targetDir.z);
-            var toRotation = Quaternion.LookRotation(targetDir, Vector3.up);
-            rb.MoveRotation(Quaternion.Lerp(transform.rotation, toRotation, rotSpeed * Time.deltaTime));
-            
-            // Check for Attack Range
-            if ((enemy.transform.position - oldPos).sqrMagnitude > attackRange * attackRange)
+            updateTarget = 0.5f;
+            target = sensors.LocateNearestEnemy(this);
+            if (target == null)
             {
-                // Walk to Enemy
-                speed = maxSpeed; // TODO lerp
-                attacking = false;
+                target = mainTarget;
+            }
+            agent.destination = target.transform.position;
+            if (target == mainTarget)
+            {
+                agent.isStopped = false;
+                agent.stoppingDistance = 0.1f;
             }
             else
             {
-                // Stop to Attack
-                speed = 0;
-                attacking = true;
+                agent.isStopped = agent.remainingDistance < attackRange;
             }
         }
-        else
-        {
-            // speed = 0;
-            // TODO find enemy base instead
-        }
+        
+        attacking = agent.remainingDistance < attackRange;
 
         // TTL
         // ttl -= Time.deltaTime;
@@ -103,41 +95,34 @@ public class Unit : MonoBehaviour
         var bobY = renderObject.transform.position.y;
         bobbingUp = !(bobY > 1) && (bobY < 0 || bobbingUp);
         renderObject.transform.Translate(0, bob, 0);
-        
-        // Movement
-        var forward = transform.forward * speed;
-        var finalPos = transform.position;
-        finalPos += new Vector3(forward.x, 0, forward.z) * Time.deltaTime;    
-        
-        if (attacking)
+        attackTime -= Time.deltaTime;
+        if (attacking && attackTime < 0)
         {
-            attackTime -= Time.deltaTime;
-            if (attackTime < 0)
+            attackTime = 1f / attacksPerSecond;
+            Projectile projectile = Game.Pooled<Projectile>(projectilePrefab);
+            projectile.Init(target.transform.position, gameObject, projectilePrefab);
+            Game.audioPool().PlaySound(ClipGroup.PEW1, transform.position);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (agent)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, target.transform.position);
+            var lastCorner = transform.position;
+        
+            foreach (var corner in agent.path.corners)
             {
-                attackTime = 1f / attacksPerSecond;
-                Projectile projectile = Game.Pooled<Projectile>(projectilePrefab);
-                projectile.Init(target.transform.position, gameObject, projectilePrefab);
-                Game.audioPool().PlaySound(ClipGroup.PEW1, transform.position);
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(lastCorner, corner);
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(corner, 0.5f);
+                lastCorner = corner;
             }
         }
         
-        // foreach (var liveUnit in sensors.LocateNearbyUnits(this, spaceBetween))
-        // {
-        //     var distance = finalPos - liveUnit.transform.position;
-        //     distance = new Vector3(distance.x, 0, distance.z);
-        //     finalPos += distance.normalized * 1/Math.Max(1f, distance.sqrMagnitude) * 5f * Time.deltaTime;
-        // }
-
-        rb.MovePosition(finalPos);
-    }
-    
-    void OnCollisionEnter(Collision collision)
-    {
-        var projectile = collision.collider.GetComponent<Projectile>();
-        if (projectile)
-        {
-            projectile.Collide(gameObject, invincible);
-        }
     }
 }
 

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Game : MonoBehaviour
 {
@@ -12,6 +14,9 @@ public class Game : MonoBehaviour
     private static Game INSTANCE;
 
     private Dictionary<GameObject, GameObjectPool> pools = new();
+
+    public GameObject cr;
+    public GameObject camCart;
     private void Awake()
     {
         INSTANCE = this;
@@ -34,7 +39,26 @@ public class Game : MonoBehaviour
         {
             pool.Reclaim();
         }
+
+        Ray worldPoint = Camera.main.ScreenPointToRay(Input.mousePosition);
+        const int selectableTileLayerMask = 1 << 11;
+        if (Physics.Raycast(worldPoint, out RaycastHit hit, Mathf.Infinity, selectableTileLayerMask))
+        {
+            cr.GetComponent<NavMeshAgent>().destination = hit.point;
+        }
+
+        if ((camCart.transform.position - cr.transform.position).sqrMagnitude > 100)
+        {
+            camCart.transform.position = Vector3.Lerp(camCart.transform.position, cr.transform.position, Time.deltaTime * 3f);
+        }
     }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(cr.GetComponent<NavMeshAgent>().destination, 0.1f);
+    }
+    
 
     private static GameObjectPool PoolFor(GameObject prefab)
     {

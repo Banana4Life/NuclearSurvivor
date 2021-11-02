@@ -8,6 +8,8 @@ public class Projectile : MonoBehaviour
     private ParticleSystem ps;
     private GameObject source;
 
+    private Team team;
+
     private void Start()
     {
         ps = GetComponent<ParticleSystem>();
@@ -31,6 +33,7 @@ public class Projectile : MonoBehaviour
         name = prefab.name;
         gameObject.SetActive(true);
         GetComponent<Rigidbody>().detectCollisions = true;
+        team = source.GetComponent<Unit>().team;
     }
 
     public void KillProjectile()
@@ -45,20 +48,19 @@ public class Projectile : MonoBehaviour
         velocity = Vector3.zero;
     }
 
-    public void Collide(GameObject other, bool invincible)
+    public bool Collide(GameObject other, Team otherTeam)
     {
-        if (other != source && other.GetComponent<Unit>().team != source.GetComponent<Unit>().team)
+        if (other != source && otherTeam != team)
         {
-            
             KillProjectile();
             GetComponent<Rigidbody>().detectCollisions = false;
-            if (!invincible)
-            {
-                other.SetActive(false);
-                Game.SpawnFloaty("HIT", transform.position);
-                Game.audioPool().PlaySound(ClipGroup.PROJ_HIT, transform.position);
-            }
+            
+            Game.SpawnFloaty("HIT", transform.position);
+            Game.audioPool().PlaySound(ClipGroup.PROJ_HIT, transform.position);
+            return true;
         }
-        
+
+        return false;
+
     }
 }
