@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,6 +18,18 @@ public class Game : MonoBehaviour
 
     public GameObject cr;
     public GameObject camCart;
+    
+    public float maxPanSpeed = 2f;
+    public float panAcceleration = 5f;
+    public float panBreaking = 2f;
+    public float panLimit = 30;
+    public float panStopLimit = 9;
+    private bool panning;
+    private float panSpeed;
+
+    public bool needsNewNavMesh;
+    
+    private NavMeshSurface navMesh;
     private void Awake()
     {
         INSTANCE = this;
@@ -33,8 +46,16 @@ public class Game : MonoBehaviour
         floaty.Init(text, pos);
     }
 
+    private void Start()
+    {
+        navMesh = GetComponent<NavMeshSurface>();
+        UpdateNavMesh();
+    }
+
     private void Update()
     {
+        UpdateNavMesh();
+
         foreach (var pool in pools.Values)
         {
             pool.Reclaim();
@@ -47,10 +68,29 @@ public class Game : MonoBehaviour
             cr.GetComponent<NavMeshAgent>().destination = hit.point;
         }
 
-        if ((camCart.transform.position - cr.transform.position).sqrMagnitude > 100)
+        var camDelta = (camCart.transform.position - cr.transform.position).sqrMagnitude;
+        if (camDelta > panLimit * panLimit)
         {
-            camCart.transform.position = Vector3.Lerp(camCart.transform.position, cr.transform.position, Time.deltaTime * 3f);
+            panning = true;
         }
+        else if (camDelta < panStopLimit * panStopLimit)
+        {
+            panning = false;
+        }
+        
+        panSpeed = Math.Max(0, Math.Min(panSpeed + (panning ? panAcceleration : -panBreaking) * Time.deltaTime, maxPanSpeed));
+        camCart.transform.position = Vector3.Lerp(camCart.transform.position, cr.transform.position, panSpeed * Time.deltaTime);
+    }
+
+
+    public void UpdateNavMesh()
+    {
+        if (needsNewNavMesh)
+        {
+            navMesh.BuildNavMesh();
+            needsNewNavMesh = false;
+        }
+        
     }
 
     private void OnDrawGizmos()

@@ -84,11 +84,11 @@ public class Unit : MonoBehaviour
         attacking = agent.remainingDistance < attackRange;
 
         // TTL
-        // ttl -= Time.deltaTime;
-        // if (ttl < 0)
-        // {
-        //     gameObject.SetActive(false);
-        // }
+        ttl -= Time.deltaTime;
+        if (ttl < 0)
+        {
+            gameObject.SetActive(false);
+        }
         
         // Bobbing
         float bob = (bobbingUp ? 1 : -1) * bobbingSpeed * Time.deltaTime;
