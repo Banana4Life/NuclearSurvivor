@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: cfd27dec593af2fc1bf66e4f69ecfff1
+guid: d367ab3014a5af5edb02d2ce01cff9f9
 ModelImporter:
   serializedVersion: 21202
   internalIDToNameTable: []
@@ -8,17 +8,22 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Floor
-    second: {fileID: 2100000, guid: ffb45883ecfe28712b19d50b95caa8c7, type: 2}
+    second: {fileID: 2100000, guid: 24f68aecae97de9cd989ef270eb4bfe9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: FrontColor
-    second: {fileID: 2100000, guid: 738fce30346a540a589e9492f9860913, type: 2}
+      name: Void_Side
+    second: {fileID: 2100000, guid: 97f8711c616909c20bed0b378f3cd4c5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Void_Top
+    second: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Wall_Side
-    second: {fileID: 2100000, guid: ccd7c9604370045c8963df0934f410c8, type: 2}
+    second: {fileID: 2100000, guid: 2c134f663e7284049b3e54d9aa8a49b6, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -96,7 +101,7 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips: []
-  importAnimation: 0
+  importAnimation: 1
   humanDescription:
     serializedVersion: 3
     human: []
@@ -108,7 +113,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 100
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

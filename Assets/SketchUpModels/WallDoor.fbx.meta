@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 4ba075c3901e21d4f83c2190dd3a1003
+guid: 1ae4d9bd0b8201d6c800280ac19aa5f9
 ModelImporter:
   serializedVersion: 21202
   internalIDToNameTable: []
@@ -7,31 +7,21 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Floor1
+      name: Floor
     second: {fileID: 2100000, guid: 24f68aecae97de9cd989ef270eb4bfe9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Void_Side
-    second: {fileID: 2100000, guid: 97f8711c616909c20bed0b378f3cd4c5, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Void_Top
-    second: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Wall_Side1
+      name: Wall_Side
     second: {fileID: 2100000, guid: 2c134f663e7284049b3e54d9aa8a49b6, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Wall_Top1
+      name: Wall_Top
     second: {fileID: 2100000, guid: 6998bb46936c758bdae62fb2a7d43069, type: 2}
   materials:
     materialImportMode: 2
-    materialName: 1
+    materialName: 0
     materialSearch: 1
     materialLocation: 1
   animations:
