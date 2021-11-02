@@ -30,6 +30,12 @@ public class Game : MonoBehaviour
     public bool needsNewNavMesh;
     
     private NavMeshSurface navMesh;
+
+    public GameObject tilePrefab;
+    private MeshRenderer tileMeshRenderer;
+    
+    private Dictionary<CubeCoord, GameObject> _knownTiles = new();
+
     private void Awake()
     {
         INSTANCE = this;
@@ -49,7 +55,32 @@ public class Game : MonoBehaviour
     private void Start()
     {
         navMesh = GetComponent<NavMeshSurface>();
+        tileMeshRenderer = tilePrefab.GetComponentInChildren<MeshRenderer>();
+
+        BuildRoom();
         UpdateNavMesh();
+    }
+
+    public void BuildRoom()
+    {
+        spawnTile(CubeCoord.Origin);
+        var coords = CubeCoord.Ring(CubeCoord.Origin, 3);
+        while (coords.MoveNext())
+        {
+            spawnTile(coords.Current);
+        }
+    }
+
+    private GameObject spawnTile(CubeCoord pos)
+    {
+        var tile = Instantiate(tilePrefab, transform, true);
+        tile.name = $"{pos}";
+        var objectScale = tilePrefab.transform.localScale;
+        var tileSize = tileMeshRenderer.bounds.size;
+        tileSize.Scale(objectScale);
+        tile.transform.position = pos.ToWorld(0, tileSize);
+        _knownTiles[pos] = tile;
+        return tile;
     }
 
     private void Update()
