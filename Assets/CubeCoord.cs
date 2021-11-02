@@ -17,10 +17,10 @@ public struct CubeCoord
     public static readonly CubeCoord Origin = new(0, 0);
     
     public static readonly CubeCoord NorthEast = new( 0, 1);
-    public static readonly CubeCoord East       = new( 1,  0);
+    public static readonly CubeCoord East      = new( 1,  0);
     public static readonly CubeCoord SouthEast = new( 1,  -1);
     public static readonly CubeCoord SouthWest = new(0,  -1);
-    public static readonly CubeCoord West       = new(-1,  0);
+    public static readonly CubeCoord West      = new(-1,  0);
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
     public static CubeCoord[] Neighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest };
