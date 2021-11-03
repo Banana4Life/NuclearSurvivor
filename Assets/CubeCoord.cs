@@ -66,16 +66,34 @@ public struct CubeCoord
     public float Length => (Math.Abs(Q) + Math.Abs(R) + Math.Abs(S)) / 2.0f;
     public double Distance(CubeCoord b) => (this - b).Length;
 
-    public Vector3 ToWorld(int y, Vector3 size, WorldType type = WorldType.FlatTop)
+    private Vector3 _toWorld(int y, Vector3 size, float[] matrix)
     {
-        var matrix = type == WorldType.FlatTop ? FlatCubeToWorldMatrix : PointyCubeToWorldMatrix;
         return new((matrix[0] * Q + matrix[1] * R) * size.x, y, (matrix[2] * Q + matrix[3] * R) * size.z);
     }
 
-    public static CubeCoord FromWorld(Vector3 p, Vector3 size, WorldType type = WorldType.FlatTop)
+    public Vector3 FlatTopToWorld(int y, Vector3 size)
     {
-        var matrix = type == WorldType.FlatTop ? FlatWorldToCubeMatrix : PointyWorldToCubeMatrix;
+        return _toWorld(y, size, FlatCubeToWorldMatrix);
+    }
+
+    public Vector3 PointyTopToWorld(int y, Vector3 size)
+    {
+        return _toWorld(y, size, PointyCubeToWorldMatrix);
+    }
+
+    private static CubeCoord _fromWorld(Vector3 p, Vector3 size, float[] matrix)
+    {
         return new(Mathf.RoundToInt((matrix[0] * p.x + matrix[1] * p.z) / size.x), Mathf.RoundToInt((matrix[2] * p.x + matrix[3] * p.z) / size.z));
+    }
+
+    public static CubeCoord FlatTopFromWorld(Vector3 p, Vector3 size)
+    {
+        return _fromWorld(p, size, FlatWorldToCubeMatrix);
+    }
+
+    public static CubeCoord PointyTopFromWorld(Vector3 p, Vector3 size)
+    {
+        return _fromWorld(p, size, PointyWorldToCubeMatrix);
     }
 
     public static CubeCoord operator +(CubeCoord a, CubeCoord b) => new(a.Q + b.Q, a.R + b.R, a.S + b.S);

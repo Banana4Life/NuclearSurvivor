@@ -67,7 +67,7 @@ public class Game : MonoBehaviour
             if (coords.MoveNext())
             {
                 tile.gameObject.name = $"{coords.Current}";
-                tile.position = coords.Current.ToWorld(0, tileSize);
+                tile.position = coords.Current.FlatTopToWorld(0, tileSize);
             }
             else
             {
@@ -105,7 +105,7 @@ public class Game : MonoBehaviour
         room.name = "Room " + rooms.Count;
         
         tileSize.Scale(tilePrefab.transform.localScale);
-        var entry = CubeCoord.FromWorld(prevExit.position, tileSize);
+        var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
         var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord));
         
         // Reparent prevExit as entry and build NavMeshLink on same tile
@@ -127,7 +127,7 @@ public class Game : MonoBehaviour
     {
         var tile = Instantiate(tilePrefab, room.transform, true);
         tile.name = $"{pos}";
-        tile.transform.position = pos.ToWorld(0, tileSize);
+        tile.transform.position = pos.FlatTopToWorld(0, tileSize);
         _knownTiles[pos] = tile;
         
         // var door = Instantiate(doorPrefab, tile.transform, true);
