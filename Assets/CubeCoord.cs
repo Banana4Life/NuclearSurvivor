@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+// Further reading: https://www.redblobgames.com/grids/hexagons/
 public struct CubeCoord
 {
     // pointy top

@@ -36,6 +36,7 @@ public class Game : MonoBehaviour
     private MeshRenderer tileMeshRenderer;
     
     private Dictionary<CubeCoord, GameObject> _knownTiles = new();
+    private GameObject tiles;
 
     private void Awake()
     {
@@ -57,6 +58,8 @@ public class Game : MonoBehaviour
     {
         navMesh = GetComponent<NavMeshSurface>();
         tileMeshRenderer = tilePrefab.GetComponentInChildren<MeshRenderer>();
+        tiles = new GameObject("tiles");
+        tiles.transform.parent = transform;
 
         BuildRoom();
         UpdateNavMesh();
@@ -74,7 +77,7 @@ public class Game : MonoBehaviour
 
     private GameObject spawnTile(CubeCoord pos)
     {
-        var tile = Instantiate(tilePrefab, transform, true);
+        var tile = Instantiate(tilePrefab, tiles.transform, true);
         tile.name = $"{pos}";
         var objectScale = tilePrefab.transform.localScale;
         var tileSize = tileMeshRenderer.bounds.size;
@@ -82,9 +85,9 @@ public class Game : MonoBehaviour
         tile.transform.position = pos.ToWorld(0, tileSize);
         _knownTiles[pos] = tile;
         
-        var door = Instantiate(doorPrefab, transform, true);
+        var door = Instantiate(doorPrefab, tile.transform, true);
+        door.name = "Door";
         door.transform.position = tile.transform.position;
-        
         return tile;
     }
 
