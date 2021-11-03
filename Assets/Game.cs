@@ -106,28 +106,21 @@ public class Game : MonoBehaviour
         
         tileSize.Scale(tilePrefab.transform.localScale);
         var entry = CubeCoord.FromWorld(prevExit.position, tileSize);
-        var links = CubeCoord.Ring(entry, 1).WhereNot(coord => _knownTiles.ContainsKey(coord)).ToList();
         var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord));
+        
+        // Reparent prevExit as entry and build NavMeshLink on same tile
+        _knownTiles[entry].transform.parent = room.transform;
+        var link = prevExit.AddComponent<NavMeshLink>();
+        var direction = Vector3.left;
+        link.startPoint = Vector3.zero;
+        link.endPoint = direction.normalized * float.Epsilon;
+        link.width = tileSize.z;
+
         while (coords.MoveNext())
         {
-            
             var newTile = spawnTile(coords.Current, room.transform);
-            if (links.Contains(coords.Current))
-            {
-                var link = prevExit.AddComponent<NavMeshLink>();
-                var center = (newTile.transform.position - prevExit.position) / 2f;
-                var direction = center.normalized;
-                link.startPoint = center - direction * 0.2f;
-                link.endPoint = center + direction * 0.2f;
-                link.width = tileSize.x / 2;
-            }
         }
         room.GetComponent<NavMeshSurface>().BuildNavMesh();
-        
-        foreach (var previousRoom in rooms)
-        {
-            previousRoom.AddData();
-        }
     }
 
     private GameObject spawnTile(CubeCoord pos, Transform room)
