@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.AI.Navigation;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -27,16 +28,16 @@ public class Game : MonoBehaviour
     private bool panning;
     private float panSpeed;
 
-    public bool needsNewNavMesh;
-    
-    private NavMeshSurface navMesh;
-
     public GameObject tilePrefab;
     public GameObject doorPrefab;
     private MeshRenderer tileMeshRenderer;
+    private Vector3 tileSize;
     
     private Dictionary<CubeCoord, GameObject> _knownTiles = new();
-    private GameObject tiles;
+    public GameObject tiles;
+    public GameObject roomPrefab;
+
+    public List<NavMeshSurface> rooms = new();
 
     private void Awake()
     {
@@ -54,47 +55,96 @@ public class Game : MonoBehaviour
         floaty.Init(text, pos);
     }
 
+    public void ArrangeTiles()
+    {
+        var objectScale = tilePrefab.transform.localScale;
+        var tileSize = tilePrefab.GetComponentInChildren<MeshRenderer>().bounds.size;
+        tileSize.Scale(objectScale);
+
+        var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8);
+        foreach (Transform tile in tiles.transform)
+        {
+            if (coords.MoveNext())
+            {
+                tile.gameObject.name = $"{coords.Current}";
+                tile.position = coords.Current.ToWorld(0, tileSize);
+            }
+            else
+            {
+                break;
+            }
+        }
+        tiles.GetComponent<NavMeshSurface>().BuildNavMesh();
+    }
+    
     private void Start()
     {
-        navMesh = GetComponent<NavMeshSurface>();
         tileMeshRenderer = tilePrefab.GetComponentInChildren<MeshRenderer>();
-        tiles = new GameObject("tiles");
-        tiles.transform.parent = transform;
-
-        BuildRoom();
-        UpdateNavMesh();
+        tileSize = tileMeshRenderer.bounds.size;
+        tileSize.Scale(tilePrefab.transform.localScale);
+        rooms.Add(tiles.GetComponent<NavMeshSurface>());
+        
+        var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8);
+        foreach (Transform tile in tiles.transform)
+        {
+            if (coords.MoveNext())
+            {
+                _knownTiles[coords.Current] = tile.gameObject;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
     }
 
-    public void BuildRoom()
+    public void BuildRoom(Transform prevExit)
     {
-        spawnTile(CubeCoord.Origin);
-        var coords = CubeCoord.ShuffledRings(CubeCoord.Origin, 1, 8);
+        var room = Instantiate(roomPrefab, transform);
+        room.name = "Room " + rooms.Count;
+        
+        tileSize.Scale(tilePrefab.transform.localScale);
+        var entry = CubeCoord.FromWorld(prevExit.position, tileSize);
+        var links = CubeCoord.Ring(entry, 1).WhereNot(coord => _knownTiles.ContainsKey(coord)).ToList();
+        var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord));
         while (coords.MoveNext())
         {
-            spawnTile(coords.Current);
+            
+            var newTile = spawnTile(coords.Current, room.transform);
+            if (links.Contains(coords.Current))
+            {
+                var link = prevExit.AddComponent<NavMeshLink>();
+                var center = (newTile.transform.position - prevExit.position) / 2f;
+                var direction = center.normalized;
+                link.startPoint = center - direction * 0.2f;
+                link.endPoint = center + direction * 0.2f;
+                link.width = tileSize.x / 2;
+            }
+        }
+        room.GetComponent<NavMeshSurface>().BuildNavMesh();
+        
+        foreach (var previousRoom in rooms)
+        {
+            previousRoom.AddData();
         }
     }
 
-    private GameObject spawnTile(CubeCoord pos)
+    private GameObject spawnTile(CubeCoord pos, Transform room)
     {
-        var tile = Instantiate(tilePrefab, tiles.transform, true);
+        var tile = Instantiate(tilePrefab, room.transform, true);
         tile.name = $"{pos}";
-        var objectScale = tilePrefab.transform.localScale;
-        var tileSize = tileMeshRenderer.bounds.size;
-        tileSize.Scale(objectScale);
         tile.transform.position = pos.ToWorld(0, tileSize);
         _knownTiles[pos] = tile;
         
-        var door = Instantiate(doorPrefab, tile.transform, true);
-        door.name = "Door";
-        door.transform.position = tile.transform.position;
+        // var door = Instantiate(doorPrefab, tile.transform, true);
+        // door.name = "Door";
+        // door.transform.position = tile.transform.position;
         return tile;
     }
 
     private void Update()
     {
-        UpdateNavMesh();
-
         foreach (var pool in pools.Values)
         {
             pool.Reclaim();
@@ -121,21 +171,24 @@ public class Game : MonoBehaviour
         camCart.transform.position = Vector3.Lerp(camCart.transform.position, cr.transform.position, panSpeed * Time.deltaTime);
     }
 
-
-    public void UpdateNavMesh()
-    {
-        if (needsNewNavMesh)
-        {
-            navMesh.BuildNavMesh();
-            needsNewNavMesh = false;
-        }
-        
-    }
-
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(cr.GetComponent<NavMeshAgent>().destination, 0.1f);
+        // Ray worldPoint = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // const int selectableTileLayerMask = 1 << 11;
+        // if (Physics.Raycast(worldPoint, out RaycastHit hit, Mathf.Infinity, selectableTileLayerMask))
+        // {
+        //     Gizmos.color = Color.yellow;
+        //     Gizmos.DrawWireSphere(hit.point, 1f);;
+        //     Gizmos.color = Color.red;
+        //     
+        //     var tileSize = tilePrefab.GetComponentInChildren<MeshRenderer>().bounds.size;
+        //     tileSize.Scale(tilePrefab.transform.localScale);
+        //     
+        //     var cubeCoord = CubeCoord.FromWorld(hit.point, tileSize);
+        //     
+        //     Gizmos.DrawWireSphere(cubeCoord.ToWorld(0, tileSize), 1f);;
+        // }
+        //
     }
     
 
@@ -157,4 +210,21 @@ public class Game : MonoBehaviour
         return PoolFor(prefab).Pooled<T>();
     }
 
+    public static void LoadNextLevel(Transform prevExit)
+    {
+        INSTANCE.BuildRoom(prevExit);
+    }
+}
+
+[CustomEditor(typeof(Game))]
+public class GameEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if (GUILayout.Button("Layout"))
+        {
+            ((Game)target).ArrangeTiles();
+        }
+    }
 }

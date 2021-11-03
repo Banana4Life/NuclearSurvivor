@@ -72,10 +72,10 @@ public struct CubeCoord
         return new((matrix[0] * Q + matrix[1] * R) * size.x, y, (matrix[2] * Q + matrix[3] * R) * size.z);
     }
 
-    public static CubeCoord FromWorld(Vector3 p, WorldType type = WorldType.FlatTop)
+    public static CubeCoord FromWorld(Vector3 p, Vector3 size, WorldType type = WorldType.FlatTop)
     {
         var matrix = type == WorldType.FlatTop ? FlatWorldToCubeMatrix : PointyWorldToCubeMatrix;
-        return new(Mathf.RoundToInt(matrix[0] * p.x + matrix[1] * p.z), Mathf.RoundToInt(matrix[2] * p.x + matrix[3] * p.z));
+        return new(Mathf.RoundToInt((matrix[0] * p.x + matrix[1] * p.z) / size.x), Mathf.RoundToInt((matrix[2] * p.x + matrix[3] * p.z) / size.z));
     }
 
     public static CubeCoord operator +(CubeCoord a, CubeCoord b) => new(a.Q + b.Q, a.R + b.R, a.S + b.S);
