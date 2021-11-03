@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AI.Navigation;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -98,29 +99,63 @@ public class Game : MonoBehaviour
         }
         
     }
+    
+    private static readonly int[] Triangles =
+    {
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 5,
+        0, 5, 6,
+        0, 6, 1
+    };
+    
+    public void BuildFogMesh(Transform room, IList<CubeCoord> coords)
+    {
+        var verticesOffset = CubeCoord.Spiral(CubeCoord.Origin, 0, 2).ToList().Select(coord => coord.ToWorld(0, tileSize)).ToList();
+
+        var mesh = new Mesh();
+        mesh.vertices = coords.Select(coord => coord.ToWorld(0, tileSize))
+            .SelectMany(coord => verticesOffset.Select(offset => offset + coord)).ToArray();
+        // UVs?
+        mesh.triangles = Enumerable.Range(0, coords.Count).SelectMany(i => Triangles.Select(j => i * 7 + j)).ToArray();
+        mesh.normals = Enumerable.Range(0, mesh.vertices.Length).Select(_ => Vector3.up).ToArray();
+        
+        var go = new GameObject("FogOfWarMesh");
+        go.transform.parent = room;
+        var meshFilter = go.AddComponent<MeshFilter>();
+        mesh.name = $"Generated V{mesh.vertices.Length} T{mesh.triangles.Length} N{mesh.normals.Length} AR{verticesOffset.Count}";
+        meshFilter.mesh = mesh;
+        mesh.RecalculateBounds();
+        Debug.Log($"Building Fog Mesh with {coords.ToList().Count} Tiles");
+
+    }
 
     public void BuildRoom(Transform prevExit)
     {
         var room = Instantiate(roomPrefab, transform);
         room.name = "Room " + rooms.Count;
+        room.transform.position = prevExit.position;
         
         tileSize.Scale(tilePrefab.transform.localScale);
         var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
-        var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord));
+        var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
         
         // Reparent prevExit as entry and build NavMeshLink on same tile
         _knownTiles[entry].transform.parent = room.transform;
         var link = prevExit.AddComponent<NavMeshLink>();
-        var direction = Vector3.left;
+        var direction = Vector3.left; // TODO direction based on tile
         link.startPoint = Vector3.zero;
         link.endPoint = direction.normalized * float.Epsilon;
         link.width = tileSize.z;
 
-        while (coords.MoveNext())
+        foreach (var cubeCoord in coords)
         {
-            var newTile = spawnTile(coords.Current, room.transform);
+            var newTile = spawnTile(cubeCoord, room.transform);
         }
         room.GetComponent<NavMeshSurface>().BuildNavMesh();
+        
+        BuildFogMesh(room.transform, coords);
     }
 
     private GameObject spawnTile(CubeCoord pos, Transform room)

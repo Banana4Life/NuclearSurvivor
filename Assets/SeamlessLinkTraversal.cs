@@ -25,14 +25,4 @@ public class SeamlessLinkTraversal : MonoBehaviour
             agent.isStopped = false;
         }
     }
-
-    private void OnDrawGizmos()
-    {
-        if (agent && agent.isOnOffMeshLink)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, 1);
-        }
-        
-    }
 }
