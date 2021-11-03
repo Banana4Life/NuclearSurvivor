@@ -64,7 +64,7 @@ public class Game : MonoBehaviour
     public void BuildRoom()
     {
         spawnTile(CubeCoord.Origin);
-        var coords = CubeCoord.Ring(CubeCoord.Origin, 3);
+        var coords = CubeCoord.ShuffledRings(CubeCoord.Origin, 1, 8);
         while (coords.MoveNext())
         {
             spawnTile(coords.Current);

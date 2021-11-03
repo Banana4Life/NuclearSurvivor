@@ -5,15 +5,32 @@ using Random = UnityEngine.Random;
 
 public struct CubeCoord
 {
-    private static readonly float[] CubeToWorldMatrix = {
+    // pointy top
+    private static readonly float[] PointyCubeToWorldMatrix = {
         1f, 1f / 2f,
         0f, 3f / 4f,
     };
-    public static readonly float[] WorldToCubeMatrix = {
+    private static readonly float[] PointyWorldToCubeMatrix = {
         3f / 4f * 4f / 3f, -1f / 2f * 4f / 3f,
         0f               , 4f / 3f           ,
     };
+    
+    // flat top
+    private static readonly float[] FlatCubeToWorldMatrix = {
+        3f / 4f, 0,
+        1f / 2f, 1f,
+    };
+    
+    private static readonly float[] FlatWorldToCubeMatrix = {
+        4f / 3f           , 0,
+        -1f / 2f * 4f / 3f, 3f / 4f * 4f / 3f,
+    };
 
+    public enum WorldType
+    {
+        PointyTop, FlatTop
+    }
+    
     public static readonly CubeCoord Origin = new(0, 0);
     
     public static readonly CubeCoord NorthEast = new( 0, 1);
@@ -48,10 +65,17 @@ public struct CubeCoord
     public float Length => (Math.Abs(Q) + Math.Abs(R) + Math.Abs(S)) / 2.0f;
     public double Distance(CubeCoord b) => (this - b).Length;
 
-    public Vector3 ToWorld(int y, Vector3 size) => new((CubeToWorldMatrix[0] * Q + CubeToWorldMatrix[1] * R) * size.x, y,
-        (CubeToWorldMatrix[2] * Q + CubeToWorldMatrix[3] * R) * size.z);
-    
-    public static CubeCoord FromWorld(Vector3 p) => new(Mathf.RoundToInt(WorldToCubeMatrix[0] * p.x + WorldToCubeMatrix[1] * p.z), Mathf.RoundToInt(WorldToCubeMatrix[2] * p.x + WorldToCubeMatrix[3] * p.z));
+    public Vector3 ToWorld(int y, Vector3 size, WorldType type = WorldType.FlatTop)
+    {
+        var matrix = type == WorldType.FlatTop ? FlatCubeToWorldMatrix : PointyCubeToWorldMatrix;
+        return new((matrix[0] * Q + matrix[1] * R) * size.x, y, (matrix[2] * Q + matrix[3] * R) * size.z);
+    }
+
+    public static CubeCoord FromWorld(Vector3 p, WorldType type = WorldType.FlatTop)
+    {
+        var matrix = type == WorldType.FlatTop ? FlatWorldToCubeMatrix : PointyWorldToCubeMatrix;
+        return new(Mathf.RoundToInt(matrix[0] * p.x + matrix[1] * p.z), Mathf.RoundToInt(matrix[2] * p.x + matrix[3] * p.z));
+    }
 
     public static CubeCoord operator +(CubeCoord a, CubeCoord b) => new(a.Q + b.Q, a.R + b.R, a.S + b.S);
     public static CubeCoord operator -(CubeCoord a, CubeCoord b) => new(a.Q - b.Q, a.R - b.R, a.S - b.S);
