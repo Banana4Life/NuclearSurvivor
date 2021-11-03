@@ -12,6 +12,8 @@ public class Game : MonoBehaviour
     public Floaty floatyPrefab;
     public GameObject canvas;
 
+    public GameObject fogOfWarMeshGeneratorPrefab;
+
     public AudioSourcePool audioSourcePool;
 
     private static Game INSTANCE;
@@ -112,23 +114,21 @@ public class Game : MonoBehaviour
     
     public void BuildFogMesh(Transform room, IList<CubeCoord> coords)
     {
-        var verticesOffset = CubeCoord.Spiral(CubeCoord.Origin, 0, 2).ToList().Select(coord => coord.ToWorld(0, tileSize)).ToList();
+        var verticesOffset = CubeCoord.Spiral(CubeCoord.Origin, 0, 2).ToList().Select(coord => coord.FlatTopToWorld(0, tileSize)).ToList();
 
         var mesh = new Mesh();
-        mesh.vertices = coords.Select(coord => coord.ToWorld(0, tileSize))
+        mesh.vertices = coords.Select(coord => coord.FlatTopToWorld(5, tileSize))
             .SelectMany(coord => verticesOffset.Select(offset => offset + coord)).ToArray();
         // UVs?
         mesh.triangles = Enumerable.Range(0, coords.Count).SelectMany(i => Triangles.Select(j => i * 7 + j)).ToArray();
         mesh.normals = Enumerable.Range(0, mesh.vertices.Length).Select(_ => Vector3.up).ToArray();
-        
-        var go = new GameObject("FogOfWarMesh");
-        go.transform.parent = room;
-        var meshFilter = go.AddComponent<MeshFilter>();
-        mesh.name = $"Generated V{mesh.vertices.Length} T{mesh.triangles.Length} N{mesh.normals.Length} AR{verticesOffset.Count}";
-        meshFilter.mesh = mesh;
-        mesh.RecalculateBounds();
-        Debug.Log($"Building Fog Mesh with {coords.ToList().Count} Tiles");
 
+        var go = Instantiate(fogOfWarMeshGeneratorPrefab);
+        go.transform.parent = room;
+        go.transform.position = Vector3.zero;
+        mesh.name = $"Generated V{mesh.vertices.Length} T{mesh.triangles.Length} N{mesh.normals.Length} AR{verticesOffset.Count}";
+        go.GetComponent<FogOfWarMesh>().Init(mesh);
+        Debug.Log($"Building Fog Mesh with {coords.ToList().Count} Tiles");
     }
 
     public void BuildRoom(Transform prevExit)
@@ -139,7 +139,7 @@ public class Game : MonoBehaviour
         
         tileSize.Scale(tilePrefab.transform.localScale);
         var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
-        var coords = CubeCoord.Spiral(entry, 0, 4).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
+        var coords = CubeCoord.Spiral(entry, 0, 6).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
         
         // Reparent prevExit as entry and build NavMeshLink on same tile
         _knownTiles[entry].transform.parent = room.transform;
