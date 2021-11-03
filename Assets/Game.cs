@@ -32,6 +32,7 @@ public class Game : MonoBehaviour
     private NavMeshSurface navMesh;
 
     public GameObject tilePrefab;
+    public GameObject doorPrefab;
     private MeshRenderer tileMeshRenderer;
     
     private Dictionary<CubeCoord, GameObject> _knownTiles = new();
@@ -80,6 +81,10 @@ public class Game : MonoBehaviour
         tileSize.Scale(objectScale);
         tile.transform.position = pos.ToWorld(0, tileSize);
         _knownTiles[pos] = tile;
+        
+        var door = Instantiate(doorPrefab, transform, true);
+        door.transform.position = tile.transform.position;
+        
         return tile;
     }
 

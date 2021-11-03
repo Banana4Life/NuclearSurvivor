@@ -6888,8 +6888,9 @@ MonoBehaviour:
   panBreaking: 2
   panLimit: 10
   panStopLimit: 9
-  needsNewNavMesh: 0
+  needsNewNavMesh: 1
   tilePrefab: {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
+  doorPrefab: {fileID: 1607342778421851596, guid: 79923f22c1164c7db978f838fea361d5, type: 3}
 --- !u!4 &1838390093
 Transform:
   m_ObjectHideFlags: 0
