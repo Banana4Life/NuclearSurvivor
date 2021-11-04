@@ -99,34 +99,97 @@ public class Game : MonoBehaviour
                 break;
             }
         }
-        
+        BuildFogMesh(tiles.transform, _knownTiles.Keys.ToList());
     }
-    
-    private static readonly int[] Triangles =
+
+    public Vector3[] Tessellate(Vector3[] input, int steps = 1)
     {
-        0, 1, 2,
-        0, 2, 3,
-        0, 3, 4,
-        0, 4, 5,
-        0, 5, 6,
-        0, 6, 1
-    };
+        if (steps == 0)
+        {
+            return input;
+        }
+        if (input.Length % 3 != 0)
+        {
+            throw new ArgumentException("Input Vertices must be a multiple of 3");
+        }
+
+        var tesselated = new Vector3[input.Length * 4];
+        for (int i = 0; i < input.Length / 3; i++)
+        {
+            var a = input[i * 3 + 0];
+            var b = input[i * 3 + 1];
+            var c = input[i * 3 + 2];
+            var d = Vector3.Lerp(a, b, 0.5f);
+            var e = Vector3.Lerp(b, c, 0.5f);
+            var f = Vector3.Lerp(c, a, 0.5f);
+
+            tesselated[i * 12 + 0] = a;
+            tesselated[i * 12 + 1] = d;
+            tesselated[i * 12 + 2] = f;
+            
+            tesselated[i * 12 + 3] = b;
+            tesselated[i * 12 + 4] = e;
+            tesselated[i * 12 + 5] = d;
+            
+            tesselated[i * 12 + 6] = c;
+            tesselated[i * 12 + 7] = f;
+            tesselated[i * 12 + 8] = e;
+            
+            tesselated[i * 12 + 9] = d;
+            tesselated[i * 12 + 10] = e;
+            tesselated[i * 12 + 11] = f;
+        }
+
+        return Tessellate(tesselated, steps - 1);
+    }
     
     public void BuildFogMesh(Transform room, IList<CubeCoord> coords)
     {
-        var verticesOffset = CubeCoord.Spiral(CubeCoord.Origin, 0, 2).ToList().Select(coord => coord.FlatTopToWorld(0, tileSize)).ToList();
+        // Offset Ring around Origin
+        var offsets = CubeCoord.Neighbors.Select(coord => coord.FlatTopToWorld(0, tileSize)).ToArray();
+        // Vertices in triples for triangles (clockwise order)
+        offsets = Enumerable.Range(0, offsets.Length).SelectMany(i => new[] { offsets[i], offsets[(i + 1) % offsets.Length], Vector3.zero}).ToArray();
+        // Tessellate offsets as needed
+        offsets = Tessellate(offsets, 2);
+        // Find all Hexes and apply tessellated offsets
+        var allVerts = coords.Select(coord => coord.FlatTopToWorld(2, tileSize))
+            .SelectMany(coord => offsets.Select(offset => offset + coord)).ToArray();
 
+        // Build vertex mapping, deduplicate vertices, build triangles
+        Dictionary<Vector3, int> dictionary = new();
+        var triangles = new int[allVerts.Length];
+        for (var i = 0; i < allVerts.Length; i++)
+        {
+            if (dictionary.TryAdd(allVerts[i], dictionary.Count))
+            {
+                // New Vertex
+                triangles[i] = dictionary.Count - 1;
+            }
+            else
+            {
+                // Existing Vertex - reuse index for triangle
+                triangles[i] = dictionary[allVerts[i]];
+            }
+        }
+        var deduplicatedVerts = new Vector3[dictionary.Count];
+        foreach (var (v, i) in dictionary)
+        {
+            deduplicatedVerts[i] = v;
+        }
+        // All Normals are Up
+        var normals = Enumerable.Range(0, deduplicatedVerts.Length).Select(_ => Vector3.up).ToArray();
+
+        // Finally Build the Mesh
         var mesh = new Mesh();
-        mesh.vertices = coords.Select(coord => coord.FlatTopToWorld(5, tileSize))
-            .SelectMany(coord => verticesOffset.Select(offset => offset + coord)).ToArray();
+        mesh.vertices = deduplicatedVerts;
         // UVs?
-        mesh.triangles = Enumerable.Range(0, coords.Count).SelectMany(i => Triangles.Select(j => i * 7 + j)).ToArray();
-        mesh.normals = Enumerable.Range(0, mesh.vertices.Length).Select(_ => Vector3.up).ToArray();
+        mesh.triangles = triangles;
+        mesh.normals = normals;
 
         var go = Instantiate(fogOfWarMeshGeneratorPrefab);
         go.transform.parent = room;
         go.transform.position = Vector3.zero;
-        mesh.name = $"Generated V{mesh.vertices.Length} T{mesh.triangles.Length} N{mesh.normals.Length} AR{verticesOffset.Count}";
+        mesh.name = $"Generated V{mesh.vertices.Length} T{mesh.triangles.Length}";
         go.GetComponent<FogOfWarMesh>().Init(mesh);
         Debug.Log($"Building Fog Mesh with {coords.ToList().Count} Tiles");
     }
