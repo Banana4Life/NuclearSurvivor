@@ -64,7 +64,7 @@ public class Game : MonoBehaviour
         var tileSize = tilePrefab.GetComponentInChildren<MeshRenderer>().bounds.size;
         tileSize.Scale(objectScale);
 
-        var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8);
+        using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
         foreach (Transform tile in tiles.transform)
         {
             if (coords.MoveNext())
@@ -87,7 +87,7 @@ public class Game : MonoBehaviour
         tileSize.Scale(tilePrefab.transform.localScale);
         rooms.Add(tiles.GetComponent<NavMeshSurface>());
         
-        var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8);
+        using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
         foreach (Transform tile in tiles.transform)
         {
             if (coords.MoveNext())
@@ -120,9 +120,9 @@ public class Game : MonoBehaviour
         link.endPoint = direction.normalized * float.Epsilon;
         link.width = tileSize.z;
 
-        foreach (var cubeCoord in coords)
+        foreach (var coord in coords)
         {
-            var newTile = spawnTile(cubeCoord, room.transform);
+            var newTile = spawnTile(coord, room.transform);
         }
         room.GetComponent<NavMeshSurface>().BuildNavMesh();
         fogOfWar.BuildFogMesh(coords, tileSize);

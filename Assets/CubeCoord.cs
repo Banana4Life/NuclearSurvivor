@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -41,7 +42,7 @@ public struct CubeCoord
     public static readonly CubeCoord West      = new(-1,  0);
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
-    public static CubeCoord[] Neighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest };
+    public static readonly CubeCoord[] Neighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest };
     
     public int Q { get; }
     public int R { get; }
@@ -105,7 +106,7 @@ public struct CubeCoord
         return $"{nameof(Q)}: {Q}, {nameof(R)}: {R}, {nameof(S)}: {S}";
     }
 
-    public static IEnumerator<CubeCoord> Ring(CubeCoord center, int radius)
+    public static IEnumerable<CubeCoord> Ring(CubeCoord center, int radius)
     {
         if (radius == 0)
         {
@@ -125,19 +126,35 @@ public struct CubeCoord
         }
     }
 
-    public static IEnumerator<CubeCoord> Spiral(CubeCoord center, int startRing = 0, int maxRings = -1)
+    public static IEnumerable<CubeCoord> Spiral(CubeCoord center, int startRing = 0, int maxRings = -1)
     {
         for (var i = 0; i < maxRings || maxRings == -1; ++i)
         {
-            var coords = Ring(center, startRing + i);
-            while (coords.MoveNext())
+            foreach (var coord in Ring(center, startRing + i))
             {
-                yield return coords.Current;
+                yield return coord;
             }
         }
     }
 
-    public static IEnumerator<CubeCoord> ShuffledRings(CubeCoord center, int startRing = 0, int maxRings = -1)
+    public static IEnumerable<CubeCoord> Outline(HashSet<CubeCoord> coords)
+    {
+        var emitted = new HashSet<CubeCoord>();
+        foreach (var cubeCoord in coords)
+        {
+            foreach (var neighbor in Neighbors)
+            {
+                var neighborCoord = cubeCoord + neighbor;
+                if (!coords.Contains(neighborCoord) && !emitted.Contains(neighborCoord))
+                {
+                    emitted.Add(neighborCoord);
+                    yield return neighborCoord;
+                }
+            }
+        }
+    }
+
+    public static IEnumerable<CubeCoord> ShuffledRings(CubeCoord center, int startRing = 0, int maxRings = -1)
     {
         for (var i = 0; i < maxRings || maxRings == -1; ++i)
         {
@@ -172,17 +189,6 @@ public static class EnumeratorExt
             yield return e.Current;
             n--;
         }
-    }
-
-    public static IList<T> ToList<T>(this IEnumerator<T> e)
-    {
-        var list = new List<T>();
-        while (e.MoveNext())
-        {
-            list.Add(e.Current);
-        }
-
-        return list;
     }
 
     public static IList<T> Shuffled<T>(this IList<T> l)
