@@ -168,29 +168,6 @@ public struct CubeCoord
 
 public static class EnumeratorExt
 {
-    public static IEnumerator<T> Where<T>(this IEnumerator<T> e, Predicate<T> p)
-    {
-        while (e.MoveNext())
-        {
-            var c = e.Current;
-            if (p(c))
-            {
-                yield return c;
-            }
-        }
-    }
-
-    public static IEnumerator<T> WhereNot<T>(this IEnumerator<T> e, Predicate<T> p) => Where(e, v => !p(v));
-
-    public static IEnumerator<T> Take<T>(this IEnumerator<T> e, int n)
-    {
-        while (n >= 0 && e.MoveNext())
-        {
-            yield return e.Current;
-            n--;
-        }
-    }
-
     public static IList<T> Shuffled<T>(this IList<T> l)
     {
         var copy = new List<T>(l);
