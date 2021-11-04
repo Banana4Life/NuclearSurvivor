@@ -48,6 +48,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lightRange: 5
+  maxObscure: 0.9
+  maxReObscure: 0.7
+  reobscureRate: 0.02
+  tessellate: 1
 --- !u!33 &2119159953
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -76,7 +80,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4d88d52f7f1714c6ca8ac194dbd5fa9b, type: 2}
+  - {fileID: 2100000, guid: 0eea48fc165c00d979e232c6e5b865c4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

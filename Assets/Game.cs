@@ -110,7 +110,7 @@ public class Game : MonoBehaviour
         
         tileSize.Scale(tilePrefab.transform.localScale);
         var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
-        var coords = CubeCoord.Spiral(entry, 0, 6).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
+        var coords = CubeCoord.Spiral(entry, 0, 9).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
         
         // Reparent prevExit as entry and build NavMeshLink on same tile
         _knownTiles[entry].transform.parent = room.transform;
