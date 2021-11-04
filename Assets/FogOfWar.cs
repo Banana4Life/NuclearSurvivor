@@ -14,7 +14,7 @@ public class FogOfWar : MonoBehaviour
             var fow = hit.transform.gameObject.GetComponent<FogOfWarMesh>();
             if (fow)
             {
-                fow.UpdateFog(hit);
+                fow.ClearFogAround(hit);
             }
         }
     }
@@ -23,5 +23,11 @@ public class FogOfWar : MonoBehaviour
     {
         Gizmos.color = Color.gray;
         Gizmos.DrawLine(player.transform.position, transform.position);
+        var ray = new Ray(transform.position, player.position - transform.position);
+        if (Physics.Raycast(ray , out RaycastHit hit, 200, layer, QueryTriggerInteraction.Collide))
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(hit.point, 0.5f);
+        }
     }
 }
