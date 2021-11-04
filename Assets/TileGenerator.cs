@@ -46,23 +46,24 @@ public class TileGenerator : MonoBehaviour
     public MeshRenderer referenceTile;
 
     public GameObject floorTile;
+    private const int RoomSize = 32;
 
     private Vector3 tileSize;
     private int roomRing = 0;
+    private Dictionary<CubeCoord, Room> _rooms = new();
 
     // Start is called before the first frame update
     void Start()
     {
-        //Random.InitState(1);
-        StartCoroutine(nameof(SpawnRoom));
+        Debug.Log(Random.seed);
+        StartCoroutine(nameof(SpawnNextRingOfRooms));
     }
 
     private Room generateRoom(CubeCoord roomCoord)
     {
-        var origin = roomCoord * 32;
+        var origin = roomCoord * RoomSize;
         var coords = new HashSet<CubeCoord>();
         tileSize = referenceTile.bounds.size;
-        //Random.InitState(1);
         var max = Random.Range(2, 4);
         var centers = new (CubeCoord, int)[max];
         var center = origin;
@@ -89,21 +90,25 @@ public class TileGenerator : MonoBehaviour
 
         var outline = CubeCoord.Outline(coords);
 
-        return new Room(roomCoord, origin, centers, coords, outline.ToHashSet(), 0);
+        var room = new Room(roomCoord, origin, centers, coords, outline.ToHashSet(), 0);
+        _rooms[room.RoomCoord] = room;
+        return room;
     }
 
-    private IEnumerator SpawnRoom()
+    private IEnumerator SpawnNextRingOfRooms()
     {
         while (true)
         {
-            var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing++);
-            foreach (var ringCoord in ringCoords)
+            var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing++).ToList().Shuffled();
+            for (var i = 0; i < Mathf.CeilToInt(ringCoords.Count / 2f); i++)
             {
+                var ringCoord = ringCoords[i];
                 foreach (var cubeCoord in generateRoom(ringCoord).Coords)
                 {
                     spawnFloor(cubeCoord);
                 }
             }
+
             yield return new WaitForSeconds(2);
         }
     }

@@ -106,6 +106,8 @@ public struct CubeCoord
         return $"{nameof(Q)}: {Q}, {nameof(R)}: {R}, {nameof(S)}: {S}";
     }
 
+    public static int CountCellsInRing(int radius) => Math.Max(1, radius * Neighbors.Length);
+
     public static IEnumerable<CubeCoord> Ring(CubeCoord center, int radius)
     {
         if (radius == 0)
