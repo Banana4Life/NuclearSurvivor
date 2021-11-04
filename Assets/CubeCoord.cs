@@ -5,7 +5,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 // Further reading: https://www.redblobgames.com/grids/hexagons/
-public struct CubeCoord
+public struct CubeCoord : IEquatable<CubeCoord>
 {
     // pointy top
     private static readonly float[] PointyCubeToWorldMatrix = {
@@ -106,6 +106,8 @@ public struct CubeCoord
         return $"{nameof(Q)}: {Q}, {nameof(R)}: {R}, {nameof(S)}: {S}";
     }
 
+    public bool Equals(CubeCoord other) => Q == other.Q && R == other.R && S == other.S;
+
     public static int CountCellsInRing(int radius) => Math.Max(1, radius * Neighbors.Length);
 
     public static IEnumerable<CubeCoord> Ring(CubeCoord center, int radius)
@@ -165,6 +167,16 @@ public struct CubeCoord
                 yield return coord;
             }
         }
+    }
+
+    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost)
+    {
+        return ShortestPath.Search(from, to, item => Neighbors.Select(neighbor => item + neighbor), cost, (_, _) => 0);
+    }
+
+    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
+    {
+        return ShortestPath.Search(from, to, item => Neighbors.Select(neighbor => item + neighbor), cost, estimate);
     }
 }
 
