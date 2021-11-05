@@ -47,11 +47,10 @@ MonoBehaviour:
   referenceTile: {fileID: -6471036689783332660, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
   hasWall: 0
   connections: 
-  connectionsCalculated: 0
   isTrigger: 0
   isDoor: 0
   hasPickup: 0
-  triggerDoorPrefab: {fileID: 1607342778421851596, guid: 284704aa338d256c4a809b5f908026e8, type: 3}
+  triggerPrefab: {fileID: 2562193828964249452, guid: e2289354b9e4fa6f597891767f4cb113, type: 3}
   pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
   prefabs:
   - {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
@@ -68,3 +67,4 @@ MonoBehaviour:
   - {fileID: 6986203231764649966, guid: c96f806efddd0c1d79e91df83634f7f9, type: 3}
   - {fileID: 6986203231764649966, guid: 684b88ddc5dcbd3f091118ec97fc89c1, type: 3}
   - {fileID: 7112680389594819905, guid: 8899009e18875335485be7d521102590, type: 3}
+  - {fileID: 1607342778421851596, guid: 79923f22c1164c7db978f838fea361d5, type: 3}

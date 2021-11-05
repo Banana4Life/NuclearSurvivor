@@ -17,12 +17,18 @@ public class FogOfWarMesh : MonoBehaviour
     public float maxReObscure = 0.7f;
     public float reobscureRate = 0.02f;
 
-    private Vector3 tileSize = new Vector3(4f, 0, 3.46f);
-
+    private Vector3 tileSize = new(4f, 0, 3.46f);
+    
+    private Vector3 min = Vector3.zero;
+    private Vector3 max = Vector3.zero;
+    
     private Vector3 minCamArea = Vector3.zero;
     private Vector3 maxCamArea = Vector3.zero;
 
+    public Transform player;
+    
     public int tessellate = 1;
+    private Plane plane = new(Vector3.up, Vector3.zero);
     
     private void Awake()
     {
@@ -169,6 +175,35 @@ public class FogOfWarMesh : MonoBehaviour
             }
         }
         mesh.colors = currentColors;
+        
+        {
+            var ray = new Ray(transform.position, player.position - transform.position);
+            if (Physics.Raycast(ray, out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
+            {
+                this.ClearFogAround(hit.point);
+            }
+        
+            // Detect min/max View
+            var cam = Camera.main;
+            
+            ray = cam.ViewportPointToRay(new Vector3(0,0,0));
+            if (plane.Raycast(ray, out var botLeftDist))
+            {
+                var botLeft = ray.GetPoint(botLeftDist);
+                ray = cam.ViewportPointToRay(new Vector3(0,1,0));
+                if (plane.Raycast(ray, out var topLeftDist))
+                {
+                    var topLeft = ray.GetPoint(topLeftDist);
+                    min = Vector3.Min(min, Vector3.Min(botLeft, topLeft));
+                }
+            }
+            ray = cam.ViewportPointToRay(new Vector3(1,1,0));
+            if (plane.Raycast(ray, out var topRightDist))
+            {
+                max = Vector3.Max(max, ray.GetPoint(topRightDist));
+            }
+            UpdateCamArea(min, max);
+        }
     }
 
     public void ClearFogAround(Vector3 point)
@@ -187,9 +222,10 @@ public class FogOfWarMesh : MonoBehaviour
         mesh.colors = currentColors;
     }
 
+    
+    
     public void UpdateCamArea(Vector3 min, Vector3 max)
     {
-        
         min = min - tileSize * 2;
         max = max + tileSize * 2;
         var newMin = minCamArea;

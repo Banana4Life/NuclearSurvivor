@@ -121,16 +121,11 @@ public class Game : MonoBehaviour
 
     public static void LoadNextLevel(AutoTile trigger)
     {
-        INSTANCE.generator.SpawnNextRingOfRooms(trigger);
+        INSTANCE.generator.SpawnRoomRingFromHallwayTarget(trigger.coord);
     }
 
     public static AutoTile TileAt(CubeCoord cubeCoord)
     {
         return INSTANCE.generator.TileAt(cubeCoord);
-    }
-
-    public void GenerateRoom()
-    {
-        generator.SpawnNextRingOfRooms(null);
     }
 }

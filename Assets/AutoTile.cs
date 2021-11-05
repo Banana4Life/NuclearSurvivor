@@ -16,16 +16,16 @@ public class AutoTile : MonoBehaviour
     public bool isDoor;
     public bool hasPickup;
 
-    private GameObject feature;
+    private GameObject thisTile;
     
-    public GameObject triggerDoorPrefab;
+    public GameObject triggerPrefab;
     public GameObject pickupPrefab;
 
     public GameObject[] prefabs;
     
     private static Dictionary<bool[], TileType> meshTileMap = new()
     {
-        { new[] { false, false, false, false, false ,false}, TileType.NO_WALL },
+        { new[] { false, false, false, false, false ,false}, TileType.FLOOR },
         { new[] { true, false, false, false, false ,false}, TileType.WALL1_END },
         { new[] { true, true, false, false, false, false}, TileType.WALL2_SHARP },
         { new[] { true, false, true, false, false, false}, TileType.WALL2_OBTUSE },
@@ -92,37 +92,41 @@ public class AutoTile : MonoBehaviour
         return rotated;
     }
 
-    private void PlaceFeature()
+    private void PlaceTile()
     {
-        if (isTrigger)
-        {
-            // TODO place trigger
-        }
-        if (hasPickup)
-        {
-            feature = Instantiate(pickupPrefab, transform);
-            return;
-        }
+        thisTile = Instantiate(prefabs[(int)TileType.FLOOR], transform);
         if (tileMap.TryGetValue(connections, out var type))
         {
+            if (type.type != TileType.FLOOR)
+            {
+                var wall = Instantiate(prefabs[(int)type.type], thisTile.transform);
+                wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+            }
+
+            // TODO Doors
             if (type.type == TileType.WALL2_STRAIGHT)
             {
                 if (Random.value < 0.1f)
                 {
                     isDoor = true;
-                    feature = Instantiate(triggerDoorPrefab, transform);
-                    feature.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+                    thisTile = Instantiate(prefabs[(int)TileType.DOOR_STRAIGHT], transform);
+                    thisTile.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
                     return;
                 }
             }
-            
-            feature = Instantiate(prefabs[(int)type.type], transform);
-            feature.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
         }
         else
         {
             Debug.Log("Wall Type not found " + string.Join("|", connections));
         }
+        
+        // Tile Features
+        if (hasPickup)
+        {
+            Instantiate(pickupPrefab, thisTile.transform);
+        }
+    
+
     }
     
     // Flat Top Hex Directions (multiply with tilesize) - Top first clockwise
@@ -138,8 +142,7 @@ public class AutoTile : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        hasWall = Random.value < 0.5f;
-        hasPickup = !hasWall && Random.value < 0.05f;
+        
     }
 
     // Update is called once per frame
@@ -148,31 +151,40 @@ public class AutoTile : MonoBehaviour
        
     }
 
-    public AutoTile Init(CubeCoord pos, bool isTrigger = false)
+    private void Awake()
+    {
+        hasWall = Random.value < 0.5f;
+        hasPickup = !hasWall && Random.value < 0.05f;
+    }
+
+    public AutoTile Init(CubeCoord pos, bool isNavMeshLink = false)
     {
         tileSize = referenceTile.bounds.size;
         coord = pos;
-        gameObject.name = (isTrigger ? "Trigger" : "Tile") + $" {pos}";
+        gameObject.name = $"Tile {pos}";
         transform.position = pos.FlatTopToWorld(0, tileSize);
-        this.isTrigger = isTrigger; 
         connections = new bool[6];
-        if (!isTrigger)
+        if (!isNavMeshLink && hasWall)
         {
-            if (hasWall)
+            for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
             {
-                for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
+                var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
+                var autoTile = Game.TileAt(cubeCoord);
+                if (autoTile)
                 {
-                    var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
-                    var autoTile = Game.TileAt(cubeCoord);
-                    if (autoTile)
-                    {
-                        connections[i] = autoTile.hasWall;
-                    }
+                    connections[i] = autoTile.hasWall;
                 }
             }
         }
-        PlaceFeature();
+        PlaceTile();
         return this;
+    }
+
+    public void SetTrigger()
+    {
+        isTrigger = true;
+        gameObject.name = $"Trigger {coord}";
+        Instantiate(triggerPrefab, thisTile.transform).GetComponent<LevelLoader>().thisTile = this;
     }
 
     private void OnDrawGizmos()
@@ -202,15 +214,15 @@ public class AutoTile : MonoBehaviour
         }
     }
 
-    public void HideTrigger()
+    public void HideNavMeshLinkPlate()
     {
-        
+        Destroy(thisTile);
     }
 }
 
 public enum TileType
 {
-    NO_WALL,
+    FLOOR,
     WALL1_END, 
     WALL2_SHARP, 
     WALL2_OBTUSE, 
