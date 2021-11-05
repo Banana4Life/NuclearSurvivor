@@ -12,9 +12,9 @@ FBXHeaderExtension:  {
 		Month: 11
 		Day: 5
 		Hour: 23
-		Minute: 36
-		Second: 13
-		Millisecond: 490
+		Minute: 51
+		Second: 33
+		Millisecond: 531
 	}
 	Creator: "FBX SDK/FBX Plugins version 2016.1"
 	SceneInfo: "SceneInfo::GlobalInfo", "UserData" {
@@ -30,8 +30,8 @@ FBXHeaderExtension:  {
 			Comment: ""
 		}
 		Properties70:  {
-			P: "DocumentUrl", "KString", "Url", "", "C:\Users\rdp\AppData\Local\Temp\5E10.tmp.fbx"
-			P: "SrcDocumentUrl", "KString", "Url", "", "C:\Users\rdp\AppData\Local\Temp\5E10.tmp.fbx"
+			P: "DocumentUrl", "KString", "Url", "", "C:\Users\rdp\AppData\Local\Temp\680B.tmp.fbx"
+			P: "SrcDocumentUrl", "KString", "Url", "", "C:\Users\rdp\AppData\Local\Temp\680B.tmp.fbx"
 			P: "Original", "Compound", "", ""
 			P: "Original|ApplicationVendor", "KString", "", "", ""
 			P: "Original|ApplicationName", "KString", "", "", ""
@@ -77,7 +77,7 @@ GlobalSettings:  {
 
 Documents:  {
 	Count: 1
-	Document: 1876663246160, "", "Scene" {
+	Document: 1876765191328, "", "Scene" {
 		Properties70:  {
 			P: "SourceObject", "object", "", ""
 			P: "ActiveAnimStackName", "KString", "", "", ""
@@ -97,7 +97,7 @@ References:  {
 
 Definitions:  {
 	Version: 100
-	Count: 7
+	Count: 10
 	ObjectType: "GlobalSettings" {
 		Count: 1
 	}
@@ -180,7 +180,7 @@ Definitions:  {
 		}
 	}
 	ObjectType: "Texture" {
-		Count: 1
+		Count: 2
 		PropertyTemplate: "FbxFileTexture" {
 			Properties70:  {
 				P: "TextureTypeUse", "enum", "", "",0
@@ -216,7 +216,7 @@ Definitions:  {
 		}
 	}
 	ObjectType: "Material" {
-		Count: 1
+		Count: 2
 		PropertyTemplate: "FbxSurfacePhong" {
 			Properties70:  {
 				P: "ShadingModel", "KString", "", "", "Phong"
@@ -245,7 +245,7 @@ Definitions:  {
 		}
 	}
 	ObjectType: "Video" {
-		Count: 1
+		Count: 2
 		PropertyTemplate: "FbxVideo" {
 			Properties70:  {
 				P: "ImageSequence", "bool", "", "",0
@@ -272,12 +272,12 @@ Definitions:  {
 ;------------------------------------------------------------------
 
 Objects:  {
-	Geometry: 1876262124400, "Geometry::", "Mesh" {
-		Vertices: *18 {
-			a: -1,0,1.73205080756888,0.999999999999999,0,1.73205080756888,2,0,-0,0.999999999999999,0,-1.73205080756888,-0.999999999999999,0,-1.73205080756888,-2,0,7.21911419532262e-16
+	Geometry: 1876671517952, "Geometry::", "Mesh" {
+		Vertices: *66 {
+			a: -2.01532128229334,2,7.21911419532262e-16,-1.01532128229334,2,1.73205080756888,-1.01532128229334,0,1.73205080756888,-2.01532128229334,0,7.21911419532262e-16,0.984678717706661,2,-1.73205080756888,1.98467871770666,2,-7.21911419532262e-16,1.98467871770666,0,-7.21911419532262e-16,0.984678717706661,0,-1.73205080756888,0.984678717706661,0,-1.73205080756888,1.98467871770666,0,-7.21911419532262e-16,-1.01532128229334,0,-1.73205080756888,-1.01532128229334,2,-1.73205080756888,0.984678717706661,2,-1.73205080756888,0.984678717706661,0,-1.73205080756888,-1.01532128229334,0,-1.73205080756888,-1.01532128229334,0,-1.73205080756888,1.98467871770666,0,-7.21911419532262e-16,1.98467871770666,2,-7.21911419532262e-16,-1.01532128229334,2,-1.73205080756888,1.98467871770666,2,-7.21911419532262e-16,0.984678717706661,2,-1.73205080756888,-1.01532128229334,2,-1.73205080756888
 		} 
-		PolygonVertexIndex: *6 {
-			a: 0,1,2,3,4,-6
+		PolygonVertexIndex: *22 {
+			a: 0,1,2,-4,4,5,6,-8,8,9,-11,11,12,13,-15,15,16,17,-19,19,20,-22
 		} 
 		GeometryVersion: 124
 		LayerElementNormal: 0 {
@@ -285,11 +285,11 @@ Objects:  {
 			Name: ""
 			MappingInformationType: "ByVertice"
 			ReferenceInformationType: "Direct"
-			Normals: *18 {
-				a: 0,1,-0,0,1,-0,0,1,-0,0,1,-0,0,1,-0,0,1,-0
+			Normals: *66 {
+				a: 0.866025403784438,0,-0.500000000000002,0.866025403784438,0,-0.500000000000002,0.866025403784438,0,-0.500000000000002,0.866025403784438,0,-0.500000000000002,0.866025403784438,0,-0.5,0.866025403784438,0,-0.5,0.866025403784438,0,-0.5,0.866025403784438,0,-0.5,0,-1,-0,0,-1,-0,0,-1,-0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,-0.5,9.82652755902012e-18,0.866025403784439,-0.5,9.82652755902012e-18,0.866025403784439,-0.5,9.82652755902012e-18,0.866025403784439,-0.5,9.82652755902012e-18,0.866025403784439,-1.80477854883066e-16,1,1.04198938099504e-16,-1.80477854883066e-16,1,1.04198938099504e-16,-1.80477854883066e-16,1,1.04198938099504e-16
 			} 
-			NormalsW: *6 {
-				a: 1,1,1,1,1,1
+			NormalsW: *22 {
+				a: 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 			} 
 		}
 		LayerElementUV: 0 {
@@ -297,11 +297,11 @@ Objects:  {
 			Name: ""
 			MappingInformationType: "ByPolygonVertex"
 			ReferenceInformationType: "IndexToDirect"
-			UV: *12 {
-				a: -1.73205080756888,-0.999999999999999,0.267949192431122,-0.999999999999999,1.26794919243112,0.732050807568879,0.267949192431122,2.46410161513776,-1.73205080756888,2.46410161513776,-2.73205080756888,0.732050807568878
+			UV: *36 {
+				a: 22.0945180220793,2,20.0945180220793,2,20.0945180220793,0,22.0945180220793,0,19.7148386255216,14.1301844678501,18.7148386255216,12.3981336602812,21.7148386255216,14.1301844678501,21.7148386255216,2,19.7148386255216,2,19.7148386255216,0,21.7148386255216,0,-25.8706941227063,1.35574576128864e-17,-22.4065925075686,1.35574576128856e-17,-22.4065925075686,2,-25.8706941227063,2,-18.7148386255216,12.3981336602812,-19.7148386255216,14.1301844678501,-21.7148386255216,14.1301844678501
 			} 
-			UVIndex: *6 {
-				a: 0,1,2,3,4,5
+			UVIndex: *22 {
+				a: 0,1,2,3,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17
 			} 
 		}
 		LayerElementMaterial: 0 {
@@ -309,8 +309,8 @@ Objects:  {
 			Name: ""
 			MappingInformationType: "ByPolygon"
 			ReferenceInformationType: "IndexToDirect"
-			Materials: *1 {
-				a: 0
+			Materials: *6 {
+				a: 0,1,1,1,0,1
 			} 
 		}
 		Layer: 0 {
@@ -333,7 +333,7 @@ Objects:  {
 			}
 		}
 	}
-	Model: 1876672980272, "Model::Model", "Null" {
+	Model: 1876262700192, "Model::Model", "Null" {
 		Version: 232
 		Properties70:  {
 			P: "ScalingMax", "Vector3D", "Vector", "",0,0,0
@@ -341,7 +341,7 @@ Objects:  {
 		Shading: Y
 		Culling: "CullingOff"
 	}
-	Model: 1876674207808, "Model::Mesh1", "Mesh" {
+	Model: 1876262712192, "Model::Mesh1", "Mesh" {
 		Version: 232
 		Properties70:  {
 			P: "ScalingMax", "Vector3D", "Vector", "",0,0,0
@@ -350,41 +350,81 @@ Objects:  {
 		Shading: T
 		Culling: "CullingOff"
 	}
-	Material: 1876667026448, "Material::Floor", "" {
+	Material: 1876262018656, "Material::Wall", "" {
 		Version: 102
 		ShadingModel: "phong"
 		MultiLayer: 0
 		Properties70:  {
 			P: "AmbientColor", "Color", "", "A",0,0,0
-			P: "DiffuseColor", "Color", "", "A",0.56078431372549,0.113725490196078,0.0235294117647059
+			P: "DiffuseColor", "Color", "", "A",0.784313725490196,0.784313725490196,0.784313725490196
 			P: "TransparentColor", "Color", "", "A",1,1,1
 			P: "SpecularColor", "Color", "", "A",0.33,0.33,0.33
 			P: "ReflectionFactor", "Number", "", "A",0
 			P: "Emissive", "Vector3D", "Vector", "",0,0,0
 			P: "Ambient", "Vector3D", "Vector", "",0,0,0
-			P: "Diffuse", "Vector3D", "Vector", "",0.56078431372549,0.113725490196078,0.0235294117647059
+			P: "Diffuse", "Vector3D", "Vector", "",0.784313725490196,0.784313725490196,0.784313725490196
 			P: "Specular", "Vector3D", "Vector", "",0.33,0.33,0.33
 			P: "Shininess", "double", "Number", "",20
 			P: "Opacity", "double", "Number", "",1
 			P: "Reflectivity", "double", "Number", "",0
 		}
 	}
-	Video: 1876673679008, "Video::Floor_texture", "Clip" {
+	Material: 1876262021056, "Material::Void", "" {
+		Version: 102
+		ShadingModel: "phong"
+		MultiLayer: 0
+		Properties70:  {
+			P: "AmbientColor", "Color", "", "A",0,0,0
+			P: "DiffuseColor", "Color", "", "A",0.125490196078431,0.125490196078431,0.125490196078431
+			P: "TransparentColor", "Color", "", "A",1,1,1
+			P: "SpecularColor", "Color", "", "A",0.33,0.33,0.33
+			P: "ReflectionFactor", "Number", "", "A",0
+			P: "Emissive", "Vector3D", "Vector", "",0,0,0
+			P: "Ambient", "Vector3D", "Vector", "",0,0,0
+			P: "Diffuse", "Vector3D", "Vector", "",0.125490196078431,0.125490196078431,0.125490196078431
+			P: "Specular", "Vector3D", "Vector", "",0.33,0.33,0.33
+			P: "Shininess", "double", "Number", "",20
+			P: "Opacity", "double", "Number", "",1
+			P: "Reflectivity", "double", "Number", "",0
+		}
+	}
+	Video: 1876663791776, "Video::Wall_texture", "Clip" {
 		Type: "Clip"
 		Properties70:  {
-			P: "Path", "KString", "XRefUrl", "", "Floor/Floor.png"
+			P: "Path", "KString", "XRefUrl", "", "EdgeWall3G/Wall.png"
 		}
 		UseMipMap: 0
-		Filename: "Floor/Floor.png"
-		RelativeFilename: "..\..\..\Documents\Floor\Floor.png"
+		Filename: "EdgeWall3G/Wall.png"
+		RelativeFilename: "..\..\..\Documents\EdgeWall3G\Wall.png"
 	}
-	Texture: 1876667015888, "Texture::Floor_texture", "" {
+	Video: 1876663792176, "Video::Void_texture", "Clip" {
+		Type: "Clip"
+		Properties70:  {
+			P: "Path", "KString", "XRefUrl", "", "EdgeWall3G/Void.png"
+		}
+		UseMipMap: 0
+		Filename: "EdgeWall3G/Void.png"
+		RelativeFilename: "..\..\..\Documents\EdgeWall3G\Void.png"
+	}
+	Texture: 1876262020576, "Texture::Wall_texture", "" {
 		Type: "TextureVideoClip"
 		Version: 202
-		TextureName: "Texture::Floor_texture"
-		Media: "Video::Floor_texture"
-		FileName: "Floor/Floor.png"
-		RelativeFilename: "..\..\..\Documents\Floor\Floor.png"
+		TextureName: "Texture::Wall_texture"
+		Media: "Video::Wall_texture"
+		FileName: "EdgeWall3G/Wall.png"
+		RelativeFilename: "..\..\..\Documents\EdgeWall3G\Wall.png"
+		ModelUVTranslation: 0,0
+		ModelUVScaling: 1,1
+		Texture_Alpha_Source: "None"
+		Cropping: 0,0,0,0
+	}
+	Texture: 1876262021536, "Texture::Void_texture", "" {
+		Type: "TextureVideoClip"
+		Version: 202
+		TextureName: "Texture::Void_texture"
+		Media: "Video::Void_texture"
+		FileName: "EdgeWall3G/Void.png"
+		RelativeFilename: "..\..\..\Documents\EdgeWall3G\Void.png"
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
 		Texture_Alpha_Source: "None"
@@ -398,25 +438,37 @@ Objects:  {
 Connections:  {
 	
 	;Model::Model, Model::RootNode
-	C: "OO",1876672980272,0
+	C: "OO",1876262700192,0
 	
 	;Model::Mesh1, Model::Model
-	C: "OO",1876674207808,1876672980272
+	C: "OO",1876262712192,1876262700192
 	
 	;Geometry::, Model::Mesh1
-	C: "OO",1876262124400,1876674207808
+	C: "OO",1876671517952,1876262712192
 	
-	;Material::Floor, Model::Mesh1
-	C: "OO",1876667026448,1876674207808
+	;Material::Wall, Model::Mesh1
+	C: "OO",1876262018656,1876262712192
 	
-	;Texture::Floor_texture, Model::Mesh1
-	C: "OO",1876667015888,1876674207808
+	;Material::Void, Model::Mesh1
+	C: "OO",1876262021056,1876262712192
 	
-	;Video::Floor_texture, Texture::Floor_texture
-	C: "OO",1876673679008,1876667015888
+	;Texture::Wall_texture, Model::Mesh1
+	C: "OO",1876262020576,1876262712192
 	
-	;Texture::Floor_texture, Material::Floor
-	C: "OP",1876667015888,1876667026448, "DiffuseColor"
+	;Texture::Void_texture, Model::Mesh1
+	C: "OO",1876262021536,1876262712192
+	
+	;Video::Wall_texture, Texture::Wall_texture
+	C: "OO",1876663791776,1876262020576
+	
+	;Video::Void_texture, Texture::Void_texture
+	C: "OO",1876663792176,1876262021536
+	
+	;Texture::Wall_texture, Material::Wall
+	C: "OP",1876262020576,1876262018656, "DiffuseColor"
+	
+	;Texture::Void_texture, Material::Void
+	C: "OP",1876262021536,1876262021056, "DiffuseColor"
 }
 ;Takes section
 ;----------------------------------------------------
