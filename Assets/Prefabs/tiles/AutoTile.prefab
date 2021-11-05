@@ -46,15 +46,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceTile: {fileID: -6471036689783332660, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
-  walled: 0
+  hasWall: 0
   connections: 
   connectionsCalculated: 0
   isTrigger: 0
   isDoor: 0
-  isVoid: 0
-  top: 
-  voidPrefab: {fileID: 7112680389594819905, guid: 8899009e18875335485be7d521102590, type: 3}
+  hasPickup: 0
   triggerDoorPrefab: {fileID: 1607342778421851596, guid: 284704aa338d256c4a809b5f908026e8, type: 3}
+  pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
+  prefabs:
+  - {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
+  - {fileID: 6986203231764649966, guid: 97cb39c58cd16d7afa8bcf6683b0b0df, type: 3}
+  - {fileID: 6986203231764649966, guid: a579b231ae9aa8872875bc8847599905, type: 3}
+  - {fileID: 6986203231764649966, guid: 0b6d014f96a662470837055a2dd9c4ec, type: 3}
+  - {fileID: 6986203231764649966, guid: cfb7aeee453061eba884e42a8d593b52, type: 3}
+  - {fileID: 6986203231764649966, guid: d43185e6cd774c7cdb12c0338a6320f1, type: 3}
+  - {fileID: 6986203231764649966, guid: 21a436a9656d67cfcb3147dc793aa6fe, type: 3}
+  - {fileID: 6986203231764649966, guid: e1d2cb471af186a149130c357739f3cb, type: 3}
+  - {fileID: 6986203231764649966, guid: 5d4239dfec274010d8c21d0f0abd5c00, type: 3}
+  - {fileID: 6986203231764649966, guid: f8cfd771ba66be326952db22fd8aee88, type: 3}
+  - {fileID: 6986203231764649966, guid: 1ef28d06e54f1ee12999260e6363b00c, type: 3}
+  - {fileID: 6986203231764649966, guid: c96f806efddd0c1d79e91df83634f7f9, type: 3}
+  - {fileID: 6986203231764649966, guid: 684b88ddc5dcbd3f091118ec97fc89c1, type: 3}
+  - {fileID: 7112680389594819905, guid: 8899009e18875335485be7d521102590, type: 3}
 --- !u!1001 &700562105951058618
 PrefabInstance:
   m_ObjectHideFlags: 0

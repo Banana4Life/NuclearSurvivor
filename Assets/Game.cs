@@ -31,7 +31,7 @@ public class Game : MonoBehaviour
     private bool panning;
     private float panSpeed;
 
-    public AutoTile autoTilePrefab;
+    public GameObject autoTilePrefab;
     public MeshRenderer referenceTile;
     private MeshRenderer tileMeshRenderer;
     private Vector3 tileSize;
@@ -79,8 +79,7 @@ public class Game : MonoBehaviour
     
     private void Start()
     {
-        tileMeshRenderer = autoTilePrefab.GetComponentInChildren<MeshRenderer>();
-        tileSize = tileMeshRenderer.bounds.size;
+        tileSize = referenceTile.bounds.size;
         rooms.Add(tiles.GetComponent<NavMeshSurface>());
         
         using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
@@ -101,10 +100,10 @@ public class Game : MonoBehaviour
     public void BuildRoom(Transform prevExit)
     {
         var room = Instantiate(roomPrefab, transform);
-        room.name = "Room " + rooms.Count;
+        room.name = "Room " + (rooms.Count + 1);
         room.transform.position = prevExit.position;
         var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
-        var coords = CubeCoord.Spiral(entry, 0, 9).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
+        var coords = CubeCoord.Spiral(entry, 0, 6).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
         
         // Reparent prevExit as entry and build NavMeshLink on same tile
         _knownTiles[entry].transform.parent = room.transform;
@@ -124,7 +123,9 @@ public class Game : MonoBehaviour
 
     private void spawnTile(CubeCoord pos, Transform room)
     {
-        _knownTiles[pos] = Instantiate(autoTilePrefab, room.transform, true).Init(pos);
+        var tile = Instantiate(autoTilePrefab, room.transform, true);
+        tile.transform.position = Vector3.one * 5;
+        _knownTiles[pos] = tile.GetComponent<AutoTile>().Init(pos);
     }
 
     private void Update()

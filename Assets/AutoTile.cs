@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -6,35 +8,117 @@ public class AutoTile : MonoBehaviour
 {
     public MeshRenderer referenceTile;
     
-    public bool walled;
+    public bool hasWall;
     public bool[] connections;
     public bool connectionsCalculated;
     private Vector3 tileSize;
     public CubeCoord coord;
     public bool isTrigger;
     public bool isDoor;
-    public bool isVoid;
-    public string top;
+    public bool hasPickup;
 
-    public GameObject voidPrefab;
     public GameObject triggerDoorPrefab;
+    public GameObject pickupPrefab;
+
+    public GameObject[] prefabs;
     
-    private static Dictionary<int[], TileType> tileMapping = new()
+    private static Dictionary<bool[], TileType> meshTileMap = new()
     {
-        { new[] { 1, 0, 0, 0, 0 ,0}, TileType.WALL1_END },
-        { new[] { 1, 1, 0, 0, 0, 0}, TileType.WALL2_SHARP },
-        { new[] { 1, 0, 1, 0, 0, 0}, TileType.WALL2_OBTUSE },
-        { new[] { 1, 0, 0, 1, 0, 0}, TileType.WALL2_STRAIGHT },
-        { new[] { 1, 1, 1, 0, 0, 0}, TileType.WALL3_W },
-        { new[] { 1, 1, 0, 1, 0, 0}, TileType.WALL3_Y_LEFT },
-        { new[] { 1, 1, 0, 0, 1, 0}, TileType.WALL3_Y_RIGHT },
-        { new[] { 1, 0, 1, 0, 1 ,0}, TileType.WALL3_Y },
-        { new[] { 1, 1, 1, 1, 0, 0}, TileType.WALL4_V },
-        { new[] { 1, 1, 1, 0, 1, 0}, TileType.WALL4_W },
-        { new[] { 1, 1, 0, 1, 1, 0}, TileType.WALL4_X },
-        { new[] { 1, 1, 1, 1, 1, 0}, TileType.WALL5},
-        { new[] { 1, 1, 1, 1, 1, 1}, TileType.WALL6},
+        { new[] { false, false, false, false, false ,false}, TileType.NO_WALL },
+        { new[] { true, false, false, false, false ,false}, TileType.WALL1_END },
+        { new[] { true, true, false, false, false, false}, TileType.WALL2_SHARP },
+        { new[] { true, false, true, false, false, false}, TileType.WALL2_OBTUSE },
+        { new[] { true, false, false, true, false, false}, TileType.WALL2_STRAIGHT },
+        { new[] { true, true, true, false, false, false}, TileType.WALL3_W },
+        { new[] { true, true, false, true, false, false}, TileType.WALL3_Y_RIGHT },
+        { new[] { true, true, false, false, true, false}, TileType.WALL3_Y_LEFT },
+        { new[] { true, false, true, false, true ,false}, TileType.WALL3_Y },
+        { new[] { true, true, true, true, false, false}, TileType.WALL4_V },
+        { new[] { true, true, true, false, true, false}, TileType.WALL4_W },
+        { new[] { true, true, false, true, true, false}, TileType.WALL4_X },
+        { new[] { true, true, true, true, true, false}, TileType.WALL5},
+        { new[] { true, true, true, true, true, true}, TileType.WALL6},
     };
+    
+    private struct RotatedTileType
+    {
+        public TileType type;
+        public int rotation;
+    }
+
+    private static Dictionary<bool[], RotatedTileType> tileMap = CalcRotatedTileMap();
+    static Dictionary<bool[], RotatedTileType> CalcRotatedTileMap()
+    {
+        var tileMap = new Dictionary<bool[], RotatedTileType>(new BoolArrayEqualityComparer());
+        foreach (var original in meshTileMap)
+        {
+            var rot = original.Key;
+            tileMap[original.Key] = new RotatedTileType { rotation = 0, type = original.Value };
+            for (int i = 1; i < 6; i++)
+            {
+                rot = rotate(rot);
+                tileMap[rot] = new RotatedTileType { rotation = i, type = original.Value };
+            }
+        }
+        return tileMap;
+    }
+    
+    private class BoolArrayEqualityComparer : IEqualityComparer<bool[]>
+    {
+        public bool Equals(bool[] x, bool[] y)
+        {
+            return x.SequenceEqual(y);
+        }
+
+        public int GetHashCode(bool[] x)
+        {
+            int result = 29;
+            foreach (bool b in x)
+            {
+                if (b) { result++; }
+                result *= 23;
+            }
+            return result;
+        }
+    }
+
+    
+    public static bool[] rotate(bool[] original)
+    {
+        var rotated = new bool[original.Length];
+        Array.Copy(original, 0, rotated, 1, original.Length -1);
+        rotated[0] = original[^1];
+        return rotated;
+    }
+
+    private void PlaceFeature()
+    {
+        if (hasPickup)
+        {
+            var door = Instantiate(pickupPrefab, transform);
+            return;
+        }
+        if (tileMap.TryGetValue(connections, out var type))
+        {
+            if (type.type == TileType.WALL2_STRAIGHT)
+            {
+                if (Random.value < 0.1f)
+                {
+                    isDoor = true;
+                    var door = Instantiate(triggerDoorPrefab, transform);
+                    door.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+                    return;
+                }
+            }
+            
+            var wall = Instantiate(prefabs[(int)type.type], transform);
+            wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+        }
+        else
+        {
+            Debug.Log("Wall Type not found " + string.Join("|", connections));
+        }
+    }
     
     // Flat Top Hex Directions (multiply with tilesize) - Top first clockwise
     private static Vector2[] directions = {
@@ -49,16 +133,8 @@ public class AutoTile : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        walled = Random.value > 0.5f;
-        tileSize = referenceTile.bounds.size;
-        if (isVoid)
-        {
-            Instantiate(voidPrefab, transform);
-        }
-        if (isTrigger)
-        {
-            Instantiate(triggerDoorPrefab, transform);
-        }
+        hasWall = Random.value < 0.5f;
+        hasPickup = !hasWall && Random.value < 0.05f;
     }
 
     // Update is called once per frame
@@ -67,28 +143,27 @@ public class AutoTile : MonoBehaviour
         if (!connectionsCalculated)
         {
             connections = new bool[6];
-            if (walled)
+            if (hasWall)
             {
                 for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
                 {
                     var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
-                    if (i == 0)
-                    {
-                        top = cubeCoord.ToString();
-                    }
                     var autoTile = Game.TileAt(cubeCoord);
                     if (autoTile)
                     {
-                        connections[i] = autoTile.walled;
+                        connections[i] = autoTile.hasWall;
                     }
                 }
             }
+
+            PlaceFeature();
             connectionsCalculated = true;
         }
     }
 
     public AutoTile Init(CubeCoord pos)
     {
+        tileSize = referenceTile.bounds.size;
         coord = pos;
         gameObject.name = $"{pos}";
         transform.position = pos.FlatTopToWorld(0, tileSize);
@@ -97,7 +172,7 @@ public class AutoTile : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (walled)
+        if (hasWall)
         {
             Gizmos.color = Color.gray;
         }
@@ -125,14 +200,15 @@ public class AutoTile : MonoBehaviour
 
 public enum TileType
 {
+    NO_WALL,
     WALL1_END, 
     WALL2_SHARP, 
     WALL2_OBTUSE, 
     WALL2_STRAIGHT,
     WALL3_W,
     WALL3_Y,
-    WALL3_Y_RIGHT,
-    WALL3_Y_LEFT, 
+    WALL3_Y_LEFT,
+    WALL3_Y_RIGHT, 
     WALL4_X,
     WALL4_V,
     WALL4_W,
