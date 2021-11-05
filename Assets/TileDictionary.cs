@@ -6,16 +6,20 @@ using UnityEngine;
 public class TileDictionary : MonoBehaviour
 {
     public MeshRenderer referenceTile;
-    public Vector3 tileSize;
+    private Vector3 tileSize;
 
     public GameObject[] prefabs;
 
     public GameObject triggerPrefab;
     public GameObject pickupPrefab;
 
-    private void Awake()
+    public Vector3 TileSize()
     {
-        tileSize = referenceTile.bounds.size;
+        if (tileSize == Vector3.zero)
+        {
+            tileSize = referenceTile.bounds.size;
+        }
+        return tileSize;
     }
 
     public void PlaceTiles()

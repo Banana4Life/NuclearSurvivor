@@ -61,6 +61,5 @@ MonoBehaviour:
   - {fileID: 6986203231764649966, guid: 8b20e55d8a3561bcda3a20ae37aadf9b, type: 3}
   - {fileID: 6986203231764649966, guid: 2449764d0969efc3ea801cb726526d57, type: 3}
   - {fileID: 7112680389594819905, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
-  - {fileID: 0}
   triggerPrefab: {fileID: 2562193828964249452, guid: e2289354b9e4fa6f597891767f4cb113, type: 3}
   pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}

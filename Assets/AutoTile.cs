@@ -74,7 +74,7 @@ public class AutoTile : MonoBehaviour
         
         coord = pos;
         gameObject.name = $"Tile {pos}";
-        transform.position = pos.FlatTopToWorld(0, tileDict.tileSize);
+        transform.position = pos.FlatTopToWorld(0, tileDict.TileSize());
         isLinkOnly = isNavMeshLink;
         PlaceTile();
         return this;

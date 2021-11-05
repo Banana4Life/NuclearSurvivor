@@ -78,12 +78,11 @@ class WorldNetwork
 
 public class TileGenerator : MonoBehaviour
 {
-    public MeshRenderer referenceTile;
+    public TileDictionary tiledict;
 
     public GameObject floorTile;
     private const int RoomSize = 18;
 
-    private Vector3 tileSize;
     private Dictionary<CubeCoord, Room> _rooms = new();
     private Dictionary<CubeCoord, CellRole> _roles = new();
     
@@ -101,7 +100,6 @@ public class TileGenerator : MonoBehaviour
     {
         var origin = roomCoord * RoomSize;
         var coords = new HashSet<CubeCoord>();
-        tileSize = referenceTile.bounds.size;
         var max = Random.Range(2, 4);
         var centers = new (CubeCoord, int)[max];
         var center = origin;
@@ -141,7 +139,7 @@ public class TileGenerator : MonoBehaviour
         var room = generateRoom(roomCoord);
         var parent = Instantiate(roomPrefab, transform);
         parent.name = "Room";
-        parent.transform.position = roomCoord.FlatTopToWorld(floorHeight, tileSize) * RoomSize;
+        parent.transform.position = roomCoord.FlatTopToWorld(floorHeight, tiledict.TileSize()) * RoomSize;
         foreach (var cubeCoord in room.Coords)
         {
             _roles[cubeCoord] = new RoomRole(room, spawnFloor(parent.transform, cubeCoord));
@@ -192,8 +190,8 @@ public class TileGenerator : MonoBehaviour
     {
         var parent = Instantiate(roomPrefab, transform);
         parent.name = "Hallway";
-        parent.transform.position = Vector3.Lerp(from.Origin.FlatTopToWorld(floorHeight, tileSize),
-            to.Origin.FlatTopToWorld(floorHeight, tileSize), 0.5f);
+        parent.transform.position = Vector3.Lerp(from.Origin.FlatTopToWorld(floorHeight, tiledict.TileSize()),
+            to.Origin.FlatTopToWorld(floorHeight, tiledict.TileSize()), 0.5f);
         var hallway = generateHallway(from, to);
         foreach (var coord in hallway.Coords)
         {
@@ -248,10 +246,10 @@ public class TileGenerator : MonoBehaviour
                 var cubeDirection = cubeCoord - coord;
 
                 var link = autoTile.AddComponent<NavMeshLink>();
-                var direction = cubeDirection.FlatTopToWorld(floorHeight, tileSize);
+                var direction = cubeDirection.FlatTopToWorld(floorHeight, tiledict.TileSize());
                 link.startPoint = direction / 2 - direction.normalized * 0.5f;
                 link.endPoint = direction / 2 - direction.normalized * 0.4999f;
-                link.width = tileSize.x / 2;
+                link.width = tiledict.TileSize().x / 2;
             }
 
             yield return autoTile;
