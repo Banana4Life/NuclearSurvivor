@@ -16,49 +16,49 @@ public class AutoTile : MonoBehaviour
     public bool isDoor;
     public bool hasPickup;
 
-    private GameObject thisTile;
+    public GameObject thisTile;
     
     public GameObject triggerPrefab;
     public GameObject pickupPrefab;
 
-    public GameObject[] prefabs;
+    public GameObject[] edgePrefabs;
     
-    private static Dictionary<bool[], TileType> meshTileMap = new()
+    private static Dictionary<bool[], EdgeTileType> edgeMeshTileMap = new()
     {
-        { new[] { false, false, false, false, false ,false}, TileType.FLOOR },
-        { new[] { true, false, false, false, false ,false}, TileType.WALL1_END },
-        { new[] { true, true, false, false, false, false}, TileType.WALL2_SHARP },
-        { new[] { true, false, true, false, false, false}, TileType.WALL2_OBTUSE },
-        { new[] { true, false, false, true, false, false}, TileType.WALL2_STRAIGHT },
-        { new[] { true, true, true, false, false, false}, TileType.WALL3_W },
-        { new[] { true, true, false, true, false, false}, TileType.WALL3_Y_RIGHT },
-        { new[] { true, true, false, false, true, false}, TileType.WALL3_Y_LEFT },
-        { new[] { true, false, true, false, true ,false}, TileType.WALL3_Y },
-        { new[] { true, true, true, true, false, false}, TileType.WALL4_V },
-        { new[] { true, true, true, false, true, false}, TileType.WALL4_W },
-        { new[] { true, true, false, true, true, false}, TileType.WALL4_X },
-        { new[] { true, true, true, true, true, false}, TileType.WALL5},
-        { new[] { true, true, true, true, true, true}, TileType.WALL6},
+        { new[] { false, false, false, false, false ,false}, EdgeTileType.NO_WALL },
+        { new[] { true, false, false, false, false ,false}, EdgeTileType.WALL1 },
+        { new[] { true, true, false, false, false, false}, EdgeTileType.WALL2 },
+        { new[] { true, false, false, true, false, false}, EdgeTileType.WALL2_U },
+        { new[] { true, false, true, false, false, false}, EdgeTileType.WALL2_Parallel },
+        { new[] { true, true, true, false, false, false}, EdgeTileType.WALL3_V },
+        { new[] { true, true, false, true, false, false}, EdgeTileType.WALL3_J },
+        { new[] { true, true, false, false, true, false}, EdgeTileType.WALL3_G },
+        { new[] { true, false, true, false, true ,false}, EdgeTileType.WALL3_O },
+        { new[] { true, true, true, true, false, false}, EdgeTileType.WALL4_V },
+        { new[] { true, true, true, false, true, false}, EdgeTileType.WALL4_V2 },
+        { new[] { true, true, false, true, true, false}, EdgeTileType.WALL4_Parallel },
+        { new[] { true, true, true, true, true, false}, EdgeTileType.WALL5},
+        { new[] { true, true, true, true, true, true}, EdgeTileType.WALL6},
     };
     
-    private struct RotatedTileType
+    private struct RotatedTileType<T>
     {
-        public TileType type;
+        public T type;
         public int rotation;
     }
-
-    private static Dictionary<bool[], RotatedTileType> tileMap = CalcRotatedTileMap();
-    static Dictionary<bool[], RotatedTileType> CalcRotatedTileMap()
+    
+    private static Dictionary<bool[], RotatedTileType<EdgeTileType>> edgeTileMap = CalcEdgeRotatedTileMap();
+    static Dictionary<bool[], RotatedTileType<EdgeTileType>> CalcEdgeRotatedTileMap()
     {
-        var tileMap = new Dictionary<bool[], RotatedTileType>(new BoolArrayEqualityComparer());
-        foreach (var original in meshTileMap)
+        var tileMap = new Dictionary<bool[], RotatedTileType<EdgeTileType>>(new BoolArrayEqualityComparer());
+        foreach (var original in edgeMeshTileMap)
         {
             var rot = original.Key;
-            tileMap[original.Key] = new RotatedTileType { rotation = 0, type = original.Value };
+            tileMap[original.Key] = new RotatedTileType<EdgeTileType> { rotation = 0, type = original.Value };
             for (int i = 1; i < 6; i++)
             {
                 rot = rotate(rot);
-                tileMap[rot] = new RotatedTileType { rotation = i, type = original.Value };
+                tileMap[rot] = new RotatedTileType<EdgeTileType> { rotation = i, type = original.Value };
             }
         }
         return tileMap;
@@ -92,24 +92,25 @@ public class AutoTile : MonoBehaviour
         return rotated;
     }
 
-    private void PlaceTile()
+    public void PlaceTile()
     {
-        thisTile = Instantiate(prefabs[(int)TileType.FLOOR], transform);
-        if (tileMap.TryGetValue(connections, out var type))
+        Destroy(thisTile);
+        thisTile = Instantiate(edgePrefabs[(int)EdgeTileType.NO_WALL], transform);
+        if (edgeTileMap.TryGetValue(connections, out var type))
         {
-            if (type.type != TileType.FLOOR)
+            if (type.type != EdgeTileType.NO_WALL)
             {
-                var wall = Instantiate(prefabs[(int)type.type], thisTile.transform);
+                var wall = Instantiate(edgePrefabs[(int)type.type], thisTile.transform);
                 wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
             }
 
             // TODO Doors
-            if (type.type == TileType.WALL2_STRAIGHT)
+            if (type.type == EdgeTileType.WALL2_Parallel)
             {
                 if (Random.value < 0.1f)
                 {
                     isDoor = true;
-                    thisTile = Instantiate(prefabs[(int)TileType.DOOR_STRAIGHT], transform);
+                    thisTile = Instantiate(edgePrefabs[(int)EdgeTileType.WALL2_Parallel], transform);
                     thisTile.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
                     return;
                 }
@@ -164,18 +165,30 @@ public class AutoTile : MonoBehaviour
         gameObject.name = $"Tile {pos}";
         transform.position = pos.FlatTopToWorld(0, tileSize);
         connections = new bool[6];
-        if (!isNavMeshLink && hasWall)
+        // Edge Walls
+        if (!isNavMeshLink)
         {
             for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
             {
                 var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
                 var autoTile = Game.TileAt(cubeCoord);
-                if (autoTile)
-                {
-                    connections[i] = autoTile.hasWall;
-                }
+                connections[i] = autoTile == null;
             }
+            // TODO update edge walls when generating new rooms
         }
+        // Center Walls
+        // if (!isNavMeshLink && hasWall)
+        // {
+        //     for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
+        //     {
+        //         var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
+        //         var autoTile = Game.TileAt(cubeCoord);
+        //         if (autoTile)
+        //         {
+        //             connections[i] = autoTile.hasWall;
+        //         }
+        //     }
+        // }
         PlaceTile();
         return this;
     }
@@ -219,28 +232,10 @@ public class AutoTile : MonoBehaviour
         Destroy(thisTile);
     }
     
-    
-    private static Dictionary<bool[], TileType2> meshTileMap2 = new()
-    {
-        { new[] { false, false, false, false, false ,false}, TileType2.NO_WALL },
-        { new[] { true, false, false, false, false ,false}, TileType2.WALL1 },
-        { new[] { true, true, false, false, false, false}, TileType2.WALL2 },
-        { new[] { true, false, false, true, false, false}, TileType2.WALL2_U },
-        { new[] { true, false, true, false, false, false}, TileType2.WALL2_Parallel },
-        { new[] { true, true, true, false, false, false}, TileType2.WALL3_V },
-        { new[] { true, true, false, true, false, false}, TileType2.WALL3_J },
-        { new[] { true, true, false, false, true, false}, TileType2.WALL3_G },
-        { new[] { true, false, true, false, true ,false}, TileType2.WALL3_O },
-        { new[] { true, true, true, true, false, false}, TileType2.WALL4_V },
-        { new[] { true, true, true, false, true, false}, TileType2.WALL4_V2 },
-        { new[] { true, true, false, true, true, false}, TileType2.WALL4_Parallel },
-        { new[] { true, true, true, true, true, false}, TileType2.WALL5},
-        { new[] { true, true, true, true, true, true}, TileType2.WALL6},
-    };
 }
 
 
-public enum TileType2
+public enum EdgeTileType
 {
     NO_WALL,
     WALL1,
@@ -256,23 +251,4 @@ public enum TileType2
     WALL4_Parallel,
     WALL5,
     WALL6
-}
-
-public enum TileType
-{
-    FLOOR,
-    WALL1_END, 
-    WALL2_SHARP, 
-    WALL2_OBTUSE, 
-    WALL2_STRAIGHT,
-    WALL3_W,
-    WALL3_Y,
-    WALL3_Y_LEFT,
-    WALL3_Y_RIGHT, 
-    WALL4_X,
-    WALL4_V,
-    WALL4_W,
-    WALL5,
-    WALL6,
-    DOOR_STRAIGHT,
 }

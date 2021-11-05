@@ -225,9 +225,10 @@ public class TileGenerator : MonoBehaviour
         
         parent.GetComponent<NavMeshSurface>().BuildNavMesh();
         
-        foreach (var triggerTile in triggerTiles)
+        foreach (var linkTiles in triggerTiles)
         {
-            triggerTile.HideNavMeshLinkPlate();
+            linkTiles.HideNavMeshLinkPlate();
+            _roles[linkTiles.coord].Tile.PlaceTile();
         }
         
         return hallway;
