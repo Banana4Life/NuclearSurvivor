@@ -218,6 +218,44 @@ public class AutoTile : MonoBehaviour
     {
         Destroy(thisTile);
     }
+    
+    
+    private static Dictionary<bool[], TileType2> meshTileMap2 = new()
+    {
+        { new[] { false, false, false, false, false ,false}, TileType2.NO_WALL },
+        { new[] { true, false, false, false, false ,false}, TileType2.WALL1 },
+        { new[] { true, true, false, false, false, false}, TileType2.WALL2 },
+        { new[] { true, false, false, true, false, false}, TileType2.WALL2_U },
+        { new[] { true, false, true, false, false, false}, TileType2.WALL2_Parallel },
+        { new[] { true, true, true, false, false, false}, TileType2.WALL3_V },
+        { new[] { true, true, false, true, false, false}, TileType2.WALL3_J },
+        { new[] { true, true, false, false, true, false}, TileType2.WALL3_G },
+        { new[] { true, false, true, false, true ,false}, TileType2.WALL3_O },
+        { new[] { true, true, true, true, false, false}, TileType2.WALL4_V },
+        { new[] { true, true, true, false, true, false}, TileType2.WALL4_V2 },
+        { new[] { true, true, false, true, true, false}, TileType2.WALL4_Parallel },
+        { new[] { true, true, true, true, true, false}, TileType2.WALL5},
+        { new[] { true, true, true, true, true, true}, TileType2.WALL6},
+    };
+}
+
+
+public enum TileType2
+{
+    NO_WALL,
+    WALL1,
+    WALL2,
+    WALL2_Parallel,
+    WALL2_U,
+    WALL3_V,
+    WALL3_J,
+    WALL3_G,
+    WALL3_O,
+    WALL4_V,
+    WALL4_V2,
+    WALL4_Parallel,
+    WALL5,
+    WALL6
 }
 
 public enum TileType
