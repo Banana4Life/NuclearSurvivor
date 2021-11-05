@@ -1,18 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 class Room
 {
     public readonly CubeCoord RoomCoord;
+    public readonly int Ring;
     public readonly CubeCoord Origin;
     public readonly (CubeCoord, int)[] Centers;
     public readonly HashSet<CubeCoord> Coords;
 
-    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords)
+    public Room(CubeCoord roomCoord, int ring, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords)
     {
         RoomCoord = roomCoord;
+        Ring = ring;
         Origin = origin;
         Centers = centers;
         Coords = coords;
@@ -79,12 +83,12 @@ public class TileGenerator : MonoBehaviour
     void Start()
     {
         Debug.Log(Random.seed);
-        currentRing = new List<Room> { generateAndSpawnRoom(CubeCoord.Origin) };
+        currentRing = new List<Room> { generateAndSpawnRoom(CubeCoord.Origin, 0) };
         roomRing = 0;
         StartCoroutine(nameof(SpawnNextRingOfRooms));
     }
 
-    private Room generateRoom(CubeCoord roomCoord)
+    private Room generateRoom(CubeCoord roomCoord, int ring)
     {
         var origin = roomCoord * RoomSize;
         var coords = new HashSet<CubeCoord>();
@@ -114,14 +118,14 @@ public class TileGenerator : MonoBehaviour
         }
 
 
-        var room = new Room(roomCoord, origin, centers, coords);
+        var room = new Room(roomCoord, ring, origin, centers, coords);
         _rooms[room.RoomCoord] = room;
         return room;
     }
 
-    private Room generateAndSpawnRoom(CubeCoord roomCoord)
+    private Room generateAndSpawnRoom(CubeCoord roomCoord, int ring)
     {
-        var room = generateRoom(roomCoord);
+        var room = generateRoom(roomCoord, ring);
         var role = new RoomRole(room);
         foreach (var cubeCoord in room.Coords)
         {
@@ -176,7 +180,7 @@ public class TileGenerator : MonoBehaviour
             var newRooms = new List<Room>();
             for (var i = 0; i < Mathf.CeilToInt(ringCoords.Count / 2f); i++)
             {
-                newRooms.Add(generateAndSpawnRoom(ringCoords[i]));
+                newRooms.Add(generateAndSpawnRoom(ringCoords[i], roomRing));
             }
 
             var possibleConnections = CartesianProductWithoutDuplicated(currentRing, newRooms);
@@ -264,5 +268,31 @@ public class TileGenerator : MonoBehaviour
         var tileGo = Instantiate(floorTile, transform, true);
         tileGo.name = $"tile: {at}";
         tileGo.transform.position = worldPos;
+    }
+
+    private void OnDrawGizmos()
+    {
+        var colors = new[] { Color.black, Color.blue, Color.yellow, Color.red, Color.magenta };
+        foreach (var (coord, role) in _roles)
+        {
+            if (role is RoomRole roomRole)
+            {
+                var ring = roomRole.Room.Ring;
+                if (ring < colors.Length)
+                {
+                    Gizmos.color = colors[ring];
+                }
+                else
+                {
+                    Gizmos.color = Color.white;
+                }
+            }
+            else
+            {
+                Gizmos.color = Color.gray;
+            }
+            Gizmos.DrawWireSphere(coord.FlatTopToWorld(0, tileSize), tileSize.z * 0.5f);
+        }
+
     }
 }
