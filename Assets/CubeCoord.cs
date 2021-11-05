@@ -42,7 +42,8 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public static readonly CubeCoord West      = new(-1,  0);
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
-    public static readonly CubeCoord[] Neighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest };
+    public static readonly CubeCoord[] PointyTopNeighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // counter-clockwiese
+    public static readonly CubeCoord[] FlatTopNeighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
     
     public int Q { get; }
     public int R { get; }
@@ -108,7 +109,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public bool Equals(CubeCoord other) => Q == other.Q && R == other.R && S == other.S;
 
-    public static int CountCellsInRing(int radius) => Math.Max(1, radius * Neighbors.Length);
+    public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighbors.Length);
 
     public static IEnumerable<CubeCoord> Ring(CubeCoord center, int radius)
     {
@@ -119,7 +120,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
         else
         {
             var cube = (center + (West * radius));
-            foreach (var direction in Neighbors)
+            foreach (var direction in PointyTopNeighbors)
             {
                 for (var i = 0; i < radius; ++i)
                 {
@@ -146,7 +147,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
         var emitted = new HashSet<CubeCoord>();
         foreach (var cubeCoord in coords)
         {
-            foreach (var neighbor in Neighbors)
+            foreach (var neighbor in PointyTopNeighbors)
             {
                 var neighborCoord = cubeCoord + neighbor;
                 if (!coords.Contains(neighborCoord) && !emitted.Contains(neighborCoord))
@@ -171,12 +172,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost)
     {
-        return ShortestPath.Search(from, to, item => Neighbors.Select(neighbor => item + neighbor), cost, (_, _) => 0);
+        return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, (_, _) => 0);
     }
 
     public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
     {
-        return ShortestPath.Search(from, to, item => Neighbors.Select(neighbor => item + neighbor), cost, estimate);
+        return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, estimate);
     }
 }
 

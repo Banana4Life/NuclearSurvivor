@@ -31,12 +31,12 @@ public class Game : MonoBehaviour
     private bool panning;
     private float panSpeed;
 
-    public GameObject tilePrefab;
-    public GameObject doorPrefab;
+    public AutoTile autoTilePrefab;
+    public MeshRenderer referenceTile;
     private MeshRenderer tileMeshRenderer;
     private Vector3 tileSize;
     
-    private Dictionary<CubeCoord, GameObject> _knownTiles = new();
+    private Dictionary<CubeCoord, AutoTile> _knownTiles = new();
     public GameObject tiles;
     public GameObject roomPrefab;
 
@@ -60,10 +60,7 @@ public class Game : MonoBehaviour
 
     public void ArrangeTiles()
     {
-        var objectScale = tilePrefab.transform.localScale;
-        var tileSize = tilePrefab.GetComponentInChildren<MeshRenderer>().bounds.size;
-        tileSize.Scale(objectScale);
-
+        var tileSize = referenceTile.bounds.size;
         using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
         foreach (Transform tile in tiles.transform)
         {
@@ -82,9 +79,8 @@ public class Game : MonoBehaviour
     
     private void Start()
     {
-        tileMeshRenderer = tilePrefab.GetComponentInChildren<MeshRenderer>();
+        tileMeshRenderer = autoTilePrefab.GetComponentInChildren<MeshRenderer>();
         tileSize = tileMeshRenderer.bounds.size;
-        tileSize.Scale(tilePrefab.transform.localScale);
         rooms.Add(tiles.GetComponent<NavMeshSurface>());
         
         using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
@@ -92,7 +88,7 @@ public class Game : MonoBehaviour
         {
             if (coords.MoveNext())
             {
-                _knownTiles[coords.Current] = tile.gameObject;
+                _knownTiles[coords.Current] = tile.gameObject.GetOrAddComponent<AutoTile>().Init(coords.Current);
             }
             else
             {
@@ -107,8 +103,6 @@ public class Game : MonoBehaviour
         var room = Instantiate(roomPrefab, transform);
         room.name = "Room " + rooms.Count;
         room.transform.position = prevExit.position;
-        
-        tileSize.Scale(tilePrefab.transform.localScale);
         var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
         var coords = CubeCoord.Spiral(entry, 0, 9).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
         
@@ -122,23 +116,15 @@ public class Game : MonoBehaviour
 
         foreach (var coord in coords)
         {
-            var newTile = spawnTile(coord, room.transform);
+            spawnTile(coord, room.transform);
         }
         room.GetComponent<NavMeshSurface>().BuildNavMesh();
         fogOfWar.BuildFogMesh(coords, tileSize);
     }
 
-    private GameObject spawnTile(CubeCoord pos, Transform room)
+    private void spawnTile(CubeCoord pos, Transform room)
     {
-        var tile = Instantiate(tilePrefab, room.transform, true);
-        tile.name = $"{pos}";
-        tile.transform.position = pos.FlatTopToWorld(0, tileSize);
-        _knownTiles[pos] = tile;
-        
-        // var door = Instantiate(doorPrefab, tile.transform, true);
-        // door.name = "Door";
-        // door.transform.position = tile.transform.position;
-        return tile;
+        _knownTiles[pos] = Instantiate(autoTilePrefab, room.transform, true).Init(pos);
     }
 
     private void Update()
@@ -211,5 +197,10 @@ public class Game : MonoBehaviour
     public static void LoadNextLevel(Transform prevExit)
     {
         INSTANCE.BuildRoom(prevExit);
+    }
+
+    public static AutoTile TileAt(CubeCoord cubeCoord)
+    {
+        return INSTANCE._knownTiles.TryGetValue(cubeCoord, out var tile) ? tile : null;
     }
 }

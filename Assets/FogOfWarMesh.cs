@@ -189,6 +189,9 @@ public class FogOfWarMesh : MonoBehaviour
 
     public void UpdateCamArea(Vector3 min, Vector3 max)
     {
+        
+        min = min - tileSize * 2;
+        max = max + tileSize * 2;
         var newMin = minCamArea;
         var newMax = maxCamArea;
         if (min.x < minCamArea.x - tileSize.x / 2) // Left rect
