@@ -45,12 +45,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e71333aa9ebbed0fa9b0e1da87d58730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  referenceTile: {fileID: -6471036689783332660, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
-  hasWall: 0
   connections: 
   isTrigger: 0
   isDoor: 0
   hasPickup: 0
+  isLinkOnly: 0
+  tileDict: {fileID: 8656434900817512572, guid: d63412a644d19e6c697247afe256ea35, type: 3}
   thisTile: {fileID: 4507428637956820697}
   triggerPrefab: {fileID: 2562193828964249452, guid: e2289354b9e4fa6f597891767f4cb113, type: 3}
   pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}

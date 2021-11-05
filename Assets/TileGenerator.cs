@@ -218,17 +218,21 @@ public class TileGenerator : MonoBehaviour
             if (first)
             {
                 _roles[coord].Tile.SetTrigger();
+                first = false;
             }
         }
 
         var triggerTiles = GenerateNavMeshLinkTiles(hallway, parent).ToList();
         
+        foreach (var linkTiles in triggerTiles)
+        {
+            _roles[linkTiles.coord].Tile.PlaceTile();
+        }
         parent.GetComponent<NavMeshSurface>().BuildNavMesh();
-        
+
         foreach (var linkTiles in triggerTiles)
         {
             linkTiles.HideNavMeshLinkPlate();
-            _roles[linkTiles.coord].Tile.PlaceTile();
         }
         
         return hallway;
