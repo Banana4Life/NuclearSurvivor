@@ -179,6 +179,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
     {
         return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, estimate);
     }
+
+    public bool IsAdjacent(CubeCoord coord)
+    {
+        // PointyTop or FlatTopNeighbors does not matter 
+        return FlatTopNeighbors.Contains(this - coord);
+    }
 }
 
 public static class EnumeratorExt

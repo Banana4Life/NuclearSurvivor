@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.AI.Navigation;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class Game : MonoBehaviour
 {
+    private static Game INSTANCE;
+    
     public Floaty floatyPrefab;
     public GameObject canvas;
 
-    public FogOfWarMesh fogOfWar;
-
     public AudioSourcePool audioSourcePool;
 
-    private static Game INSTANCE;
 
     private Dictionary<GameObject, GameObjectPool> pools = new();
 
@@ -31,17 +27,10 @@ public class Game : MonoBehaviour
     private bool panning;
     private float panSpeed;
 
-    public GameObject autoTilePrefab;
-    public MeshRenderer referenceTile;
-    private MeshRenderer tileMeshRenderer;
-    private Vector3 tileSize;
-    
-    private Dictionary<CubeCoord, AutoTile> _knownTiles = new();
     public GameObject tiles;
-    public GameObject roomPrefab;
 
-    public List<NavMeshSurface> rooms = new();
-
+    public TileGenerator generator;
+    
     private void Awake()
     {
         INSTANCE = this;
@@ -58,74 +47,9 @@ public class Game : MonoBehaviour
         floaty.Init(text, pos);
     }
 
-    public void ArrangeTiles()
-    {
-        var tileSize = referenceTile.bounds.size;
-        using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
-        foreach (Transform tile in tiles.transform)
-        {
-            if (coords.MoveNext())
-            {
-                tile.gameObject.name = $"{coords.Current}";
-                tile.position = coords.Current.FlatTopToWorld(0, tileSize);
-            }
-            else
-            {
-                break;
-            }
-        }
-        tiles.GetComponent<NavMeshSurface>().BuildNavMesh();
-    }
-    
     private void Start()
     {
-        tileSize = referenceTile.bounds.size;
-        rooms.Add(tiles.GetComponent<NavMeshSurface>());
-        
-        using var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 8).GetEnumerator();
-        foreach (Transform tile in tiles.transform)
-        {
-            if (coords.MoveNext())
-            {
-                _knownTiles[coords.Current] = tile.gameObject.GetOrAddComponent<AutoTile>().Init(coords.Current);
-            }
-            else
-            {
-                break;
-            }
-        }
-        fogOfWar.BuildFogMesh(_knownTiles.Keys.ToList(), tileSize);
-    }
-
-    public void BuildRoom(Transform prevExit)
-    {
-        var room = Instantiate(roomPrefab, transform);
-        room.name = "Room " + (rooms.Count + 1);
-        room.transform.position = prevExit.position;
-        var entry = CubeCoord.FlatTopFromWorld(prevExit.position, tileSize);
-        var coords = CubeCoord.Spiral(entry, 0, 6).Where(coord => !_knownTiles.ContainsKey(coord)).ToList();
-        
-        // Reparent prevExit as entry and build NavMeshLink on same tile
-        _knownTiles[entry].transform.parent = room.transform;
-        var link = prevExit.AddComponent<NavMeshLink>();
-        var direction = Vector3.left; // TODO direction based on tile
-        link.startPoint = Vector3.zero;
-        link.endPoint = direction.normalized * float.Epsilon;
-        link.width = tileSize.z;
-
-        foreach (var coord in coords)
-        {
-            spawnTile(coord, room.transform);
-        }
-        room.GetComponent<NavMeshSurface>().BuildNavMesh();
-        fogOfWar.BuildFogMesh(coords, tileSize);
-    }
-
-    private void spawnTile(CubeCoord pos, Transform room)
-    {
-        var tile = Instantiate(autoTilePrefab, room.transform, true);
-        tile.transform.position = Vector3.one * 5;
-        _knownTiles[pos] = tile.GetComponent<AutoTile>().Init(pos);
+        Destroy(tiles);
     }
 
     private void Update()
@@ -195,13 +119,18 @@ public class Game : MonoBehaviour
         return PoolFor(prefab).Pooled<T>();
     }
 
-    public static void LoadNextLevel(Transform prevExit)
+    public static void LoadNextLevel(AutoTile trigger)
     {
-        INSTANCE.BuildRoom(prevExit);
+        INSTANCE.generator.SpawnNextRingOfRooms(trigger);
     }
 
     public static AutoTile TileAt(CubeCoord cubeCoord)
     {
-        return INSTANCE._knownTiles.TryGetValue(cubeCoord, out var tile) ? tile : null;
+        return INSTANCE.generator.TileAt(cubeCoord);
+    }
+
+    public void GenerateRoom()
+    {
+        generator.SpawnNextRingOfRooms(null);
     }
 }

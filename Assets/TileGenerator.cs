@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.AI.Navigation;
+using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -23,16 +25,23 @@ class Room
     }
 }
 
-interface CellRole
+public abstract class CellRole
 {
+    public readonly AutoTile Tile;
+
+    protected CellRole(AutoTile tile)
+    {
+        Tile = tile;
+    }
 }
 
 sealed class RoomRole : CellRole
 {
     public readonly Room Room;
 
-    public RoomRole(Room room)
+    public RoomRole(Room room, AutoTile tile) : base(tile)
     {
+        
         Room = room;
     }
 }
@@ -41,7 +50,7 @@ sealed class HallwayRole : CellRole
 {
     public readonly List<Hallway> Hallways;
 
-    public HallwayRole(Hallway hallways)
+    public HallwayRole(Hallway hallways, AutoTile autoTile) : base(autoTile)
     {
         Hallways = new List<Hallway> { hallways };
     }
@@ -52,12 +61,14 @@ class Hallway
     public readonly Room From;
     public readonly Room To;
     public readonly List<CubeCoord> Coords;
+    public readonly List<(CubeCoord cell, List<CubeCoord> connections)> Connectors;
 
-    public Hallway(Room from, Room to, List<CubeCoord> coords)
+    public Hallway(Room @from, Room to, List<CubeCoord> coords, List<(CubeCoord cell, List<CubeCoord> connections)> connectors)
     {
         From = from;
         To = to;
         Coords = coords;
+        Connectors = connectors;
     }
 }
 
@@ -79,13 +90,16 @@ public class TileGenerator : MonoBehaviour
     private List<Room> currentRing;
     private Dictionary<CubeCoord, Room> _rooms = new();
     private Dictionary<CubeCoord, CellRole> _roles = new();
+    
+    public GameObject roomPrefab;
+    public int floorHeight = 0;
 
     void Start()
     {
         Debug.Log(Random.seed);
         currentRing = new List<Room> { generateAndSpawnRoom(CubeCoord.Origin, 0) };
         roomRing = 0;
-        StartCoroutine(nameof(SpawnNextRingOfRooms));
+        SpawnNextRingOfRooms(null);
     }
 
     private Room generateRoom(CubeCoord roomCoord, int ring)
@@ -126,12 +140,19 @@ public class TileGenerator : MonoBehaviour
     private Room generateAndSpawnRoom(CubeCoord roomCoord, int ring)
     {
         var room = generateRoom(roomCoord, ring);
-        var role = new RoomRole(room);
+        var parent = Instantiate(roomPrefab, transform);
+        parent.name = "Room";
+        parent.transform.position = roomCoord.FlatTopToWorld(floorHeight, tileSize);
         foreach (var cubeCoord in room.Coords)
         {
-            _roles[cubeCoord] = role;
-            spawnFloor(cubeCoord);
+            _roles[cubeCoord] = new RoomRole(room, spawnFloor(parent.transform, cubeCoord));
         }
+        foreach (var coord in room.Coords)
+        {
+            _roles[coord].Tile.Init(coord);
+        }
+        
+        parent.GetComponent<NavMeshSurface>().BuildNavMesh();
 
         return room;
     }
@@ -141,19 +162,32 @@ public class TileGenerator : MonoBehaviour
 
     private Hallway generateHallway(Room from, Room to)
     {
-        var pathBetween = CubeCoord.SearchShortestPath(from.Origin, to.Origin, pathCost, pathEstimation)
+        var fullPath = CubeCoord.SearchShortestPath(@from.Origin, to.Origin, pathCost, pathEstimation);
+        var pathBetween = fullPath
             .Where(cell => !isRoomCell(cell))
             .ToList();
+        foreach (var cell in pathBetween)
+        {
+            fullPath.Remove(cell);
+        }
 
-        return new Hallway(from, to, pathBetween);
+        var connectors = 
+            fullPath.Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToList()))
+                .Where(t => t.Item2.Count != 0)
+                .ToList();
+        return new Hallway(from, to, pathBetween, connectors);
     }
 
     private Hallway generateAndSpawnHallway(Room from, Room to)
     {
+        var parent = Instantiate(roomPrefab, transform);
+        parent.name = "Hallway";
+        parent.transform.position = Vector3.Lerp(from.Origin.FlatTopToWorld(floorHeight, tileSize),
+            to.Origin.FlatTopToWorld(floorHeight, tileSize), 0.5f);
         var hallway = generateHallway(from, to);
         foreach (var coord in hallway.Coords)
         {
-            spawnFloor(coord);
+            var autoTile = spawnFloor(parent.transform, coord);
             if (_roles.TryGetValue(coord, out var existingRole))
             {
                 if (existingRole is HallwayRole existingHallwayRole)
@@ -163,57 +197,76 @@ public class TileGenerator : MonoBehaviour
             }
             else
             {
-                _roles[coord] = new HallwayRole(hallway);
+                _roles[coord] = new HallwayRole(hallway, autoTile);
             }
         }
+        
+        foreach (var coord in hallway.Coords)
+        {
+            _roles[coord].Tile.Init(coord);
+        }
 
+        var triggerTiles = GenerateTriggerTiles(hallway, parent);
+        parent.GetComponent<NavMeshSurface>().BuildNavMesh();
+        foreach (var triggerTile in triggerTiles)
+        {
+            triggerTile.HideTrigger();
+        }
+        
         return hallway;
     }
 
-    private IEnumerator SpawnNextRingOfRooms()
+    private IEnumerable<AutoTile> GenerateTriggerTiles(Hallway hallway, GameObject parent)
     {
-        yield return new WaitForSeconds(1);
-        while (true)
+        foreach (var (coord, connections) in hallway.Connectors)
         {
-            roomRing++;
-            var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing).ToList().Shuffled();
-            var newRooms = new List<Room>();
-            for (var i = 0; i < Mathf.CeilToInt(ringCoords.Count / 2f); i++)
+            var autoTile = spawnFloor(parent.transform, coord).Init(coord, true);
+            foreach (var cubeCoord in connections)
             {
-                newRooms.Add(generateAndSpawnRoom(ringCoords[i], roomRing));
+                var cubeDirection = cubeCoord - coord;
+
+                var link = autoTile.AddComponent<NavMeshLink>();
+                var direction = cubeDirection.FlatTopToWorld(floorHeight, tileSize);
+                link.startPoint = direction / 2;
+                link.endPoint = direction / 2 + direction.normalized * 0.1f;
+                link.width = tileSize.x / 2;
             }
 
-            var possibleConnections = CartesianProductWithoutDuplicated(currentRing, newRooms);
-            var newRingDestinations = new HashSet<Room>();
-            foreach (var (a, b) in possibleConnections)
-            {
-                if (newRingDestinations.Contains(a) || newRingDestinations.Contains(b))
-                {
-                    continue;
-                }
-                generateAndSpawnHallway(a, b);
+            yield return autoTile;
+        }
+    }
 
-                if (newRooms.Contains(a))
-                {
-                    newRingDestinations.Add(a);
-                }
-                else if (newRooms.Contains(b))
-                {
-                    newRingDestinations.Add(b);
-                }
+    public void SpawnNextRingOfRooms(AutoTile trigger)
+    {
+        roomRing++;
+        var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing).ToList().Shuffled();
+        var newRooms = new List<Room>();
+        for (var i = 0; i < Mathf.CeilToInt(ringCoords.Count / 2f); i++)
+        {
+            newRooms.Add(generateAndSpawnRoom(ringCoords[i], roomRing));
+        }
+
+        var possibleConnections = CartesianProductWithoutDuplicated(currentRing, newRooms);
+        var newRingDestinations = new HashSet<Room>();
+        foreach (var (a, b) in possibleConnections)
+        {
+            if (newRingDestinations.Contains(a) || newRingDestinations.Contains(b))
+            {
+                continue;
             }
+            generateAndSpawnHallway(a, b);
 
-            currentRing = newRooms;
-
-            if (roomRing < 3)
+            if (newRooms.Contains(a))
             {
-                yield return new WaitForSeconds(1);
+                newRingDestinations.Add(a);
             }
-            else
+            else if (newRooms.Contains(b))
             {
-                break;
+                newRingDestinations.Add(b);
             }
         }
+
+        currentRing = newRooms;
     }
 
     private float pathCost(CubeCoord from, CubeCoord to)
@@ -262,12 +315,9 @@ public class TileGenerator : MonoBehaviour
         }
     }
 
-    private void spawnFloor(CubeCoord at)
+    private AutoTile spawnFloor(Transform parent, CubeCoord at)
     {
-        var worldPos = at.FlatTopToWorld(0, tileSize);
-        var tileGo = Instantiate(floorTile, transform, true);
-        tileGo.name = $"tile: {at}";
-        tileGo.transform.position = worldPos;
+        return Instantiate(floorTile, parent, true).GetComponent<AutoTile>();
     }
 
     private void OnDrawGizmos()
@@ -294,5 +344,10 @@ public class TileGenerator : MonoBehaviour
             Gizmos.DrawWireSphere(coord.FlatTopToWorld(0, tileSize), tileSize.z * 0.5f);
         }
 
+    }
+
+    public AutoTile TileAt(CubeCoord cubeCoord)
+    {
+        return _roles.TryGetValue(cubeCoord, out var tile) ? tile.Tile : null;
     }
 }

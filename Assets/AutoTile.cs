@@ -10,13 +10,14 @@ public class AutoTile : MonoBehaviour
     
     public bool hasWall;
     public bool[] connections;
-    public bool connectionsCalculated;
     private Vector3 tileSize;
     public CubeCoord coord;
     public bool isTrigger;
     public bool isDoor;
     public bool hasPickup;
 
+    private GameObject feature;
+    
     public GameObject triggerDoorPrefab;
     public GameObject pickupPrefab;
 
@@ -93,9 +94,13 @@ public class AutoTile : MonoBehaviour
 
     private void PlaceFeature()
     {
+        if (isTrigger)
+        {
+            // TODO place trigger
+        }
         if (hasPickup)
         {
-            var door = Instantiate(pickupPrefab, transform);
+            feature = Instantiate(pickupPrefab, transform);
             return;
         }
         if (tileMap.TryGetValue(connections, out var type))
@@ -105,14 +110,14 @@ public class AutoTile : MonoBehaviour
                 if (Random.value < 0.1f)
                 {
                     isDoor = true;
-                    var door = Instantiate(triggerDoorPrefab, transform);
-                    door.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+                    feature = Instantiate(triggerDoorPrefab, transform);
+                    feature.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
                     return;
                 }
             }
             
-            var wall = Instantiate(prefabs[(int)type.type], transform);
-            wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
+            feature = Instantiate(prefabs[(int)type.type], transform);
+            feature.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
         }
         else
         {
@@ -140,9 +145,19 @@ public class AutoTile : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!connectionsCalculated)
+       
+    }
+
+    public AutoTile Init(CubeCoord pos, bool isTrigger = false)
+    {
+        tileSize = referenceTile.bounds.size;
+        coord = pos;
+        gameObject.name = (isTrigger ? "Trigger" : "Tile") + $" {pos}";
+        transform.position = pos.FlatTopToWorld(0, tileSize);
+        this.isTrigger = isTrigger; 
+        connections = new bool[6];
+        if (!isTrigger)
         {
-            connections = new bool[6];
             if (hasWall)
             {
                 for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
@@ -155,18 +170,8 @@ public class AutoTile : MonoBehaviour
                     }
                 }
             }
-
-            PlaceFeature();
-            connectionsCalculated = true;
         }
-    }
-
-    public AutoTile Init(CubeCoord pos)
-    {
-        tileSize = referenceTile.bounds.size;
-        coord = pos;
-        gameObject.name = $"{pos}";
-        transform.position = pos.FlatTopToWorld(0, tileSize);
+        PlaceFeature();
         return this;
     }
 
@@ -195,6 +200,11 @@ public class AutoTile : MonoBehaviour
                 }
             }    
         }
+    }
+
+    public void HideTrigger()
+    {
+        
     }
 }
 

@@ -43,17 +43,21 @@ public class FogOfWar : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.gray;
-        Gizmos.DrawLine(player.transform.position, transform.position);
-        var ray = new Ray(transform.position, player.position - transform.position);
-        if (Physics.Raycast(ray , out RaycastHit hit, 200, layer, QueryTriggerInteraction.Collide))
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(hit.point, 0.5f);
-        }
+        // Camera to Player Line
+        // Gizmos.color = Color.gray;
+        // Gizmos.DrawLine(player.transform.position, transform.position);
         
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(min, max);
+        // Camera to Player FogOfWar Hit
+        // var ray = new Ray(transform.position, player.position - transform.position);
+        // if (Physics.Raycast(ray , out RaycastHit hit, 200, layer, QueryTriggerInteraction.Collide))
+        // {
+        //     Gizmos.color = Color.red;
+        //     Gizmos.DrawWireSphere(hit.point, 0.5f);
+        // }
+        
+        // Camera View (for FogOfWar Mesh Generation)
+        // Gizmos.color = Color.yellow;
+        // Gizmos.DrawLine(min, max);
 
         // Camera Bounds
         // Gizmos.color = Color.green;
