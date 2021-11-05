@@ -9,17 +9,37 @@ class Room
     public readonly CubeCoord Origin;
     public readonly (CubeCoord, int)[] Centers;
     public readonly HashSet<CubeCoord> Coords;
-    private readonly HashSet<CubeCoord> _outlineCoords;
-    public readonly int Connections;
 
-    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords, HashSet<CubeCoord> outlineCoords, int connections)
+    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords)
     {
         RoomCoord = roomCoord;
         Origin = origin;
         Centers = centers;
         Coords = coords;
-        _outlineCoords = outlineCoords;
-        Connections = connections;
+    }
+}
+
+interface CellRole
+{
+}
+
+sealed class RoomRole : CellRole
+{
+    public readonly Room Room;
+
+    public RoomRole(Room room)
+    {
+        Room = room;
+    }
+}
+
+sealed class HallwayRole : CellRole
+{
+    public readonly List<Hallway> Hallways;
+
+    public HallwayRole(Hallway hallways)
+    {
+        Hallways = new List<Hallway> { hallways };
     }
 }
 
@@ -27,11 +47,13 @@ class Hallway
 {
     public readonly Room From;
     public readonly Room To;
+    public readonly List<CubeCoord> Coords;
 
-    public Hallway(Room from, Room to)
+    public Hallway(Room from, Room to, List<CubeCoord> coords)
     {
         From = from;
         To = to;
+        Coords = coords;
     }
 }
 
@@ -46,16 +68,19 @@ public class TileGenerator : MonoBehaviour
     public MeshRenderer referenceTile;
 
     public GameObject floorTile;
-    private const int RoomSize = 32;
+    private const int RoomSize = 18;
 
     private Vector3 tileSize;
-    private int roomRing = 0;
+    private int roomRing;
+    private List<Room> currentRing;
     private Dictionary<CubeCoord, Room> _rooms = new();
+    private Dictionary<CubeCoord, CellRole> _roles = new();
 
-    // Start is called before the first frame update
     void Start()
     {
         Debug.Log(Random.seed);
+        currentRing = new List<Room> { generateAndSpawnRoom(CubeCoord.Origin) };
+        roomRing = 0;
         StartCoroutine(nameof(SpawnNextRingOfRooms));
     }
 
@@ -71,7 +96,7 @@ public class TileGenerator : MonoBehaviour
         var centerCandidates = new List<CubeCoord>();
         for (var i = 0; i < max; ++i)
         {
-            var radius = Random.Range(3, 6 - i);
+            var radius = Random.Range(3, 5 - i);
             centers[i] = (center, radius);
             var innerTiles = CubeCoord.Spiral(center, 1, radius - 2);
             var outerTiles = CubeCoord.Spiral(center, radius - 2, radius).ToList();
@@ -88,28 +113,148 @@ public class TileGenerator : MonoBehaviour
             center = centerCandidates[Random.Range(0, outerTiles.Count)];
         }
 
-        var outline = CubeCoord.Outline(coords);
 
-        var room = new Room(roomCoord, origin, centers, coords, outline.ToHashSet(), 0);
+        var room = new Room(roomCoord, origin, centers, coords);
         _rooms[room.RoomCoord] = room;
         return room;
     }
 
+    private Room generateAndSpawnRoom(CubeCoord roomCoord)
+    {
+        var room = generateRoom(roomCoord);
+        var role = new RoomRole(room);
+        foreach (var cubeCoord in room.Coords)
+        {
+            _roles[cubeCoord] = role;
+            spawnFloor(cubeCoord);
+        }
+
+        return room;
+    }
+
+    private bool isRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
+    private bool isHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
+
+    private Hallway generateHallway(Room from, Room to)
+    {
+        var pathBetween = CubeCoord.SearchShortestPath(from.Origin, to.Origin, pathCost, pathEstimation)
+            .Where(cell => !isRoomCell(cell))
+            .ToList();
+
+        return new Hallway(from, to, pathBetween);
+    }
+
+    private Hallway generateAndSpawnHallway(Room from, Room to)
+    {
+        var hallway = generateHallway(from, to);
+        foreach (var coord in hallway.Coords)
+        {
+            spawnFloor(coord);
+            if (_roles.TryGetValue(coord, out var existingRole))
+            {
+                if (existingRole is HallwayRole existingHallwayRole)
+                {
+                    existingHallwayRole.Hallways.Add(hallway);
+                }                
+            }
+            else
+            {
+                _roles[coord] = new HallwayRole(hallway);
+            }
+        }
+
+        return hallway;
+    }
+
     private IEnumerator SpawnNextRingOfRooms()
     {
+        yield return new WaitForSeconds(1);
         while (true)
         {
-            var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing++).ToList().Shuffled();
+            roomRing++;
+            var ringCoords = CubeCoord.Ring(CubeCoord.Origin, roomRing).ToList().Shuffled();
+            var newRooms = new List<Room>();
             for (var i = 0; i < Mathf.CeilToInt(ringCoords.Count / 2f); i++)
             {
-                var ringCoord = ringCoords[i];
-                foreach (var cubeCoord in generateRoom(ringCoord).Coords)
+                newRooms.Add(generateAndSpawnRoom(ringCoords[i]));
+            }
+
+            var possibleConnections = CartesianProductWithoutDuplicated(currentRing, newRooms);
+            var newRingDestinations = new HashSet<Room>();
+            foreach (var (a, b) in possibleConnections)
+            {
+                if (newRingDestinations.Contains(a) || newRingDestinations.Contains(b))
                 {
-                    spawnFloor(cubeCoord);
+                    continue;
+                }
+                generateAndSpawnHallway(a, b);
+
+                if (newRooms.Contains(a))
+                {
+                    newRingDestinations.Add(a);
+                }
+                else if (newRooms.Contains(b))
+                {
+                    newRingDestinations.Add(b);
                 }
             }
 
-            yield return new WaitForSeconds(2);
+            currentRing = newRooms;
+
+            if (roomRing < 3)
+            {
+                yield return new WaitForSeconds(1);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    private float pathCost(CubeCoord from, CubeCoord to)
+    {
+        const int emptyTileCost = 4;
+        //var fromRole = _roles[from];
+        if (!_roles.TryGetValue(to, out var toRole))
+        {
+            return emptyTileCost;
+        }
+        
+        if (toRole is RoomRole)
+        {
+            return 1;
+        }
+
+        if (toRole is HallwayRole)
+        {
+            return 1;
+        }
+        
+        return emptyTileCost;
+    }
+
+    private float pathEstimation(CubeCoord from, CubeCoord destination)
+    {
+        return (float)from.Distance(destination);
+    }
+
+    private static IEnumerable<(T, T)> CartesianProductWithoutDuplicated<T>(IEnumerable<T> a, IEnumerable<T> b)
+    {
+        var bItems = b as T[] ?? b.ToArray();
+        var seen = new HashSet<(T, T)>();
+        foreach (var aItem in a)
+        {
+            foreach (var bItem in bItems)
+            {
+                var tuple = (aItem, bItem);
+                if (!seen.Contains(tuple))
+                {
+                    seen.Add(tuple);
+                    seen.Add((bItem, aItem));
+                    yield return tuple;
+                }
+            }
         }
     }
 
