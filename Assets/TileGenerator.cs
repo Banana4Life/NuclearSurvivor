@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
@@ -13,13 +11,15 @@ class Room
     public readonly CubeCoord Origin;
     public readonly (CubeCoord, int)[] Centers;
     public readonly HashSet<CubeCoord> Coords;
+    public readonly NavigatableTiles Nav;
 
-    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords)
+    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords, NavigatableTiles nav)
     {
         RoomCoord = roomCoord;
         Origin = origin;
         Centers = centers;
         Coords = coords;
+        Nav = nav;
     }
 }
 
@@ -96,7 +96,7 @@ public class TileGenerator : MonoBehaviour
         SpawnRoomRing(room);
     }
 
-    private Room generateRoom(CubeCoord roomCoord)
+    private Room generateRoom(CubeCoord roomCoord, NavigatableTiles nav)
     {
         var origin = roomCoord * RoomSize;
         var coords = new HashSet<CubeCoord>();
@@ -125,7 +125,8 @@ public class TileGenerator : MonoBehaviour
         }
 
 
-        var room = new Room(roomCoord, origin, centers, coords);
+        var room = new Room(roomCoord, origin, centers, coords, nav);
+        nav.needsNewNavMesh = true;
         _rooms[room.RoomCoord] = room;
         return room;
     }
@@ -136,9 +137,9 @@ public class TileGenerator : MonoBehaviour
         {
             return null;
         }
-        var room = generateRoom(roomCoord);
         var parent = Instantiate(roomPrefab, transform);
-        parent.name = "Room";
+        var room = generateRoom(roomCoord, parent.GetComponent<NavigatableTiles>());
+        parent.name = "Room " + roomCoord;
         parent.transform.position = roomCoord.FlatTopToWorld(floorHeight, tiledict.TileSize()) * RoomSize;
         foreach (var cubeCoord in room.Coords)
         {
@@ -148,8 +149,6 @@ public class TileGenerator : MonoBehaviour
         {
             _roles[coord].Tile.Init(coord);
         }
-        
-        parent.GetComponent<NavMeshSurface>().BuildNavMesh();
 
         return room;
     }
@@ -224,8 +223,15 @@ public class TileGenerator : MonoBehaviour
         
         foreach (var linkTiles in triggerTiles)
         {
-            _roles[linkTiles.coord].Tile.PlaceTile();
+            var tile = _roles[linkTiles.coord].Tile.PlaceTile();
+            // Update Rooms/Hallway Intersection
+            tile.transform.parent.GetComponent<NavigatableTiles>().needsNewNavMesh = true;
         }
+
+        // Always update source/target rooms
+        from.Nav.needsNewNavMesh = true;  
+        to.Nav.needsNewNavMesh = true;  
+        
         parent.GetComponent<NavMeshSurface>().BuildNavMesh();
 
         foreach (var linkTiles in triggerTiles)

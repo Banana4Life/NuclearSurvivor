@@ -14,7 +14,7 @@ public class AutoTile : MonoBehaviour
     public TileDictionary tileDict;
     public GameObject thisTile;
 
-    public void PlaceTile()
+    public AutoTile PlaceTile()
     {
         GetEdgeWalls();
         Destroy(thisTile);
@@ -36,7 +36,7 @@ public class AutoTile : MonoBehaviour
                     isDoor = true;
                     thisTile = Instantiate(tileDict.prefabs[(int)TileDictionary.EdgeTileType.WALL2_Parallel], transform);
                     thisTile.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
-                    return;
+                    return this;
                 }
             }
         }
@@ -50,7 +50,8 @@ public class AutoTile : MonoBehaviour
         {
             Instantiate(tileDict.pickupPrefab, thisTile.transform);
         }
-    
+
+        return this;
 
     }
     

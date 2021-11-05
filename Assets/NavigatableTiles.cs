@@ -1,23 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.AI.Navigation;
 using UnityEngine;
 
 public class NavigatableTiles : MonoBehaviour
 {
-    public bool navMeshCalculated;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public bool needsNewNavMesh;
 
-    // Update is called once per frame
     void Update()
     {
-        if (navMeshCalculated)
+        if (needsNewNavMesh)
         {
-            navMeshCalculated = false;
+            needsNewNavMesh = false;
             GetComponent<NavMeshSurface>().BuildNavMesh();
         }
     }
