@@ -6,7 +6,6 @@ public class AutoTile : MonoBehaviour
     
     public bool[] connections = new bool[6];
     public CubeCoord coord;
-    public bool isTrigger;
     public bool hasPickup;
     public bool isLinkOnly;
 
@@ -80,13 +79,6 @@ public class AutoTile : MonoBehaviour
                 connections[i] = autoTile == null;
             }    
         }
-    }
-
-    public void SetTrigger()
-    {
-        isTrigger = true;
-        gameObject.name = $"Trigger {coord}";
-        Instantiate(tileDict.triggerPrefab, thisTile.transform).GetComponent<LevelLoader>().thisTile = this;
     }
 
     public void HideNavMeshLinkPlate()

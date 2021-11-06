@@ -79,7 +79,7 @@ Material:
     - _gain: 0.386
     - _lacunarity: 2.16
     - _monochromatic: 0
-    - _multiplier: 0.613
+    - _multiplier: 0.336
     - _octaves: 7
     - _offsetX: 0
     - _offsetY: 0

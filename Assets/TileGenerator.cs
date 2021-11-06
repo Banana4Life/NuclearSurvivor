@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-class Room
+public class Room
 {
     public readonly CubeCoord RoomCoord;
     public readonly CubeCoord Origin;
@@ -167,7 +167,12 @@ public class TileGenerator : MonoBehaviour
         var fullPath = CubeCoord.SearchShortestPath(
             @from.Centers[Random.Range(0, from.Centers.Length)].Item1, 
             @to.Centers[Random.Range(0, to.Centers.Length)].Item1, pathCost, pathEstimation);
-        fullPath = fullPath.SelectMany(path => CubeCoord.Ring(path, 1).ToList().Shuffled().Take(3).ToList()).Distinct().ToList();
+        fullPath = fullPath.SelectMany(path =>
+        {
+            var list = CubeCoord.Ring(path, 1).ToList().Shuffled().Take(2).ToList();
+            list.Add(path);
+            return list;
+        }).Distinct().ToList();
         
         var pathBetween = fullPath
             .Where(cell => !isRoomCell(cell))
@@ -213,15 +218,19 @@ public class TileGenerator : MonoBehaviour
             }
         }
 
-        bool first = true;
         foreach (var coord in hallway.Coords)
         {
             _roles[coord].Tile.Init(coord);
-            if (first)
-            {
-                _roles[coord].Tile.SetTrigger();
-                first = false;
-            }
+        }
+        
+        var mainTrigger = new GameObject("TriggerArea");
+        mainTrigger.transform.parent = parent.transform;
+        mainTrigger.AddComponent<LevelLoaderTrigger>().Init(this, to);
+        foreach (var coord in hallway.Coords)
+        {
+            var pos = coord.FlatTopToWorld(0, tiledict.TileSize());
+            var subTrigger = Instantiate(tiledict.triggerPrefab, mainTrigger.transform);
+            subTrigger.GetComponent<SubTrigger>().Init(mainTrigger.GetComponent<LevelLoaderTrigger>(), pos);
         }
 
         var triggerTiles = GenerateNavMeshLinkTiles(hallway, parent).ToList();
@@ -267,20 +276,9 @@ public class TileGenerator : MonoBehaviour
         }
     }
 
-    public void SpawnRoomRingFromHallwayTarget(CubeCoord around)
+    public void SpawnRoomRing(Room room)
     {
-        if (_roles[around] is HallwayRole hallwayTile)
-        {
-            foreach (var hallWay in hallwayTile.Hallways)
-            {
-                Debug.Log("Loading next Rooms around " + hallWay.To + " Triggered by " + around);
-                SpawnRoomRing(hallWay.To);
-            }
-        }
-    }
-
-    private void SpawnRoomRing(Room room)
-    {
+        Debug.Log("Loading next Rooms around " + room);
         var ringCoords = CubeCoord.Ring(room.RoomCoord, 1).ToList().Shuffled();
         var newRooms = new List<Room>();
         int generated = 0;

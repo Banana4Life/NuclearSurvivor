@@ -123,11 +123,6 @@ public class Game : MonoBehaviour
         return PoolFor(prefab).Pooled<T>();
     }
 
-    public static void LoadNextLevel(AutoTile trigger)
-    {
-        INSTANCE.generator.SpawnRoomRingFromHallwayTarget(trigger.coord);
-    }
-
     public static AutoTile TileAt(CubeCoord cubeCoord)
     {
         return INSTANCE.generator.TileAt(cubeCoord);
