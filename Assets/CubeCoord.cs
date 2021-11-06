@@ -107,28 +107,37 @@ public struct CubeCoord : IEquatable<CubeCoord>
         return $"{nameof(Q)}: {Q}, {nameof(R)}: {R}, {nameof(S)}: {S}";
     }
 
-    public bool Equals(CubeCoord other) => Q == other.Q && R == other.R && S == other.S;
+    public bool Equals(CubeCoord other) => this == other;
+
+    public static bool operator ==(CubeCoord a, CubeCoord b) => a.Q == b.Q && a.R == b.R && a.S == b.S;
+
+    public static bool operator !=(CubeCoord a, CubeCoord b) => a.Q != b.Q || a.R != b.R || a.S != b.S;
 
     public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighbors.Length);
 
-    public static IEnumerable<CubeCoord> Ring(CubeCoord center, int radius)
+    public CubeCoord[] Neighbors() => Ring(this, 1);
+
+    public static CubeCoord[] Ring(CubeCoord center, int radius)
     {
         if (radius == 0)
         {
-            yield return center;
+            return Array.Empty<CubeCoord>();
         }
-        else
+
+        var output = new CubeCoord[CountCellsInRing(radius)];
+        var cube = (center + (West * radius));
+        var neighborCount = PointyTopNeighbors.Length;
+        for (var neighborIndex = 0; neighborIndex < neighborCount; neighborIndex++)
         {
-            var cube = (center + (West * radius));
-            foreach (var direction in PointyTopNeighbors)
+            var direction = PointyTopNeighbors[neighborIndex];
+            for (var i = 0; i < radius; ++i)
             {
-                for (var i = 0; i < radius; ++i)
-                {
-                    yield return cube;
-                    cube += direction;
-                }
+                output[neighborCount * neighborIndex + i] = cube;
+                cube += direction;
             }
         }
+
+        return output;
     }
 
     public static IEnumerable<CubeCoord> Spiral(CubeCoord center, int startRing = 0, int maxRings = -1)
@@ -200,5 +209,16 @@ public static class EnumeratorExt
             (copy[k], copy[n]) = (copy[n], copy[k]);
         }
         return copy;
+    }
+    
+    public static void Shuffle<T>(this T[] l)
+    {
+        int n = l.Length;
+        while (n > 1)
+        {
+            n--;
+            var k = Random.Range(0, n + 1);
+            (l[k], l[n]) = (l[n], l[k]);
+        }
     }
 } 

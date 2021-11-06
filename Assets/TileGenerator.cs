@@ -164,34 +164,32 @@ public class TileGenerator : MonoBehaviour
 
     private Hallway generateHallway(Room from, Room to)
     {
-        var fullPath = CubeCoord.SearchShortestPath(
-            @from.Centers[Random.Range(0, from.Centers.Length)].Item1, 
-            @to.Centers[Random.Range(0, to.Centers.Length)].Item1, pathCost, pathEstimation);
-        fullPath = fullPath.SelectMany(path =>
-        {
-            var list = CubeCoord.Ring(path, 1).ToList().Shuffled().Take(2).ToList();
-            list.Add(path);
-            return list;
-        }).Distinct().ToList();
-        
-        var pathBetween = fullPath
+        var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
+        var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
+        var fullPath = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
+
+        var pathBetween = fullPath.SelectMany(cellCoord =>
+            {
+                var neighbors = cellCoord.Neighbors();
+                neighbors.Shuffle();
+                if (cellCoord == neighbors[0])
+                {
+                    return new[] { cellCoord, neighbors[1] };
+                }
+                if (cellCoord == neighbors[1])
+                {
+                    return new[] { cellCoord, neighbors[0] };
+                }
+                return new[] { cellCoord, neighbors[0], neighbors[1] };
+            })
             .Where(cell => !isRoomCell(cell))
             .ToList();
-        foreach (var cell in pathBetween)
-        {
-            fullPath.Remove(cell);
-        }
 
         var connectors = 
             _roles.Keys.Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToList()))
                 .Where(t => t.Item2.Count != 0)
                 .ToList();
-        // var connectors = fullPath
-        //     // Get Room cells next to path
-        //     .Where(roomCell => pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToList().Count != 0)
-        //     // Get Room cells next to trigger cell
-        //     .Select(roomCell => (roomCell, _roles.Where(coord => coord.Value is RoomRole && coord.Key.IsAdjacent(roomCell)).Select(r => r.Key).ToList()))
-        //     .ToList();
+        
         return new Hallway(from, to, pathBetween, connectors);
     }
 
@@ -329,9 +327,9 @@ public class TileGenerator : MonoBehaviour
     private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
     {
         var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
-        if (prevMap.TryGetValue(@from, out var prev))
+        if (prevMap.TryGetValue(from, out var prev))
         {
-            if ((@from - prev).Equals(to - @from))
+            if ((from - prev).Equals(to - from))
             {
                 emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
             }    
