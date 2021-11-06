@@ -19,8 +19,8 @@ public class FogOfWarMesh : MonoBehaviour
 
     private Vector3 tileSize = new(4f, 0, 3.46f);
     
-    private Vector3 min = Vector3.zero;
-    private Vector3 max = Vector3.zero;
+    private Vector3 camMinRayHit = Vector3.zero;
+    private Vector3 camMaxRayHit = Vector3.zero;
     
     private Vector3 minCamArea = Vector3.zero;
     private Vector3 maxCamArea = Vector3.zero;
@@ -175,34 +175,19 @@ public class FogOfWarMesh : MonoBehaviour
             }
         }
         mesh.colors = currentColors;
-        
+
+       
+        ClearFog();
+        UpdateCamArea();
+    }
+
+    private void ClearFog()
+    {
+        var camPos = Camera.main.transform.position;
+        var ray = new Ray(camPos, player.position - camPos);
+        if (Physics.Raycast(ray, out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
         {
-            var ray = new Ray(transform.position, player.position - transform.position);
-            if (Physics.Raycast(ray, out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
-            {
-                this.ClearFogAround(hit.point);
-            }
-        
-            // Detect min/max View
-            var cam = Camera.main;
-            
-            ray = cam.ViewportPointToRay(new Vector3(0,0,0));
-            if (plane.Raycast(ray, out var botLeftDist))
-            {
-                var botLeft = ray.GetPoint(botLeftDist);
-                ray = cam.ViewportPointToRay(new Vector3(0,1,0));
-                if (plane.Raycast(ray, out var topLeftDist))
-                {
-                    var topLeft = ray.GetPoint(topLeftDist);
-                    min = Vector3.Min(min, Vector3.Min(botLeft, topLeft));
-                }
-            }
-            ray = cam.ViewportPointToRay(new Vector3(1,1,0));
-            if (plane.Raycast(ray, out var topRightDist))
-            {
-                max = Vector3.Max(max, ray.GetPoint(topRightDist));
-            }
-            UpdateCamArea(min, max);
+            ClearFogAround(hit.point);
         }
     }
 
@@ -224,10 +209,31 @@ public class FogOfWarMesh : MonoBehaviour
 
     
     
-    public void UpdateCamArea(Vector3 min, Vector3 max)
+    public void UpdateCamArea()
     {
-        min = min - tileSize * 2;
-        max = max + tileSize * 2;
+        // Detect min/max View
+        var cam = Camera.main;
+        Ray ray = cam.ViewportPointToRay(new Vector3(0,0,0));
+        if (plane.Raycast(ray, out var botLeftDist))
+        {
+            var botLeft = ray.GetPoint(botLeftDist);
+            ray = cam.ViewportPointToRay(new Vector3(0,1,0));
+            if (plane.Raycast(ray, out var topLeftDist))
+            {
+                var topLeft = ray.GetPoint(topLeftDist);
+                camMinRayHit = Vector3.Min(camMinRayHit, Vector3.Min(botLeft, topLeft));
+            }
+        }
+        ray = cam.ViewportPointToRay(new Vector3(1,1,0));
+        if (plane.Raycast(ray, out var topRightDist))
+        {
+            camMaxRayHit = Vector3.Max(camMaxRayHit, ray.GetPoint(topRightDist));
+        }
+        
+        // 2 Tiles Offset
+        var min = camMinRayHit - tileSize * 2;
+        var max = camMaxRayHit + tileSize * 2;
+        
         var newMin = minCamArea;
         var newMax = maxCamArea;
         if (min.x < minCamArea.x - tileSize.x / 2) // Left rect
@@ -270,5 +276,49 @@ public class FogOfWarMesh : MonoBehaviour
         }
     }
 
+    
+    private void OnDrawGizmos()
+    {
+        // // Camera to Player Line
+        // Gizmos.color = Color.gray;
+        // Gizmos.DrawLine(player.transform.position, Camera.main.transform.position);
+        //
+        // // Camera to Player FogOfWar Hit
+        // var ray = new Ray(Camera.main.transform.position, player.position - Camera.main.transform.position);
+        // if (Physics.Raycast(ray , out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
+        // {
+        //     Gizmos.color = Color.red;
+        //     Gizmos.DrawWireSphere(hit.point, 0.5f);
+        // }
+        
+        // // Camera View (for FogOfWar Mesh Generation)
+        // Gizmos.color = Color.yellow;
+        // Gizmos.DrawLine(min, max);
+        //
+        // // Camera Bounds
+        // Gizmos.color = Color.green;
+        // var cam = Camera.main;
+        // ray = cam.ViewportPointToRay(new Vector3(0,0,0));
+        // var plane = new Plane(Vector3.up, Vector3.zero);
+        // if (plane.Raycast(ray, out var botLeftDist))
+        // {
+        //     var botLeft = ray.GetPoint(botLeftDist);
+        //     ray = cam.ViewportPointToRay(new Vector3(0,1,0));
+        //     if (plane.Raycast(ray, out var topLeftDist))
+        //     {
+        //         var topLeft = ray.GetPoint(topLeftDist);
+        //         min = Vector3.Min(min, Vector3.Min(botLeft, topLeft));
+        //         Gizmos.DrawLine(cam.transform.position, botLeft);
+        //         Gizmos.DrawLine(cam.transform.position, topLeft);
+        //     }
+        // }
+        // ray = cam.ViewportPointToRay(new Vector3(1,1,0));
+        // if (plane.Raycast(ray, out var topRightDist))
+        // {
+        //     var topRight = ray.GetPoint(topRightDist);
+        //     max = Vector3.Max(max, topRight);
+        //     Gizmos.DrawLine(cam.transform.position, topRight);
+        // }
+    }
  
 }
