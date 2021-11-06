@@ -19,10 +19,10 @@ public class AutoTile : MonoBehaviour
         GetEdgeWalls();
         Destroy(thisTile);
         
-        thisTile = Instantiate(tileDict.prefab(TileDictionary.EdgeTileType.NO_WALL), transform);
+        thisTile = Instantiate(tileDict.prefab(TileDictionary.EdgeTileType.WALL0), transform);
         if (TileDictionary.edgeTileMap.TryGetValue(connections, out var type))
         {
-            if (type.type != TileDictionary.EdgeTileType.NO_WALL)
+            if (type.type != TileDictionary.EdgeTileType.WALL0)
             {
                 var wall = Instantiate(tileDict.prefabs[(int)type.type], thisTile.transform);
                 wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);

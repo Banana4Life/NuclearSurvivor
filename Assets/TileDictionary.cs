@@ -35,7 +35,7 @@ public class TileDictionary : MonoBehaviour
     
     public enum EdgeTileType
     {
-        NO_WALL,
+        WALL0,
         WALL1,
         WALL2,
         WALL2_Parallel,
@@ -53,7 +53,7 @@ public class TileDictionary : MonoBehaviour
     
     public static Dictionary<bool[], EdgeTileType> tilemap = new()
     {
-        { new[] { false, false, false, false, false ,false}, EdgeTileType.NO_WALL },
+        { new[] { false, false, false, false, false ,false}, EdgeTileType.WALL0 },
         { new[] { true, false, false, false, false ,false}, EdgeTileType.WALL1 },
         { new[] { true, true, false, false, false, false}, EdgeTileType.WALL2 },
         { new[] { true, false, false, true, false, false}, EdgeTileType.WALL2_Parallel },
