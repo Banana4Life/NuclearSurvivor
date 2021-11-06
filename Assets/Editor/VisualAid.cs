@@ -11,7 +11,22 @@ public class GameEditor : Editor
     {
         base.OnInspectorGUI();
     }
+    
 }
+
+[CustomEditor(typeof(FogOfWarMesh))]
+public class FogOfWarMeshEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if (GUILayout.Button("Generate Mesh Template"))
+        {
+            ((FogOfWarMesh)target).GenerateMeshTemplate();
+        }
+    }
+}
+
 
 [CustomEditor(typeof(TileDictionary))]
 public class TileDictionaryEditor : Editor
@@ -132,6 +147,8 @@ public class TileDictionaryEditor : Editor
 
         return gameObject;
     }
+    
+    
 
 
 }
