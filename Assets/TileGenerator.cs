@@ -172,17 +172,10 @@ public class TileGenerator : MonoBehaviour
             {
                 var neighbors = cellCoord.Neighbors();
                 neighbors.Shuffle();
-                if (cellCoord == neighbors[0])
-                {
-                    return new[] { cellCoord, neighbors[1] };
-                }
-                if (cellCoord == neighbors[1])
-                {
-                    return new[] { cellCoord, neighbors[0] };
-                }
                 return new[] { cellCoord, neighbors[0], neighbors[1] };
             })
             .Where(cell => !isRoomCell(cell))
+            .Distinct()
             .ToList();
 
         var connectors = 

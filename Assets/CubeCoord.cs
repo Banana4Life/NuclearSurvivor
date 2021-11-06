@@ -124,15 +124,16 @@ public struct CubeCoord : IEquatable<CubeCoord>
             return Array.Empty<CubeCoord>();
         }
 
-        var output = new CubeCoord[CountCellsInRing(radius)];
         var cube = (center + (West * radius));
         var neighborCount = PointyTopNeighbors.Length;
+        var output = new CubeCoord[neighborCount * radius];
+        var outputIndex = 0;
         for (var neighborIndex = 0; neighborIndex < neighborCount; neighborIndex++)
         {
             var direction = PointyTopNeighbors[neighborIndex];
-            for (var i = 0; i < radius; ++i)
+            for (var i = 0; i < radius; i++)
             {
-                output[neighborCount * neighborIndex + i] = cube;
+                output[outputIndex++] = cube;
                 cube += direction;
             }
         }
