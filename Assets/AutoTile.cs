@@ -7,7 +7,6 @@ public class AutoTile : MonoBehaviour
     public bool[] connections = new bool[6];
     public CubeCoord coord;
     public bool isTrigger;
-    public bool isDoor;
     public bool hasPickup;
     public bool isLinkOnly;
 
@@ -19,25 +18,13 @@ public class AutoTile : MonoBehaviour
         GetEdgeWalls();
         Destroy(thisTile);
         
-        thisTile = Instantiate(tileDict.prefab(TileDictionary.EdgeTileType.WALL0), transform);
+        thisTile = Instantiate(tileDict.Prefab(TileDictionary.EdgeTileType.WALL0), transform);
         if (TileDictionary.edgeTileMap.TryGetValue(connections, out var type))
         {
             if (type.type != TileDictionary.EdgeTileType.WALL0)
             {
-                var wall = Instantiate(tileDict.prefabs[(int)type.type], thisTile.transform);
+                var wall = Instantiate(tileDict.Prefab(type.type), thisTile.transform);
                 wall.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
-            }
-
-            // TODO Doors
-            if (type.type == TileDictionary.EdgeTileType.WALL2_Parallel)
-            {
-                if (Random.value < 0.1f)
-                {
-                    isDoor = true;
-                    thisTile = Instantiate(tileDict.prefabs[(int)TileDictionary.EdgeTileType.WALL2_Parallel], transform);
-                    thisTile.transform.RotateAround(transform.position, Vector3.up, 60 * type.rotation);
-                    return this;
-                }
             }
         }
         else

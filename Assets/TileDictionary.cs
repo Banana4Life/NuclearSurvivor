@@ -8,7 +8,7 @@ public class TileDictionary : MonoBehaviour
     public MeshRenderer referenceTile;
     private Vector3 tileSize;
 
-    public GameObject[] prefabs;
+    public PrefabList[] tilePrefabs;
 
     public GameObject triggerPrefab;
     public GameObject pickupPrefab;
@@ -24,13 +24,36 @@ public class TileDictionary : MonoBehaviour
 
     public void PlaceTiles()
     {
-        
+        ClearTiles();
+        if (!Application.isEditor)
+        {
+            return;
+        }
+
+        var coords = CubeCoord.Spiral(CubeCoord.Origin, 0, 3).GetEnumerator();
+        for (var i = 0; i < tilePrefabs.Length; i++)
+        {
+            var tilePrefabList = tilePrefabs[i];
+            foreach (var tilePrefab in tilePrefabList.list)
+            {
+                if (!coords.MoveNext())
+                {
+                    return;
+                }
+
+                var pos = coords.Current.FlatTopToWorld(0, TileSize());
+                var floor = Instantiate(tilePrefabs[(int)EdgeTileType.WALL0].list[0], transform);
+                floor.transform.position = pos;
+                var wall = Instantiate(tilePrefab, floor.transform);
+                floor.gameObject.name = ((EdgeTileType)i).ToString();
+            }
+        }
     }
     
 
-    public GameObject prefab(EdgeTileType type)
+    public GameObject Prefab(EdgeTileType type)
     {
-        return prefabs[(int)type];
+        return tilePrefabs[(int)type].list[0];
     }
     
     public enum EdgeTileType
@@ -38,7 +61,7 @@ public class TileDictionary : MonoBehaviour
         WALL0,
         WALL1,
         WALL2,
-        WALL2_Parallel,
+        WALL2_P,
         WALL2_U,
         WALL3_V,
         WALL3_J,
@@ -46,7 +69,7 @@ public class TileDictionary : MonoBehaviour
         WALL3_O,
         WALL4_V,
         WALL4_V2,
-        WALL4_Parallel,
+        WALL4_P,
         WALL5,
         WALL6
     }
@@ -56,7 +79,7 @@ public class TileDictionary : MonoBehaviour
         { new[] { false, false, false, false, false ,false}, EdgeTileType.WALL0 },
         { new[] { true, false, false, false, false ,false}, EdgeTileType.WALL1 },
         { new[] { true, true, false, false, false, false}, EdgeTileType.WALL2 },
-        { new[] { true, false, false, true, false, false}, EdgeTileType.WALL2_Parallel },
+        { new[] { true, false, false, true, false, false}, EdgeTileType.WALL2_P },
         { new[] { true, false, true, false, false, false}, EdgeTileType.WALL2_U },
         { new[] { true, true, true, false, false, false}, EdgeTileType.WALL3_V },
         { new[] { true, true, false, true, false, false}, EdgeTileType.WALL3_J },
@@ -64,7 +87,7 @@ public class TileDictionary : MonoBehaviour
         { new[] { true, false, true, false, true ,false}, EdgeTileType.WALL3_O },
         { new[] { true, true, true, true, false, false}, EdgeTileType.WALL4_V },
         { new[] { true, true, true, false, true, false}, EdgeTileType.WALL4_V2 },
-        { new[] { true, true, false, true, true, false}, EdgeTileType.WALL4_Parallel },
+        { new[] { true, true, false, true, true, false}, EdgeTileType.WALL4_P },
         { new[] { true, true, true, true, true, false}, EdgeTileType.WALL5},
         { new[] { true, true, true, true, true, true}, EdgeTileType.WALL6},
     };
@@ -120,8 +143,24 @@ public class TileDictionary : MonoBehaviour
             return result;
         }
     }
-    
-    
-    
 
+
+    public void ClearTiles()
+    {
+        if (!Application.isEditor)
+        {
+            return;
+        }
+
+        while (transform.childCount != 0)
+        {
+            DestroyImmediate(transform.GetChild(0).gameObject);
+        }
+    }
 }
+
+[Serializable]
+public struct PrefabList
+{
+    public GameObject[] list;
+} 
