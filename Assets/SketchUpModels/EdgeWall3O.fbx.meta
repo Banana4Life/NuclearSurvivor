@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Void
+    second: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Wall
     second: {fileID: 2100000, guid: 2c134f663e7284049b3e54d9aa8a49b6, type: 2}
   materials:
