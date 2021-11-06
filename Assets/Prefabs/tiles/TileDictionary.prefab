@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referenceTile: {fileID: -6471036689783332660, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
-  tileSize: {x: 0, y: 0, z: 0}
   prefabs:
   - {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
   - {fileID: 6986203231764649966, guid: 2600a031623139220a5b14731b43c498, type: 3}

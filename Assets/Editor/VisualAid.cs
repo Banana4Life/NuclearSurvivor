@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [CustomEditor(typeof(Game))]
 public class GameEditor : Editor
@@ -15,10 +14,10 @@ public class GameEditor : Editor
 public class TileDictionaryEditor : Editor
 {
     Vector2 scrollPosition;
+    private Vector2 mouse;
     public override void OnInspectorGUI()
     {
         var tileDict = ((TileDictionary)target);
-        var currentEvent = Event.current;
         base.OnInspectorGUI();
         
         GUILayout.Space(10);
@@ -32,41 +31,47 @@ public class TileDictionaryEditor : Editor
         {
             var gameObject = tileDict.prefabs[i];
             EditorGUILayout.BeginVertical();
+            GUILayout.Label(((TileDictionary.EdgeTileType)i).ToString());
+            Rect dragDropRect;
             if (gameObject == null)
             {
-                GUILayout.Box("Drag Prefab Here");
+                var content = new GUIContent("Drag Prefab Here");
+                dragDropRect = GUILayoutUtility.GetRect(content, GUI.skin.box);
+                GUI.Box(dragDropRect, content, GUI.skin.box);
             }
             else
             {
                 var assetPreview = AssetPreview.GetAssetPreview(gameObject);
-                GUILayout.Box(assetPreview);
+                
+                var content = new GUIContent(assetPreview);
+                dragDropRect = GUILayoutUtility.GetRect(content, GUI.skin.box);
+                GUI.Box(dragDropRect, content, GUI.skin.box);
             }
-            var lastRect = GUILayoutUtility.GetLastRect();
-
-            // switch (currentEvent.type)
-            // {
-            //     case EventType.DragUpdated:
-            //     case EventType.DragPerform:
-            //         if (!lastRect.Contains (currentEvent.mousePosition + scrollPosition))
-            //             return;
-            //         DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-            //         if (currentEvent.type == EventType.DragPerform) {
-            //             DragAndDrop.AcceptDrag();
-            //             if (DragAndDrop.objectReferences.Length == 1 && DragAndDrop.objectReferences[0] is GameObject go)
-            //             {
-            //                 tileDict.prefabs[0] = go;
-            //             }
-            //         }
-            //         break;
-            // }
+            if (dragDropRect.Contains(Event.current.mousePosition))
+            {
+                if (Event.current.type == EventType.DragUpdated)
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                    Event.current.Use();
+                }   
+                else if (Event.current.type == EventType.DragPerform)
+                {
+                    if (DragAndDrop.objectReferences.Length == 1)
+                    {
+                        gameObject = (GameObject)DragAndDrop.objectReferences[0];    
+                    }
+                    Event.current.Use();
+                }
+            }
+            gameObject = (GameObject) EditorGUILayout.ObjectField(gameObject, typeof(GameObject), false);
+            tileDict.prefabs[i] = gameObject;
             
-            var newObject = EditorGUILayout.ObjectField(gameObject, typeof(GameObject), false);
-            tileDict.prefabs[i] = (GameObject)newObject;
             EditorGUILayout.EndVertical();
         }
 
 
-        EditorGUILayout.EndHorizontal(); GUILayout.EndScrollView();
+        EditorGUILayout.EndHorizontal(); 
+        GUILayout.EndScrollView();
     }
 
 
