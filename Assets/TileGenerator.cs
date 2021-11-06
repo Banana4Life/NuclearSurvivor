@@ -60,9 +60,9 @@ class Hallway
     public readonly Room From;
     public readonly Room To;
     public readonly List<CubeCoord> Coords;
-    public readonly List<(CubeCoord cell, List<CubeCoord> connections)> Connectors;
+    public readonly (CubeCoord roomCell, CubeCoord[] hallwayCells)[] Connectors;
 
-    public Hallway(Room @from, Room to, List<CubeCoord> coords, List<(CubeCoord cell, List<CubeCoord> connections)> connectors)
+    public Hallway(Room from, Room to, List<CubeCoord> coords, (CubeCoord roomCell, CubeCoord[] hallwayCells)[] connectors)
     {
         From = from;
         To = to;
@@ -178,10 +178,11 @@ public class TileGenerator : MonoBehaviour
             .Distinct()
             .ToList();
 
-        var connectors = 
-            _roles.Keys.Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToList()))
-                .Where(t => t.Item2.Count != 0)
-                .ToList();
+        
+        var connectors = from.Coords.Concat(to.Coords)
+                .Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToArray()))
+                .Where(t => t.Item2.Length != 0)
+                .ToArray();
         
         return new Hallway(from, to, pathBetween, connectors);
     }
