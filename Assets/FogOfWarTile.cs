@@ -71,6 +71,7 @@ public class FogOfWarTile : MonoBehaviour
             {
                 // TODO probe texture instead
                 colors[i].a = Mathf.Min(colors[i].a, dist / (meshGenerator.lightRange * meshGenerator.lightRange));
+                // colors[i].a = 0;
             }
         }
         needUpdate = true;

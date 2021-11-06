@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
@@ -163,7 +164,11 @@ public class TileGenerator : MonoBehaviour
 
     private Hallway generateHallway(Room from, Room to)
     {
-        var fullPath = CubeCoord.SearchShortestPath(@from.Origin, to.Origin, pathCost, pathEstimation);
+        var fullPath = CubeCoord.SearchShortestPath(
+            @from.Centers[Random.Range(0, from.Centers.Length)].Item1, 
+            @to.Centers[Random.Range(0, to.Centers.Length)].Item1, pathCost, pathEstimation);
+        fullPath = fullPath.SelectMany(path => CubeCoord.Ring(path, 1).ToList().Shuffled().Take(3).ToList()).Distinct().ToList();
+        
         var pathBetween = fullPath
             .Where(cell => !isRoomCell(cell))
             .ToList();
@@ -316,9 +321,24 @@ public class TileGenerator : MonoBehaviour
         }
     }
 
-    private float pathCost(CubeCoord from, CubeCoord to)
+    public int emptyTileCostMin = 1;
+    public int emptyTileCostMax = 10;
+    public int straightTileCostMin = 4;
+    public int straightTileCostMax = 20;
+    public int roomCost = 4;
+    public int hallwayCost = 2;
+
+    private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
     {
-        const int emptyTileCost = 4;
+        var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
+        if (prevMap.TryGetValue(@from, out var prev))
+        {
+            if ((@from - prev).Equals(to - @from))
+            {
+                emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
+            }    
+        }
+        
         //var fromRole = _roles[from];
         if (!_roles.TryGetValue(to, out var toRole))
         {
@@ -327,12 +347,12 @@ public class TileGenerator : MonoBehaviour
         
         if (toRole is RoomRole)
         {
-            return 1;
+            return roomCost;
         }
 
         if (toRole is HallwayRole)
         {
-            return 1;
+            return hallwayCost;
         }
         
         return emptyTileCost;

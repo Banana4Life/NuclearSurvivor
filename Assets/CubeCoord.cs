@@ -170,12 +170,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
         }
     }
 
-    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost)
+    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost)
     {
         return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, (_, _) => 0);
     }
 
-    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
+    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
     {
         return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, estimate);
     }

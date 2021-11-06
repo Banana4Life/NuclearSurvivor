@@ -50,7 +50,7 @@
                     // Noise calculation
                     float fbm( float2 p, float time)
                     {
-                        p = p * _scale + float2(time, time);
+                        p = p * _scale + float2(time, time) * 20;
                         for( int idx = 0; idx < _octaves; idx++ )
                         {
                             float2 i = floor( p * _frequency );
@@ -80,16 +80,17 @@
                     SHADERDATA vert (float4 vertex:POSITION, float2 uv:TEXCOORD0, fixed4 color:COLOR)
                     {
                         SHADERDATA vs;
-                        vs.vertex = UnityObjectToClipPos (vertex);
-                        vs.uv = uv;
+                        vs.vertex = UnityObjectToClipPos(vertex);
+                        float4 worldPos = mul(unity_ObjectToWorld, vertex);
+                        vs.uv = worldPos.xz;
                         vs.color = color;
                         return vs;
                     }
          
                     float4 frag (SHADERDATA ps) : SV_Target
                     {
-                        float2 uv = ps.uv.xy ;
-                        float c = fbm(uv, _SinTime.x/4) *_multiplier;
+                        float c = fbm(ps.uv, 0) *_multiplier;
+                        // float c = fbm(ps.uv, _SinTime.x/4) *_multiplier;
                         // return float4(_color.x,_color.y,_color.z, ps.color.a) ;
                         return float4(c,c,c, ps.color.a) * _color;
                     }

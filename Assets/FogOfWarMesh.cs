@@ -259,7 +259,7 @@ public class FogOfWarMesh : MonoBehaviour
         }
         templateMesh.vertices = deduplicatedVerts;
         templateMesh.triangles = triangles;
-        templateMesh.uv = deduplicatedVerts.Select(v => new Vector2(v.x, v.z) / gridTileSize).ToArray();
+        templateMesh.uv = deduplicatedVerts.Select(v => new Vector2(v.x, v.z) * gridTileSize).ToArray();
         // All Normals are Up
         templateMesh.normals = Enumerable.Range(0, deduplicatedVerts.Length).Select(_ => Vector3.up).ToArray();
 

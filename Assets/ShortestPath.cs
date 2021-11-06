@@ -7,7 +7,7 @@ public static class ShortestPath
 {
     public static List<TItem> Search<TItem, TCost>(TItem from, TItem to,
         Func<TItem, IEnumerable<TItem>> neighbors,
-        Func<TItem, TItem, TCost> cost,
+        Func<Dictionary<TItem, TItem>, TItem, TItem, TCost> cost,
         Func<TItem, TItem, TCost> estimate,
         TCost min, TCost max, Func<TCost, TCost, TCost> add)
         where TCost : IComparable<TCost>
@@ -37,7 +37,7 @@ public static class ShortestPath
             foreach (var item in neighborItems)
             {
                 var existingItemCost = costs.GetValueOrDefault(item, max);
-                var itemCost = add(add(currentCost, cost(current, item)), estimate(item, to));
+                var itemCost = add(add(currentCost, cost(prev, current, item)), estimate(item, to));
                 if (itemCost.CompareTo(existingItemCost) < 0)
                 {
                     costs[item] = itemCost;
@@ -63,6 +63,6 @@ public static class ShortestPath
     }
 
     public static List<TItem> Search<TItem>(TItem from, TItem to, Func<TItem, IEnumerable<TItem>> neighbors,
-        Func<TItem, TItem, float> cost, Func<TItem, TItem, float> estimate) where TItem : IEquatable<TItem> =>
+        Func<Dictionary<TItem, TItem>, TItem, TItem, float> cost, Func<TItem, TItem, float> estimate) where TItem : IEquatable<TItem> =>
         Search(from, to, neighbors, cost, estimate, 0, float.PositiveInfinity, (a, b) => a + b);
 }
