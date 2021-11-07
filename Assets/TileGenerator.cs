@@ -170,7 +170,7 @@ public class TileGenerator : MonoBehaviour
 
         var pathBetween = fullPath.SelectMany(cellCoord =>
             {
-                var neighbors = cellCoord.Neighbors();
+                var neighbors = cellCoord.FlatTopNeighbors();
                 neighbors.Shuffle();
                 return new[] { cellCoord, neighbors[0], neighbors[1] };
             })
@@ -178,12 +178,11 @@ public class TileGenerator : MonoBehaviour
             .Distinct()
             .ToList();
 
-        
         var connectors = from.Coords.Concat(to.Coords)
-                .Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToArray()))
-                .Where(t => t.Item2.Length != 0)
-                .ToArray();
-        
+            .Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToArray()))
+            .Where(t => t.Item2.Length != 0)
+            .ToArray();
+
         return new Hallway(from, to, pathBetween, connectors);
     }
 
@@ -290,23 +289,22 @@ public class TileGenerator : MonoBehaviour
             }
         }
 
-        var possibleConnections = CartesianProductWithoutDuplicated(new List<Room> { room }, newRooms);
         var newRingDestinations = new HashSet<Room>();
-        foreach (var (a, b) in possibleConnections)
+        foreach (var newRoom in newRooms)
         {
-            if (newRingDestinations.Contains(a) || newRingDestinations.Contains(b))
+            if (newRingDestinations.Contains(room) || newRingDestinations.Contains(newRoom))
             {
                 continue;
             }
 
-            generateAndSpawnHallway(a, b);
-            if (newRooms.Contains(a))
+            generateAndSpawnHallway(room, newRoom);
+            if (newRooms.Contains(room))
             {
-                newRingDestinations.Add(a);
+                newRingDestinations.Add(room);
             }
-            else if (newRooms.Contains(b))
+            else if (newRooms.Contains(newRoom))
             {
-                newRingDestinations.Add(b);
+                newRingDestinations.Add(newRoom);
             }
         }
     }
@@ -320,16 +318,17 @@ public class TileGenerator : MonoBehaviour
 
     private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
     {
-        var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
+        // var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
+        var emptyTileCost = emptyTileCostMin;
         if (prevMap.TryGetValue(from, out var prev))
         {
-            if ((from - prev).Equals(to - from))
+            if (from - prev == to - from)
             {
-                emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
+                // emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
+                emptyTileCost = straightTileCostMin;
             }    
         }
         
-        //var fromRole = _roles[from];
         if (!_roles.TryGetValue(to, out var toRole))
         {
             return emptyTileCost;
@@ -351,25 +350,6 @@ public class TileGenerator : MonoBehaviour
     private float pathEstimation(CubeCoord from, CubeCoord destination)
     {
         return (float)from.Distance(destination);
-    }
-
-    private static IEnumerable<(T, T)> CartesianProductWithoutDuplicated<T>(IEnumerable<T> a, IEnumerable<T> b)
-    {
-        var bItems = b as T[] ?? b.ToArray();
-        var seen = new HashSet<(T, T)>();
-        foreach (var aItem in a)
-        {
-            foreach (var bItem in bItems)
-            {
-                var tuple = (aItem, bItem);
-                if (!seen.Contains(tuple))
-                {
-                    seen.Add(tuple);
-                    seen.Add((bItem, aItem));
-                    yield return tuple;
-                }
-            }
-        }
     }
 
     private AutoTile spawnFloor(Transform parent, CubeCoord at)

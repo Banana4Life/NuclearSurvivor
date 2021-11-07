@@ -42,8 +42,8 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public static readonly CubeCoord West      = new(-1,  0);
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
-    public static readonly CubeCoord[] PointyTopNeighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // counter-clockwiese
-    public static readonly CubeCoord[] FlatTopNeighbors = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
+    public static readonly CubeCoord[] PointyTopNeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // counter-clockwiese
+    public static readonly CubeCoord[] FlatTopNeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
     
     public int Q { get; }
     public int R { get; }
@@ -109,13 +109,29 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public bool Equals(CubeCoord other) => this == other;
 
+    public override bool Equals(object obj) => obj is CubeCoord other && Equals(other);
+
+    public override int GetHashCode() => HashCode.Combine(Q, R, S);
+
     public static bool operator ==(CubeCoord a, CubeCoord b) => a.Q == b.Q && a.R == b.R && a.S == b.S;
 
     public static bool operator !=(CubeCoord a, CubeCoord b) => a.Q != b.Q || a.R != b.R || a.S != b.S;
 
-    public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighbors.Length);
+    public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighborOffsets.Length);
 
-    public CubeCoord[] Neighbors() => Ring(this, 1);
+    private CubeCoord[] Neighbors(CubeCoord[] offsets)
+    {
+        var output = new CubeCoord[offsets.Length];
+        for (var i = 0; i < offsets.Length; i++)
+        {
+            output[i] = this + offsets[i];
+        }
+
+        return output;
+    }
+
+    public CubeCoord[] FlatTopNeighbors() => Neighbors(FlatTopNeighborOffsets);
+    public CubeCoord[] PointyTopNeighbors() => Neighbors(PointyTopNeighborOffsets);
 
     public static CubeCoord[] Ring(CubeCoord center, int radius)
     {
@@ -125,12 +141,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
         }
 
         var cube = (center + (West * radius));
-        var neighborCount = PointyTopNeighbors.Length;
+        var neighborCount = PointyTopNeighborOffsets.Length;
         var output = new CubeCoord[neighborCount * radius];
         var outputIndex = 0;
         for (var neighborIndex = 0; neighborIndex < neighborCount; neighborIndex++)
         {
-            var direction = PointyTopNeighbors[neighborIndex];
+            var direction = PointyTopNeighborOffsets[neighborIndex];
             for (var i = 0; i < radius; i++)
             {
                 output[outputIndex++] = cube;
@@ -157,7 +173,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
         var emitted = new HashSet<CubeCoord>();
         foreach (var cubeCoord in coords)
         {
-            foreach (var neighbor in PointyTopNeighbors)
+            foreach (var neighbor in PointyTopNeighborOffsets)
             {
                 var neighborCoord = cubeCoord + neighbor;
                 if (!coords.Contains(neighborCoord) && !emitted.Contains(neighborCoord))
@@ -182,18 +198,18 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost)
     {
-        return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, (_, _) => 0);
+        return ShortestPath.Search(from, to, item => PointyTopNeighborOffsets.Select(neighbor => item + neighbor), cost, (_, _) => 0);
     }
 
     public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
     {
-        return ShortestPath.Search(from, to, item => PointyTopNeighbors.Select(neighbor => item + neighbor), cost, estimate);
+        return ShortestPath.Search(from, to, item => item.FlatTopNeighbors(), cost, estimate);
     }
 
     public bool IsAdjacent(CubeCoord coord)
     {
         // PointyTop or FlatTopNeighbors does not matter 
-        return FlatTopNeighbors.Contains(this - coord);
+        return FlatTopNeighborOffsets.Contains(this - coord);
     }
 }
 

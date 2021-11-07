@@ -72,12 +72,13 @@ public class AutoTile : MonoBehaviour
         connections = new bool[6];
         if (!isLinkOnly)
         {
-            for (var i = 0; i < CubeCoord.FlatTopNeighbors.Length; i++)
+            var neighbors = coord.FlatTopNeighbors();
+            for (var i = 0; i < neighbors.Length; i++)
             {
-                var cubeCoord = coord + CubeCoord.FlatTopNeighbors[i];
-                var autoTile = Game.TileAt(cubeCoord);
+                var neighbor = neighbors[i];
+                var autoTile = Game.TileAt(neighbor);
                 connections[i] = autoTile == null;
-            }    
+            }
         }
     }
 

@@ -1,64 +1,76 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Priority_Queue;
+// using UnityEngine;
 
 public static class ShortestPath
 {
-    public static List<TItem> Search<TItem, TCost>(TItem from, TItem to,
-        Func<TItem, IEnumerable<TItem>> neighbors,
-        Func<Dictionary<TItem, TItem>, TItem, TItem, TCost> cost,
-        Func<TItem, TItem, TCost> estimate,
+    public static List<TNode> Search<TNode, TCost>(TNode from, TNode to,
+        Func<TNode, IEnumerable<TNode>> neighbors,
+        Func<Dictionary<TNode, TNode>, TNode, TNode, TCost> cost,
+        Func<TNode, TNode, TCost> estimate,
         TCost min, TCost max, Func<TCost, TCost, TCost> add)
         where TCost : IComparable<TCost>
-        where TItem : IEquatable<TItem>
+        where TNode : IEquatable<TNode>
     {
-        var seenElements = new HashSet<TItem>();
-        var nextElements = new SimplePriorityQueue<TItem, TCost>();
-        var costs = new Dictionary<TItem, TCost>
+        var closedSet = new HashSet<TNode>();
+        var openQueue = new SimplePriorityQueue<TNode, TCost>();
+        var costs = new Dictionary<TNode, TCost>
         {
             [from] = min
         };
-        var prev = new Dictionary<TItem, TItem>();
-        nextElements.Enqueue(from, costs[from]);
+        var previousNodes = new Dictionary<TNode, TNode>();
+        openQueue.Enqueue(from, costs[from]);
 
-        while (nextElements.Count > 0)
+        // int nodeCounter = 0;
+        // int shorterPathFoundCounter = 0;
+
+        while (openQueue.Count > 0)
         {
-            var current = nextElements.Dequeue();
+            // nodeCounter++;
+            var current = openQueue.Dequeue();
+            closedSet.Add(current);
+            
             var currentCost = costs[current];
-            seenElements.Add(current);
             if (current.Equals(to))
             {
                 break;
             }
 
-            var neighborItems = neighbors(current)
-                .Where(item => !seenElements.Contains(item));
-            foreach (var item in neighborItems)
+            foreach (var item in neighbors(current))
             {
+                if (closedSet.Contains(item))
+                {
+                    continue;
+                }
                 var existingItemCost = costs.GetValueOrDefault(item, max);
-                var itemCost = add(add(currentCost, cost(prev, current, item)), estimate(item, to));
+                var itemCost = add(add(currentCost, cost(previousNodes, current, item)), estimate(item, to));
                 if (itemCost.CompareTo(existingItemCost) < 0)
                 {
+                    // shorterPathFoundCounter++;
                     costs[item] = itemCost;
-                    prev[item] = current;
-                    nextElements.Enqueue(item, itemCost);
+                    previousNodes[item] = current;
+                    if (!openQueue.EnqueueWithoutDuplicates(item, itemCost))
+                    {
+                        openQueue.UpdatePriority(item, itemCost);
+                    }
                 }
             }
 
         }
 
-        var path = new List<TItem>();
+        var path = new List<TNode>();
         var end = to;
         while (true)
         {
             path.Add(end);
-            if (!prev.TryGetValue(end, out end))
+            if (!previousNodes.TryGetValue(end, out end))
             {
                 break;
             }
         }
         path.Reverse();
+        // Debug.LogWarning($"Nodes visited: {nodeCounter}, shorter paths found: {shorterPathFoundCounter}, nodes in path: {path.Count}");
         return path;
     }
 
