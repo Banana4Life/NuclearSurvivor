@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
@@ -71,12 +70,6 @@ class Hallway
     }
 }
 
-class WorldNetwork
-{
-    private List<Room> _rooms;
-    private List<Hallway> _hallways;
-}
-
 public class TileGenerator : MonoBehaviour
 {
     public TileDictionary tiledict;
@@ -89,6 +82,10 @@ public class TileGenerator : MonoBehaviour
     
     public GameObject roomPrefab;
     public int floorHeight = 0;
+
+    public bool showPathFindingResults;
+    
+    private readonly List<ShortestPath.PathFindingResult<CubeCoord, float>> _recentPathSearches = new();
 
     void Start()
     {
@@ -166,9 +163,11 @@ public class TileGenerator : MonoBehaviour
     {
         var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
         var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
-        var fullPath = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
+        var pathResult = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
+        
+        _recentPathSearches.Add(pathResult);
 
-        var pathBetween = fullPath.SelectMany(cellCoord =>
+        var pathBetween = pathResult.Path.SelectMany(cellCoord =>
             {
                 var neighbors = cellCoord.FlatTopNeighbors();
                 neighbors.Shuffle();
@@ -289,6 +288,7 @@ public class TileGenerator : MonoBehaviour
             }
         }
 
+        _recentPathSearches.Clear();
         var newRingDestinations = new HashSet<Room>();
         foreach (var newRoom in newRooms)
         {
@@ -349,7 +349,7 @@ public class TileGenerator : MonoBehaviour
 
     private float pathEstimation(CubeCoord from, CubeCoord destination)
     {
-        return (float)from.Distance(destination);
+        return from.ManhattenDistance(destination);
     }
 
     private AutoTile spawnFloor(Transform parent, CubeCoord at)
@@ -360,5 +360,41 @@ public class TileGenerator : MonoBehaviour
     public AutoTile TileAt(CubeCoord cubeCoord)
     {
         return _roles.TryGetValue(cubeCoord, out var tile) ? tile.Tile : null;
+    }
+
+    private void OnDrawGizmos()
+    {
+        void ShowResult(ShortestPath.PathFindingResult<CubeCoord, float> result)
+        {
+            foreach (var cubeCoord in result.Path)
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawSphere(cubeCoord.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
+            }
+
+            foreach (var open in result.OpenQueue)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawWireSphere(open.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
+            }
+
+            
+            float worstDistance = result.ClosedSet.Max(c => pathEstimation(c, result.To));
+
+            foreach (var closed in result.ClosedSet)
+            {
+                if (result.Path.Contains(closed))
+                {
+                    continue;
+                }
+
+                Gizmos.color = Color.Lerp(Color.green, Color.red, pathEstimation(closed, result.To) / worstDistance);
+                Gizmos.DrawSphere(closed.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
+            }
+        }
+        if (showPathFindingResults && _recentPathSearches.Count > 0)
+        {
+            ShowResult(_recentPathSearches.Last());
+        }
     }
 }

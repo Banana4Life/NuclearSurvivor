@@ -1,11 +1,35 @@
 using System;
 using System.Collections.Generic;
 using Priority_Queue;
-// using UnityEngine;
+using UnityEngine;
 
 public static class ShortestPath
 {
-    public static List<TNode> Search<TNode, TCost>(TNode from, TNode to,
+    public struct PathFindingResult<TNode, TCost>
+    {
+        public TNode From { get; }
+        public TNode To { get; }
+        public HashSet<TNode> ClosedSet { get; }
+        public SimplePriorityQueue<TNode, TCost> OpenQueue { get; }
+        public Dictionary<TNode, TCost> CostLookup { get; }
+        public Dictionary<TNode, TNode> PreviousLookup { get; }
+        public List<TNode> Path { get; }
+
+        public PathFindingResult(TNode from, TNode to, HashSet<TNode> closedSet,
+            SimplePriorityQueue<TNode, TCost> openQueue, Dictionary<TNode, TCost> costLookup,
+            Dictionary<TNode, TNode> previousLookup, List<TNode> path)
+        {
+            From = from;
+            To = to;
+            ClosedSet = closedSet;
+            OpenQueue = openQueue;
+            CostLookup = costLookup;
+            PreviousLookup = previousLookup;
+            Path = path;
+        }
+    }
+    
+    public static PathFindingResult<TNode, TCost> Search<TNode, TCost>(TNode from, TNode to,
         Func<TNode, IEnumerable<TNode>> neighbors,
         Func<Dictionary<TNode, TNode>, TNode, TNode, TCost> cost,
         Func<TNode, TNode, TCost> estimate,
@@ -15,48 +39,47 @@ public static class ShortestPath
     {
         var closedSet = new HashSet<TNode>();
         var openQueue = new SimplePriorityQueue<TNode, TCost>();
-        var costs = new Dictionary<TNode, TCost>
+        var exactCosts = new Dictionary<TNode, TCost>
         {
             [from] = min
         };
         var previousNodes = new Dictionary<TNode, TNode>();
-        openQueue.Enqueue(from, costs[from]);
+        openQueue.Enqueue(from, exactCosts[from]);
 
-        // int nodeCounter = 0;
-        // int shorterPathFoundCounter = 0;
+        int nodeCounter = 0;
+        int shorterPathFoundCounter = 0;
 
         while (openQueue.Count > 0)
         {
-            // nodeCounter++;
+            nodeCounter++;
             var current = openQueue.Dequeue();
             closedSet.Add(current);
             
-            var currentCost = costs[current];
             if (current.Equals(to))
             {
                 break;
             }
-
+            var currentCost = exactCosts[current];
             foreach (var item in neighbors(current))
             {
                 if (closedSet.Contains(item))
                 {
                     continue;
                 }
-                var existingItemCost = costs.GetValueOrDefault(item, max);
-                var itemCost = add(add(currentCost, cost(previousNodes, current, item)), estimate(item, to));
-                if (itemCost.CompareTo(existingItemCost) < 0)
+                var knownExactCost = exactCosts.GetValueOrDefault(item, max);
+                var newExactCost = add(currentCost, cost(previousNodes, current, item));
+                if (newExactCost.CompareTo(knownExactCost) < 0)
                 {
-                    // shorterPathFoundCounter++;
-                    costs[item] = itemCost;
+                    var estimatedCost = add(newExactCost, estimate(item, to));
+                    shorterPathFoundCounter++;
                     previousNodes[item] = current;
-                    if (!openQueue.EnqueueWithoutDuplicates(item, itemCost))
+                    exactCosts[item] = newExactCost;
+                    if (!openQueue.EnqueueWithoutDuplicates(item, estimatedCost))
                     {
-                        openQueue.UpdatePriority(item, itemCost);
+                        openQueue.UpdatePriority(item, estimatedCost);
                     }
                 }
             }
-
         }
 
         var path = new List<TNode>();
@@ -70,11 +93,12 @@ public static class ShortestPath
             }
         }
         path.Reverse();
-        // Debug.LogWarning($"Nodes visited: {nodeCounter}, shorter paths found: {shorterPathFoundCounter}, nodes in path: {path.Count}");
-        return path;
+        Debug.LogWarning($"Nodes visited: {nodeCounter}, shorter paths found: {shorterPathFoundCounter}, nodes in path: {path.Count}");
+
+        return new PathFindingResult<TNode, TCost>(from, to, closedSet, openQueue, exactCosts, previousNodes, path);
     }
 
-    public static List<TItem> Search<TItem>(TItem from, TItem to, Func<TItem, IEnumerable<TItem>> neighbors,
-        Func<Dictionary<TItem, TItem>, TItem, TItem, float> cost, Func<TItem, TItem, float> estimate) where TItem : IEquatable<TItem> =>
+    public static PathFindingResult<TNode, float> Search<TNode>(TNode from, TNode to, Func<TNode, IEnumerable<TNode>> neighbors,
+        Func<Dictionary<TNode, TNode>, TNode, TNode, float> cost, Func<TNode, TNode, float> estimate) where TNode : IEquatable<TNode> =>
         Search(from, to, neighbors, cost, estimate, 0, float.PositiveInfinity, (a, b) => a + b);
 }

@@ -68,6 +68,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public float Length => (Math.Abs(Q) + Math.Abs(R) + Math.Abs(S)) / 2.0f;
     public double Distance(CubeCoord b) => (this - b).Length;
 
+    public int ManhattenDistance(CubeCoord b)
+    {
+        var d = this - b;
+        return Math.Abs(d.Q) + Math.Abs(d.R);
+    }
+
     private Vector3 _toWorld(int y, Vector3 size, float[] matrix)
     {
         return new((matrix[0] * Q + matrix[1] * R) * size.x, y, (matrix[2] * Q + matrix[3] * R) * size.z);
@@ -196,12 +202,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
         }
     }
 
-    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost)
+    public static ShortestPath.PathFindingResult<CubeCoord, float> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost)
     {
         return ShortestPath.Search(from, to, item => PointyTopNeighborOffsets.Select(neighbor => item + neighbor), cost, (_, _) => 0);
     }
 
-    public static List<CubeCoord> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
+    public static ShortestPath.PathFindingResult<CubeCoord, float> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
     {
         return ShortestPath.Search(from, to, item => item.FlatTopNeighbors(), cost, estimate);
     }
