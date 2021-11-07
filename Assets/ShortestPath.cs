@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Priority_Queue;
-using UnityEngine;
 
 public static class ShortestPath
 {
@@ -46,12 +45,8 @@ public static class ShortestPath
         var previousNodes = new Dictionary<TNode, TNode>();
         openQueue.Enqueue(from, exactCosts[from]);
 
-        int nodeCounter = 0;
-        int shorterPathFoundCounter = 0;
-
         while (openQueue.Count > 0)
         {
-            nodeCounter++;
             var current = openQueue.Dequeue();
             closedSet.Add(current);
             
@@ -71,7 +66,6 @@ public static class ShortestPath
                 if (newExactCost.CompareTo(knownExactCost) < 0)
                 {
                     var estimatedCost = add(newExactCost, estimate(item, to));
-                    shorterPathFoundCounter++;
                     previousNodes[item] = current;
                     exactCosts[item] = newExactCost;
                     if (!openQueue.EnqueueWithoutDuplicates(item, estimatedCost))
@@ -93,7 +87,6 @@ public static class ShortestPath
             }
         }
         path.Reverse();
-        Debug.LogWarning($"Nodes visited: {nodeCounter}, shorter paths found: {shorterPathFoundCounter}, nodes in path: {path.Count}");
 
         return new PathFindingResult<TNode, TCost>(from, to, closedSet, openQueue, exactCosts, previousNodes, path);
     }
