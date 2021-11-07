@@ -27,13 +27,18 @@ public class Game : MonoBehaviour
     private bool panning;
     private float panSpeed;
 
+    public float timeLeft = 60;
+    public float points = 0;
+
     public GameObject tiles;
 
     public TileGenerator generator;
     
     void OnGUI()
     {
-        GUI.Label(new Rect(0, 0, 100, 100), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
+        GUI.Label(new Rect(10, 10, 50, 20), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
+        GUI.Label(new Rect(10, 30, 50, 20), timeLeft.ToString());        
+        GUI.Label(new Rect(10, 50, 50, 20), points.ToString());        
     }
     private void Awake()
     {
@@ -55,9 +60,10 @@ public class Game : MonoBehaviour
     {
         Destroy(tiles);
     }
-
+    
     private void Update()
     {
+        timeLeft -= Time.deltaTime;
         foreach (var pool in pools.Values)
         {
             pool.Reclaim();

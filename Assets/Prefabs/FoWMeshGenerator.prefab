@@ -45,12 +45,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lightRange: 5
-  maxObscure: 0.9
-  maxReObscure: 0.7
-  reobscureRate: 0.02
+  maxObscure: 1
+  maxReObscure: 0.95
+  reobscureRate: 0.15
   player: {fileID: 0}
   tessellate: 5
-  gridTileSize: 100
+  gridTileSize: 30
   gridHeight: 2
   template: {fileID: 43158965489612764, guid: df6f36ba82893826db8e9f7b32584f6f, type: 3}
   fogMaterial: {fileID: 2100000, guid: 0eea48fc165c00d979e232c6e5b865c4, type: 2}
+  refreshRate: 20
