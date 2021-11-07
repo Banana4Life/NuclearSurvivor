@@ -177,6 +177,7 @@ public class TileGenerator : MonoBehaviour
             .Distinct()
             .ToList();
 
+        // TODO FIX NAVMESH - we need to include hallways connecting to those rooms as they could intersect
         var connectors = from.Coords.Concat(to.Coords)
             .Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToArray()))
             .Where(t => t.Item2.Length != 0)
@@ -250,6 +251,7 @@ public class TileGenerator : MonoBehaviour
     {
         foreach (var (coord, connections) in hallway.Connectors)
         {
+            // TODO FIX NAVMESH - link tiles actually need the walls anyways
             var autoTile = spawnFloor(parent.transform, coord).Init(coord, true);
             foreach (var cubeCoord in connections)
             {
