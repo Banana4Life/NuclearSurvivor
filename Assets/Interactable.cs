@@ -5,8 +5,10 @@ public class Interactable : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponent<NavMeshAgent>())
+        var player = other.GetComponent<Player>();
+        if (player)
         {
+            player.SetIrradiated();
             Destroy(gameObject);
         }
     }
