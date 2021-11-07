@@ -1,7 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AI.Navigation;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -25,21 +24,14 @@ public class Room
 
 public abstract class CellRole
 {
-    public readonly AutoTile Tile;
-
-    protected CellRole(AutoTile tile)
-    {
-        Tile = tile;
-    }
 }
 
 sealed class RoomRole : CellRole
 {
     public readonly Room Room;
 
-    public RoomRole(Room room, AutoTile tile) : base(tile)
+    public RoomRole(Room room)
     {
-        
         Room = room;
     }
 }
@@ -48,25 +40,27 @@ sealed class HallwayRole : CellRole
 {
     public readonly List<Hallway> Hallways;
 
-    public HallwayRole(Hallway hallways, AutoTile autoTile) : base(autoTile)
+    public HallwayRole(Hallway hallways)
     {
         Hallways = new List<Hallway> { hallways };
     }
 }
 
-class Hallway
+public class Hallway
 {
     public readonly Room From;
     public readonly Room To;
     public readonly List<CubeCoord> Coords;
     public readonly (CubeCoord roomCell, CubeCoord[] hallwayCells)[] Connectors;
+    public readonly NavigatableTiles Nav;
 
-    public Hallway(Room from, Room to, List<CubeCoord> coords, (CubeCoord roomCell, CubeCoord[] hallwayCells)[] connectors)
+    public Hallway(Room from, Room to, List<CubeCoord> coords, (CubeCoord roomCell, CubeCoord[] hallwayCells)[] connectors, NavigatableTiles nav)
     {
         From = from;
         To = to;
         Coords = coords;
         Connectors = connectors;
+        Nav = nav;
     }
 }
 
@@ -74,8 +68,7 @@ public class TileGenerator : MonoBehaviour
 {
     public TileDictionary tiledict;
 
-    public GameObject floorTile;
-    private const int RoomSize = 18;
+    public const int RoomSize = 18;
 
     private Dictionary<CubeCoord, Room> _rooms = new();
     private Dictionary<CubeCoord, CellRole> _roles = new();
@@ -94,7 +87,7 @@ public class TileGenerator : MonoBehaviour
         SpawnRoomRing(room);
     }
 
-    private Room generateRoom(CubeCoord roomCoord, NavigatableTiles nav)
+    private Room generateRoom(CubeCoord roomCoord)
     {
         var origin = roomCoord * RoomSize;
         var coords = new HashSet<CubeCoord>();
@@ -122,9 +115,7 @@ public class TileGenerator : MonoBehaviour
             center = centerCandidates[Random.Range(0, outerTiles.Count)];
         }
 
-
-        var room = new Room(roomCoord, origin, centers, coords, nav);
-        nav.needsNewNavMesh = true;
+        var room = new Room(roomCoord, origin, centers, coords, Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>());
         _rooms[room.RoomCoord] = room;
         return room;
     }
@@ -135,19 +126,12 @@ public class TileGenerator : MonoBehaviour
         {
             return null;
         }
-        var parent = Instantiate(roomPrefab, transform);
-        var room = generateRoom(roomCoord, parent.GetComponent<NavigatableTiles>());
-        parent.name = "Room " + roomCoord;
-        parent.transform.position = roomCoord.FlatTopToWorld(floorHeight, tiledict.TileSize()) * RoomSize;
-        foreach (var cubeCoord in room.Coords)
+        var room = generateRoom(roomCoord);
+        foreach (var cellCoord in room.Coords)
         {
-            _roles[cubeCoord] = new RoomRole(room, spawnFloor(parent.transform, cubeCoord));
+            _roles[cellCoord] = new RoomRole(room);
         }
-        foreach (var coord in room.Coords)
-        {
-            _roles[coord].Tile.Init(coord);
-        }
-
+        room.Nav.Init(this, room);
         return room;
     }
 
@@ -156,6 +140,8 @@ public class TileGenerator : MonoBehaviour
         return !_rooms.ContainsKey(roomCoord);
     }
 
+    public bool IsCell(CubeCoord coord) => _roles.ContainsKey(coord);
+    
     private bool isRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
     private bool isHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
 
@@ -183,19 +169,15 @@ public class TileGenerator : MonoBehaviour
             .Where(t => t.Item2.Length != 0)
             .ToArray();
 
-        return new Hallway(from, to, pathBetween, connectors);
+        var nav = Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>();
+        return new Hallway(from, to, pathBetween, connectors, nav);
     }
 
     private Hallway generateAndSpawnHallway(Room from, Room to)
     {
-        var parent = Instantiate(roomPrefab, transform);
-        parent.name = "Hallway";
-        parent.transform.position = Vector3.Lerp(from.Origin.FlatTopToWorld(floorHeight, tiledict.TileSize()),
-            to.Origin.FlatTopToWorld(floorHeight, tiledict.TileSize()), 0.5f);
         var hallway = generateHallway(from, to);
         foreach (var coord in hallway.Coords)
         {
-            var autoTile = spawnFloor(parent.transform, coord);
             if (_roles.TryGetValue(coord, out var existingRole))
             {
                 if (existingRole is HallwayRole existingHallwayRole)
@@ -205,69 +187,13 @@ public class TileGenerator : MonoBehaviour
             }
             else
             {
-                _roles[coord] = new HallwayRole(hallway, autoTile);
+                _roles[coord] = new HallwayRole(hallway);
             }
         }
-
-        foreach (var coord in hallway.Coords)
-        {
-            _roles[coord].Tile.Init(coord);
-        }
-        
-        var mainTrigger = new GameObject("TriggerArea");
-        mainTrigger.transform.parent = parent.transform;
-        mainTrigger.AddComponent<LevelLoaderTrigger>().Init(this, to);
-        foreach (var coord in hallway.Coords)
-        {
-            var pos = coord.FlatTopToWorld(0, tiledict.TileSize());
-            var subTrigger = Instantiate(tiledict.triggerPrefab, mainTrigger.transform);
-            subTrigger.GetComponent<SubTrigger>().Init(mainTrigger.GetComponent<LevelLoaderTrigger>(), pos);
-        }
-
-        var triggerTiles = GenerateNavMeshLinkTiles(hallway, parent).ToList();
-        
-        foreach (var linkTiles in triggerTiles)
-        {
-            var tile = _roles[linkTiles.coord].Tile.PlaceTile();
-            // Update Rooms/Hallway Intersection
-            tile.transform.parent.GetComponent<NavigatableTiles>().needsNewNavMesh = true;
-        }
-
-        // Always update source/target rooms
-        from.Nav.needsNewNavMesh = true;  
-        to.Nav.needsNewNavMesh = true;  
-        
-        parent.GetComponent<NavMeshSurface>().BuildNavMesh();
-
-        foreach (var linkTiles in triggerTiles)
-        {
-            linkTiles.HideNavMeshLinkPlate();
-        }
-        
+        hallway.Nav.Init(this, hallway);
         return hallway;
     }
-
-    private IEnumerable<AutoTile> GenerateNavMeshLinkTiles(Hallway hallway, GameObject parent)
-    {
-        foreach (var (coord, connections) in hallway.Connectors)
-        {
-            // TODO FIX NAVMESH - link tiles actually need the walls anyways
-            var autoTile = spawnFloor(parent.transform, coord).Init(coord, true);
-            foreach (var cubeCoord in connections)
-            {
-                var cubeDirection = cubeCoord - coord;
-
-                var link = autoTile.AddComponent<NavMeshLink>();
-                var direction = cubeDirection.FlatTopToWorld(floorHeight, tiledict.TileSize());
-                link.startPoint = direction / 2 - direction.normalized * 0.5f;
-                link.endPoint = direction / 2 - direction.normalized * 0.4999f;
-                link.width = tiledict.TileSize().x / 2;
-            }
-
-            yield return autoTile;
-        }
-    }
-
+  
     public void SpawnRoomRing(Room room)
     {
         Debug.Log("Loading next Rooms around " + room);
@@ -354,16 +280,6 @@ public class TileGenerator : MonoBehaviour
         return from.ManhattenDistance(destination);
     }
 
-    private AutoTile spawnFloor(Transform parent, CubeCoord at)
-    {
-        return Instantiate(floorTile, parent, true).GetComponent<AutoTile>();
-    }
-
-    public AutoTile TileAt(CubeCoord cubeCoord)
-    {
-        return _roles.TryGetValue(cubeCoord, out var tile) ? tile.Tile : null;
-    }
-
     private void OnDrawGizmos()
     {
         void ShowResult(ShortestPath.PathFindingResult<CubeCoord, float> result)
@@ -398,5 +314,23 @@ public class TileGenerator : MonoBehaviour
         {
             ShowResult(_recentPathSearches.Last());
         }
+    }
+
+    public IEnumerable<NavigatableTiles> NavigatableAt(CubeCoord coord)
+    {
+        if (_roles.TryGetValue(coord, out var role))
+        {
+            if (role is HallwayRole hallways)
+            {
+                return hallways.Hallways.Select(h => h.Nav);
+            }
+
+            if (role is RoomRole room)
+            {
+                return new List<NavigatableTiles>() { room.Room.Nav };
+            }
+        }
+
+        return Array.Empty<NavigatableTiles>();
     }
 }

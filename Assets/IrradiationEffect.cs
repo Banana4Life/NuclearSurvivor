@@ -4,39 +4,39 @@ using UnityEngine.WSA;
 
 public class IrradiationEffect : MonoBehaviour
 {
-    public Light light;
-    public ParticleSystem particleSystem;
+    public Light l;
+    public ParticleSystem ps;
     public float maxLight;
 
     public bool active;
 
     private void Start()
     {
-        light.intensity = 0;
+        l.intensity = 0;
     }
 
     private void Update()
     {
         if (active)
         {
-            light.intensity = Math.Min(light.intensity + Time.deltaTime, maxLight);
+            l.intensity = Math.Min(l.intensity + Time.deltaTime, maxLight);
         }
         else
         {
-            light.intensity = Math.Max(0, light.intensity - Time.deltaTime);
+            l.intensity = Math.Max(0, l.intensity - Time.deltaTime);
         }
 
     }
 
     public void Activate()
     {
-        particleSystem.Play();
+        ps.Play();
         active = true;
     }
     
     public void Deactivate()
     {
-        particleSystem.Stop();
+        ps.Stop();
         active = false;
     }
 }

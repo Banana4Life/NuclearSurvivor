@@ -11,6 +11,9 @@ GameObject:
   - component: {fileID: 8470511201257494914}
   - component: {fileID: 8470511201257494913}
   - component: {fileID: 1809147941557354643}
+  - component: {fileID: 6499886199004211058}
+  - component: {fileID: 1077828901751302774}
+  - component: {fileID: 5470370316181568757}
   m_Layer: 0
   m_Name: RoomPrefab
   m_TagString: Untagged
@@ -75,3 +78,73 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fb62a7499ca6cce48318d2285667440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  needsNewNavMesh: 0
+  floorMesh: {fileID: 0}
+  wallMesh: {fileID: 0}
+  linkMesh: {fileID: 0}
+  baseLinkMesh: {fileID: 0}
+--- !u!33 &6499886199004211058
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470511201257494915}
+  m_Mesh: {fileID: -8089699231438940418, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
+--- !u!23 &1077828901751302774
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470511201257494915}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: eff9bd1fc3971e7499e63b512110dfef, type: 2}
+  - {fileID: 2100000, guid: 3a36f0089159670f6a16280a88e679c7, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &5470370316181568757
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470511201257494915}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}

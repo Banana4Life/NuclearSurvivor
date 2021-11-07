@@ -140,8 +140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eac507314d60dea609505bee9b839022, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  light: {fileID: 1848241238670783975}
-  particleSystem: {fileID: 154171780251767578}
+  l: {fileID: 1848241238670783975}
+  ps: {fileID: 154171780251767578}
   maxLight: 1
   active: 0
 --- !u!1 &5047965434590861026

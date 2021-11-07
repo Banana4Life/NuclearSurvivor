@@ -10,8 +10,13 @@ public class TileDictionary : MonoBehaviour
 
     public PrefabList[] tilePrefabs;
 
-    public GameObject triggerPrefab;
     public GameObject pickupPrefab;
+    public Mesh baseHexMesh;
+
+    private void Start()
+    {
+        baseHexMesh = Prefab(EdgeTileType.WALL0).GetComponent<MeshFilter>().sharedMesh;
+    }
 
     public Vector3 TileSize()
     {

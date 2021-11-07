@@ -61,6 +61,9 @@ public class Game : MonoBehaviour
         Destroy(tiles);
     }
     
+    private Plane plane = new Plane(Vector3.up, Vector3.zero);
+
+    
     private void Update()
     {
         timeLeft -= Time.deltaTime;
@@ -69,11 +72,10 @@ public class Game : MonoBehaviour
             pool.Reclaim();
         }
 
-        Ray worldPoint = Camera.main.ScreenPointToRay(Input.mousePosition);
-        const int selectableTileLayerMask = 1 << 11;
-        if (Physics.Raycast(worldPoint, out RaycastHit hit, Mathf.Infinity, selectableTileLayerMask))
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (plane.Raycast(ray, out var dist)) // We have no height at the moment
         {
-            cr.GetComponent<NavMeshAgent>().destination = hit.point;
+            cr.GetComponent<NavMeshAgent>().destination = ray.GetPoint(dist);  
         }
 
         var camDelta = (camCart.transform.position - cr.transform.position).sqrMagnitude;
@@ -129,8 +131,4 @@ public class Game : MonoBehaviour
         return PoolFor(prefab).Pooled<T>();
     }
 
-    public static AutoTile TileAt(CubeCoord cubeCoord)
-    {
-        return INSTANCE.generator.TileAt(cubeCoord);
-    }
 }
