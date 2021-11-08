@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -145,15 +147,100 @@ public class TileGenerator : MonoBehaviour
     private bool isRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
     private bool isHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
 
-    private Hallway generateHallway(Room from, Room to)
+    public struct GenerateHallwayJob : IJob
     {
-        var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
-        var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
-        var pathResult = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
+        public CubeCoord fromRoom;
+        public CubeCoord toRoom;
+        public CubeCoord fromCenter;
+        public CubeCoord toCenter;
+        public PathCostSettings settings;
+        // public Dictionary<CubeCoord, CellRole> roles;
+        public NativeArray<CubeCoord> resultList;
+        public NativeArray<int> result;
+        public JobHandle handle;
         
-        _recentPathSearches.Add(pathResult);
+        public void Execute()
+        {
+            var cubeCoords = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation).Path;
+            for (int i = 0; i < cubeCoords.Count; i++)
+            {
+                resultList[i] = cubeCoords[i];
+            }
+            result[0] = cubeCoords.Count;
+        }
+        
+        private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
+        {
+            // var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
+            var emptyTileCost = settings.emptyTileCostMin;
+            if (prevMap.TryGetValue(from, out var prev))
+            {
+                if (from - prev == to - from)
+                {
+                    // emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
+                    emptyTileCost = settings.straightTileCostMin;
+                }    
+            }
+        
+            // if (!roles.TryGetValue(to, out var toRole))
+            // {
+            //     return emptyTileCost;
+            // }
+            //
+            // if (toRole is RoomRole)
+            // {
+            //     return settings.roomCost;
+            // }
+            //
+            // if (toRole is HallwayRole)
+            // {
+            //     return settings.hallwayCost;
+            // }
+        
+            return emptyTileCost;
+            
+        }
+    }
 
-        var pathBetween = pathResult.Path.SelectMany(cellCoord =>
+    private Queue<GenerateHallwayJob> jobs = new();
+
+    public struct FromToRoom
+    {
+        public Room fromRoom;
+        public Room toRoom;
+    }
+    
+    private void Update()
+    {
+        if (jobs.Count != 0)
+        {
+            if (jobs.Peek().handle.IsCompleted)
+            {
+                GenerateAndSpawnHallway(jobs.Dequeue());
+            }
+        }
+    }
+
+    private void GenerateAndSpawnHallway(GenerateHallwayJob jobData)
+    {
+        jobData.handle.Complete();
+        var pathResult = new CubeCoord[100];
+        jobData.resultList.CopyTo(pathResult);
+        Array.Resize(ref pathResult, jobData.result[0]);
+
+        // _recentPathSearches.Add(pathResult.ToArray());
+
+        Debug.Log($"path found {jobData.result[0]} {pathResult.Length}" );
+        for (int i = 0; i < pathResult.Length; i++)
+        {
+            Debug.Log(pathResult[i]);
+        }
+            
+        jobData.resultList.Dispose();
+        jobData.result.Dispose();
+
+
+        var pathBetween = pathResult.SelectMany(cellCoord =>
             {
                 var neighbors = cellCoord.FlatTopNeighbors();
                 neighbors.Shuffle();
@@ -163,19 +250,16 @@ public class TileGenerator : MonoBehaviour
             .Distinct()
             .ToList();
 
+        var fromRoom = _rooms[jobData.fromRoom];
+        var toRoom = _rooms[jobData.toRoom];
         // TODO FIX NAVMESH - we need to include hallways connecting to those rooms as they could intersect
-        var connectors = from.Coords.Concat(to.Coords)
+        var connectors = fromRoom.Coords.Concat(toRoom.Coords)
             .Select(roomCell => (roomCell, pathBetween.Where(coord => coord.IsAdjacent(roomCell)).ToArray()))
             .Where(t => t.Item2.Length != 0)
             .ToArray();
 
         var nav = Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>();
-        return new Hallway(from, to, pathBetween, connectors, nav);
-    }
-
-    private Hallway generateAndSpawnHallway(Room from, Room to)
-    {
-        var hallway = generateHallway(from, to);
+        var hallway = new Hallway(fromRoom, toRoom, pathBetween, connectors, nav);
         foreach (var coord in hallway.Coords)
         {
             if (_roles.TryGetValue(coord, out var existingRole))
@@ -190,8 +274,27 @@ public class TileGenerator : MonoBehaviour
                 _roles[coord] = new HallwayRole(hallway);
             }
         }
+        
         hallway.Nav.Init(this, hallway);
-        return hallway;
+    }
+
+    private void ScheduleHallwayGeneration(Room from, Room to)
+    {
+        var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
+        var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
+        var jobData = new GenerateHallwayJob()
+        {
+            fromRoom = from.RoomCoord,
+            toRoom = to.RoomCoord,
+            fromCenter = fromCenter,
+            toCenter = toCenter,
+            settings = pathCostSettings,
+            resultList = new NativeArray<CubeCoord>(100, Allocator.Persistent),
+            result = new NativeArray<int>(1, Allocator.Persistent),
+            // roles = _roles
+        };
+        jobData.handle = jobData.Schedule();
+        jobs.Enqueue(jobData);
     }
   
     public void SpawnRoomRing(Room room)
@@ -217,65 +320,36 @@ public class TileGenerator : MonoBehaviour
         }
 
         _recentPathSearches.Clear();
-        var newRingDestinations = new HashSet<Room>();
         foreach (var newRoom in newRooms)
         {
-            if (newRingDestinations.Contains(room) || newRingDestinations.Contains(newRoom))
-            {
-                continue;
-            }
-
-            generateAndSpawnHallway(room, newRoom);
-            if (newRooms.Contains(room))
-            {
-                newRingDestinations.Add(room);
-            }
-            else if (newRooms.Contains(newRoom))
-            {
-                newRingDestinations.Add(newRoom);
-            }
+            ScheduleHallwayGeneration(room, newRoom);
         }
     }
 
-    public int emptyTileCostMin = 1;
-    public int emptyTileCostMax = 10;
-    public int straightTileCostMin = 4;
-    public int straightTileCostMax = 20;
-    public int roomCost = 4;
-    public int hallwayCost = 2;
-
-    private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
+    [Serializable]
+    public struct PathCostSettings
     {
-        // var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
-        var emptyTileCost = emptyTileCostMin;
-        if (prevMap.TryGetValue(from, out var prev))
-        {
-            if (from - prev == to - from)
-            {
-                // emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
-                emptyTileCost = straightTileCostMin;
-            }    
-        }
-        
-        if (!_roles.TryGetValue(to, out var toRole))
-        {
-            return emptyTileCost;
-        }
-        
-        if (toRole is RoomRole)
-        {
-            return roomCost;
-        }
-
-        if (toRole is HallwayRole)
-        {
-            return hallwayCost;
-        }
-        
-        return emptyTileCost;
+        public int emptyTileCostMin;
+        public int emptyTileCostMax;
+        public int straightTileCostMin;
+        public int straightTileCostMax;
+        public int roomCost;
+        public int hallwayCost;
     }
 
-    private float pathEstimation(CubeCoord from, CubeCoord destination)
+    public PathCostSettings pathCostSettings = new PathCostSettings()
+    {
+        emptyTileCostMin = 1,
+        emptyTileCostMax = 10,
+        straightTileCostMin = 4,
+        straightTileCostMax = 20,
+        roomCost = 4,
+        hallwayCost = 2
+    };
+
+    
+
+    private static float pathEstimation(CubeCoord from, CubeCoord destination)
     {
         return from.ManhattenDistance(destination);
     }
