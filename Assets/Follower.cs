@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 public class Follower : MonoBehaviour
 {
-    private Player player;
+    private LeaderAgent leaderAgent;
     private NavMeshAgent agent;
 
     private void Start()
@@ -19,14 +19,14 @@ public class Follower : MonoBehaviour
         updateTime -= Time.deltaTime;
         if (updateTime < 0)
         {
-            agent.destination = player.transform.position;
+            agent.destination = leaderAgent.transform.position;
             updateTime = 0.2f;
         }
     }
 
-    public void Init(Player player)
+    public void Init(LeaderAgent leaderAgent)
     {
-        this.player = player;
-        transform.position = player.transform.position;
+        this.leaderAgent = leaderAgent;
+        transform.position = leaderAgent.transform.position;
     }
 }

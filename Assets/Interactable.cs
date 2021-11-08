@@ -1,14 +1,13 @@
 using UnityEngine;
-using UnityEngine.AI;
 
 public class Interactable : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        var player = other.GetComponent<Player>();
-        if (player)
+        var agent = other.GetComponent<LeaderAgent>();
+        if (agent)
         {
-            player.SetIrradiated();
+            agent.SetIrradiated();
             Destroy(gameObject);
         }
     }

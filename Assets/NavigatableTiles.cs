@@ -80,7 +80,7 @@ public class NavigatableTiles : MonoBehaviour
     {
         this.generator = generator;
         gameObject.name = "Room " + room.Origin;
-        transform.position = room.RoomCoord.FlatTopToWorld(generator.floorHeight, generator.tiledict.TileSize()) * TileGenerator.RoomSize;
+        transform.position = room.WorldCenter;
         InitMeshes(room.Origin.ToString());
         InitCells(room.Coords);
         UpdateCombinedMesh();

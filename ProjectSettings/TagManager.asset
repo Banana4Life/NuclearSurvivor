@@ -17,7 +17,7 @@ TagManager:
   - 
   - Wall
   - Floor
-  - TriggerZone
+  - Pickup
   - FogOfWar
   - AntiFogParticle
   - UV-Visible

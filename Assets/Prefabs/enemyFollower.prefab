@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8b421c6ee7bb83b129517bb9c39f3f27, type: 2}
+  - {fileID: 2100000, guid: 66b8f6553298ab1988ac4b2d63670a11, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 8735805181049275115}
   - component: {fileID: 1191323966955595099}
   m_Layer: 0
-  m_Name: follower
+  m_Name: enemyFollower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

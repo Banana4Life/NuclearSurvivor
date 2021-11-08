@@ -11,14 +11,16 @@ public class Room
     public readonly (CubeCoord, int)[] Centers;
     public readonly HashSet<CubeCoord> Coords;
     public readonly NavigatableTiles Nav;
+    public readonly Vector3 WorldCenter;
 
-    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords, NavigatableTiles nav)
+    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords, NavigatableTiles nav, Vector3 worldCenter)
     {
         RoomCoord = roomCoord;
         Origin = origin;
         Centers = centers;
         Coords = coords;
         Nav = nav;
+        WorldCenter = worldCenter;
     }
 }
 
@@ -119,7 +121,8 @@ public class TileGenerator : MonoBehaviour
             center = centerCandidates[Random.Range(0, outerTiles.Count)];
         }
 
-        var room = new Room(roomCoord, origin, centers, coords, Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>());
+        var room = new Room(roomCoord, origin, centers, coords, Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>(),
+                roomCoord.FlatTopToWorld(floorHeight, tiledict.TileSize()) * RoomSize);
         _rooms[room.RoomCoord] = room;
         return room;
     }
@@ -341,5 +344,50 @@ public class TileGenerator : MonoBehaviour
         }
 
         return Array.Empty<NavigatableTiles>();
+    }
+
+    public Room FindNearbyRoom(Vector3 pos, HashSet<Room> visited, float maxDistance)
+    {
+        if (visited.Count == 0)
+        {
+            return _rooms[CubeCoord.Origin];
+        }
+        var current = CubeCoord.FlatTopFromWorld(pos, tiledict.TileSize());
+        if (_roles.TryGetValue(current, out var currentCell))
+        {
+            if (currentCell is RoomRole roomCell)
+            {
+                var roomCoord = roomCell.Room.RoomCoord;
+                var potentialRooms = CubeCoord.Spiral(roomCoord, 0, 2)
+                    .Where(c => _rooms.ContainsKey(c))
+                    .Select(c => _rooms[c])
+                    .Where(r => !visited.Contains(r))
+                    .ToList();
+                if (potentialRooms.Count != 0)
+                {
+                    return potentialRooms.Shuffled().First();        
+                }
+            }
+            if (currentCell is HallwayRole hallwayCell)
+            {
+                foreach (var hallway in hallwayCell.Hallways)
+                {
+                    if (!visited.Contains(hallway.To))
+                    {
+                        return hallway.To;
+                    }
+                    if (!visited.Contains(hallway.From))
+                    {
+                        return hallway.From;
+                    }
+                }
+            }
+
+        }
+        Debug.Log("Failed to find nearby Room. Picking a random room");
+        return _rooms.Select(r => r.Value)
+            .Where(r => !visited.Contains(r))
+            .Where(r => (r.WorldCenter - pos).sqrMagnitude < maxDistance * maxDistance)
+            .ToList().Shuffled().FirstOrDefault();
     }
 }
