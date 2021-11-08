@@ -61,8 +61,7 @@ public class Game : MonoBehaviour
         Destroy(tiles);
     }
     
-    private Plane plane = new Plane(Vector3.up, Vector3.zero);
-
+    private Plane plane = new(Vector3.up, Vector3.zero);
     
     private void Update()
     {
@@ -75,7 +74,10 @@ public class Game : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (plane.Raycast(ray, out var dist)) // We have no height at the moment
         {
-            cr.GetComponent<NavMeshAgent>().destination = ray.GetPoint(dist);  
+            if (cr.GetComponent<NavMeshAgent>().isOnNavMesh)
+            {
+                cr.GetComponent<NavMeshAgent>().destination = ray.GetPoint(dist);
+            }
         }
 
         var camDelta = (camCart.transform.position - cr.transform.position).sqrMagnitude;

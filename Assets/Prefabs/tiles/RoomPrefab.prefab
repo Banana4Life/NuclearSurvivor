@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6499886199004211058}
   - component: {fileID: 1077828901751302774}
   - component: {fileID: 5470370316181568757}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RoomPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54,7 +54,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 2167
+    m_Bits: 2048
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_IgnoreNavMeshAgent: 1

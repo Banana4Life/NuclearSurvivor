@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AI.Navigation;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class NavigatableTiles : MonoBehaviour
 {
-    public bool needsNewNavMesh;
     private bool needsMeshCombining;
-    private NavMeshSurface navMesh;
     private Mesh mesh;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
@@ -21,17 +18,12 @@ public class NavigatableTiles : MonoBehaviour
 
     private Queue<CombineInstance> floorsToCombine = new();
     private Queue<CombineInstance> wallsToCombine = new();
-    private Queue<CombineInstance> linksToCombine = new();
 
     public Mesh floorMesh;
     public Mesh wallMesh ;
-    public Mesh linkMesh ;
-
-    public Mesh baseLinkMesh;
 
     private GameObject wallsContainer;
     private GameObject pickups;
-    private GameObject links;
 
     public class CellData
     {
@@ -43,7 +35,6 @@ public class NavigatableTiles : MonoBehaviour
 
     private void Start()
     {
-        navMesh = GetComponent<NavMeshSurface>();
         meshFilter = GetComponent<MeshFilter>();
         meshFilter.sharedMesh = mesh;
         meshCollider = GetComponent<MeshCollider>();
@@ -51,22 +42,15 @@ public class NavigatableTiles : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
     }
 
-    void Update()
+    void UpdateCombinedMesh()
     {
         CombineMesh(floorMesh, floorsToCombine);
         CombineMesh(wallMesh, wallsToCombine);
-        CombineMesh(linkMesh, linksToCombine);
       
         if (needsMeshCombining)
         {
-            mesh.CombineMeshes(new []{new CombineInstance(){mesh = floorMesh}, new CombineInstance(){mesh = wallMesh}, new CombineInstance(){mesh = linkMesh}}, false, false);
+            mesh.CombineMeshes(new []{new CombineInstance(){mesh = floorMesh}, new CombineInstance(){mesh = wallMesh}}, false, false);
             needsMeshCombining = false;
-            needsNewNavMesh = true;
-        }
-        if (needsNewNavMesh)
-        {
-            needsNewNavMesh = false;
-            navMesh.BuildNavMesh();
         }
     }
 
@@ -86,13 +70,9 @@ public class NavigatableTiles : MonoBehaviour
         mesh.subMeshCount = 3;
         floorMesh = new();
         wallMesh = new();
-        linkMesh = new();
-        baseLinkMesh = new();
         mesh.name = $"Main Mesh {coord}";
         floorMesh.name = $"Floor Mesh {coord}";
         wallMesh.name = $"Wall Mesh {coord}";
-        linkMesh.name = $"Link Mesh {coord}";
-        baseLinkMesh.name = "Base Link Mesh";
         mesh.subMeshCount = 3; // FloorTiles / Walls / NavMeshLinkTiles
     }
     
@@ -103,8 +83,22 @@ public class NavigatableTiles : MonoBehaviour
         transform.position = room.RoomCoord.FlatTopToWorld(generator.floorHeight, generator.tiledict.TileSize()) * TileGenerator.RoomSize;
         InitMeshes(room.Origin.ToString());
         InitCells(room.Coords);
+        UpdateCombinedMesh();
     }
-    
+
+    public void Init(TileGenerator generator, Hallway hallway)
+    {
+        this.generator = generator;
+        gameObject.name = "Hallway";
+        transform.position = Vector3.Lerp(hallway.From.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()),
+            hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
+        InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
+        InitCells(hallway.Coords);
+        UpdateRooms(hallway);
+        InitLoadTriggers(hallway);
+        UpdateCombinedMesh();
+    }
+
     public bool[] GetEdgeWalls(CubeCoord coord)
     {
         var walls = new bool[6];
@@ -117,23 +111,11 @@ public class NavigatableTiles : MonoBehaviour
         return walls;
     }
 
-    public void Init(TileGenerator generator, Hallway hallway)
-    {
-        this.generator = generator;
-        gameObject.name = "Hallway";
-        transform.position = Vector3.Lerp(hallway.From.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()),
-                                          hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
-        InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
-        InitCells(hallway.Coords);
-        UpdateRooms(hallway);
-        InitNavMeshLinks(hallway);
-        InitLoadTriggers(hallway);
-    }
-
     private void UpdateRooms(Hallway hallway)
     {
         hallway.From.Nav.UpdateWalls();
         hallway.To.Nav.UpdateWalls();
+        
         // TODO intersecting hallways
     }
 
@@ -155,48 +137,6 @@ public class NavigatableTiles : MonoBehaviour
         {
             SpawnWall(cellData);
         }
-    }
-
-    private void InitNavMeshLinks(Hallway hallway)
-    {
-        links = new GameObject("Links");
-        links.transform.parent = transform;
-        var tileSize = generator.tiledict.TileSize();
-        baseLinkMesh.vertices = new[]
-        {
-            new Vector3(-tileSize.x / 4, 0, tileSize.z / 4), new Vector3(-tileSize.x / 4, 0, tileSize.z / 2), 
-            new Vector3(tileSize.x / 4, 0, tileSize.z / 2), new Vector3(tileSize.x / 4, 0, tileSize.z / 4)
-        };
-        baseLinkMesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
-        
-        foreach (var (coord, connections) in hallway.Connectors)
-        {
-            var linkTile = new GameObject("LinkTile");
-            linkTile.transform.parent = links.transform;
-            var pos = coord.FlatTopToWorld(generator.floorHeight, tileSize);
-            linkTile.transform.position = pos;
-            foreach (var cubeCoord in connections)
-            {
-                var cubeDirection = cubeCoord - coord;
-                var link = linkTile.AddComponent<NavMeshLink>();
-                var direction = cubeDirection.FlatTopToWorld(generator.floorHeight, tileSize);
-                link.startPoint = direction / 2 - direction.normalized * 0.5f;
-                link.endPoint = direction / 2 - direction.normalized * 0.4999f;
-                link.width = tileSize.x / 2;
-                
-                ExtendMesh(linksToCombine, baseLinkMesh, pos - transform.position, Quaternion.LookRotation(direction, Vector3.up));
-            }
-
-            foreach (var navigatable in generator.NavigatableAt(coord))
-            {
-                navigatable.needsNewNavMesh = true;
-            }
-        }
-
-        // Always update this/source/target rooms
-        needsNewNavMesh = true;
-        hallway.From.Nav.needsNewNavMesh = true;
-        hallway.To.Nav.needsNewNavMesh = true;
     }
 
     private void InitLoadTriggers(Hallway hallway)
