@@ -4,6 +4,8 @@ public class Player : MonoBehaviour
 {
     public IrradiationEffect radiationLight;
 
+    public GameObject followerPrefab;
+
     public float irradiated;
 
     private void Update()
@@ -19,5 +21,6 @@ public class Player : MonoBehaviour
     {
         irradiated = 15f;
         radiationLight.Activate();
+        Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
     }
 }
