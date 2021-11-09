@@ -82,15 +82,13 @@ public class TileGenerator : MonoBehaviour
     
     private readonly List<ShortestPath.PathFindingResult<CubeCoord, float>> _recentPathSearches = new();
 
-    private AreaFloorBaker areaFloorBaker;
+    public AreaFloorBaker[] areaFloorBakers;
     
     void Start()
     {
-        areaFloorBaker = GetComponent<AreaFloorBaker>();
         Debug.Log(Random.seed);
         var room = GenerateAndSpawnRoom(CubeCoord.Origin);
         SpawnRoomRing(room);
-        areaFloorBaker.Activate();
     }
 
     private Room generateRoom(CubeCoord roomCoord)
@@ -139,7 +137,10 @@ public class TileGenerator : MonoBehaviour
             _roles[cellCoord] = new RoomRole(room);
         }
         room.Nav.Init(this, room);
-        areaFloorBaker.UpdateNavMesh(room.Nav);
+        foreach (var areaFloorBaker in areaFloorBakers)
+        {
+            areaFloorBaker.UpdateNavMesh(room.Nav);
+        }
         return room;
     }
 
@@ -200,9 +201,12 @@ public class TileGenerator : MonoBehaviour
         }
         hallway.Nav.Init(this, hallway);
         // TODO update all affected
-        areaFloorBaker.UpdateNavMesh(hallway.Nav);
-        areaFloorBaker.UpdateNavMesh(hallway.From.Nav);
-        areaFloorBaker.UpdateNavMesh(hallway.To.Nav);
+        foreach (var areaFloorBaker in areaFloorBakers)
+        {
+            areaFloorBaker.UpdateNavMesh(hallway.Nav);
+            areaFloorBaker.UpdateNavMesh(hallway.From.Nav);
+            areaFloorBaker.UpdateNavMesh(hallway.To.Nav);    
+        }
         return hallway;
     }
   

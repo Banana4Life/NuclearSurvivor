@@ -7,7 +7,6 @@ using UnityEngine.AI;
 
 public class AreaFloorBaker : MonoBehaviour
 {
-    public GameObject player;
     private NavMeshSurface navSurface;
     public float movementThreshold = 3;
     public float updateRate = 0.1f;
@@ -20,9 +19,11 @@ public class AreaFloorBaker : MonoBehaviour
     private List<NavMeshBuildSource> navSources = new();
     public bool active;
     public bool built;
+    private LeaderAgent agent;
     
     private void Start()
     {
+        agent = GetComponent<LeaderAgent>();
         navSurface = GetComponent<NavMeshSurface>();
         data = new NavMeshData();
         NavMesh.AddNavMeshData(data);
@@ -34,10 +35,10 @@ public class AreaFloorBaker : MonoBehaviour
         var waitForSeconds = new WaitForSeconds(updateRate);
         while (true)
         {
-            if (active && (!built || Vector3.Distance(worldAnchor, player.transform.position) > movementThreshold))
+            if (active && (!built || Vector3.Distance(worldAnchor, transform.position) > movementThreshold))
             {
                 BuildNavMesh(true);
-                worldAnchor = player.transform.position;
+                worldAnchor = transform.position;
                 built = true;
             }
 
@@ -47,17 +48,9 @@ public class AreaFloorBaker : MonoBehaviour
 
     public void BuildNavMesh(bool async)
     {
-        var bounds = new Bounds(player.transform.position, navMeshSize);
+        var bounds = new Bounds(transform.position, navMeshSize);
         markups.RemoveAll(m => m.root == null); // TODO this is not efficient
-        if (navSurface.collectObjects == CollectObjects.Children)
-        {
-            NavMeshBuilder.CollectSources(transform, navSurface.layerMask, navSurface.useGeometry, navSurface.defaultArea, markups, navSources);
-        }
-        else
-        {
-            NavMeshBuilder.CollectSources(bounds, navSurface.layerMask, navSurface.useGeometry, navSurface.defaultArea, markups, navSources);
-        }
-        
+        NavMeshBuilder.CollectSources(agent.generator.transform, navSurface.layerMask, navSurface.useGeometry, navSurface.defaultArea, markups, navSources);
         if (async)
         {
             NavMeshBuilder.UpdateNavMeshDataAsync(data, navSurface.GetBuildSettings(), navSources, bounds);
