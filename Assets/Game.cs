@@ -11,6 +11,7 @@ public class Game : MonoBehaviour
 
     public LeaderAgent player;
 
+    public ParticleSystem endOfRoundPs;
 
     public float timeLeft = 60;
 
@@ -42,10 +43,18 @@ public class Game : MonoBehaviour
     {
         audioSourcePool = GetComponent<AudioSourcePool>();
         Destroy(editorTiles);
+        roundActive = true;
     }
+
+    public bool roundActive;
 
     private void Update()
     {
         timeLeft -= Time.deltaTime;
+        if (timeLeft < 0 && roundActive)
+        {
+            roundActive = false;
+            endOfRoundPs.Play();
+        }
     }
 }
