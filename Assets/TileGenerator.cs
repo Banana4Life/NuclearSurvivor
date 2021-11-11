@@ -89,6 +89,10 @@ public class TileGenerator : MonoBehaviour
         Debug.Log(Random.seed);
         var room = GenerateAndSpawnRoom(CubeCoord.Origin);
         SpawnRoomRing(room);
+        foreach (var areaFloorBaker in areaFloorBakers)
+        {
+            areaFloorBaker.Activate();
+        }
     }
 
     private Room generateRoom(CubeCoord roomCoord)

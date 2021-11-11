@@ -180,6 +180,10 @@ public class NavigatableTiles : MonoBehaviour
                 wall.transform.position = cellData.position;
                 wall.transform.RotateAround(cellData.position, Vector3.up, 60 * type.rotation);
                 walls[cellData.coord] = wall;
+                if (type.type == TileDictionary.EdgeTileType.WALL2_P && Random.value < 0.5f)
+                {
+                    Instantiate(generator.tiledict.Prefab(TileDictionary.EdgeTileType.DOOR), wall.transform);
+                }
             }
         }
         else

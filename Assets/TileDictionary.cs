@@ -76,7 +76,8 @@ public class TileDictionary : MonoBehaviour
         WALL4_V2,
         WALL4_P,
         WALL5,
-        WALL6
+        WALL6,
+        DOOR
     }
     
     public static Dictionary<bool[], EdgeTileType> tilemap = new()
