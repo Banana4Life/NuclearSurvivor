@@ -75,6 +75,6 @@ MonoBehaviour:
   - list:
     - {fileID: 7112680389594819905, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
   - list:
-    - {fileID: 7112680389594819905, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
+    - {fileID: 6550469495783084857, guid: b3bbfb783976e3e28865851ca18a23db, type: 3}
   pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
   baseHexMesh: {fileID: -8089699231438940418, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}

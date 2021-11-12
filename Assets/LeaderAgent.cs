@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -22,6 +20,8 @@ public class LeaderAgent : MonoBehaviour
 
     private HashSet<Room> visited = new();
     public Room currentRoom;
+    
+    public AudioSource pickupAudio;
 
     private void Start()
     {
@@ -113,6 +113,10 @@ public class LeaderAgent : MonoBehaviour
 
     public void SetIrradiated()
     {
+        if (pickupAudio)
+        {
+            pickupAudio.PlayOneShot(pickupAudio.clip);
+        }
         irradiated = 15f;
         radiationLight.Activate();
         Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);

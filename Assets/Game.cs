@@ -16,6 +16,9 @@ public class Game : MonoBehaviour
     public float timeLeft = 60;
 
     public GameObject editorTiles;
+    public PauseMenu pauseMenu;
+    public SettingsMenu settingsMenu;
+    public EndOfRoundMenu endOfRoundMenu;
     
     void OnGUI()
     {
@@ -51,10 +54,40 @@ public class Game : MonoBehaviour
     private void Update()
     {
         timeLeft -= Time.deltaTime;
-        if (timeLeft < 0 && roundActive)
+        if (timeLeft < 0)
         {
-            roundActive = false;
-            endOfRoundPs.Play();
+            if (roundActive)
+            {
+                roundActive = false;
+                endOfRoundPs.Play();
+            }
+            else
+            {
+                if (timeLeft < -3f && !endOfRoundMenu.gameObject.activeSelf)
+                {
+                    // TODO stoptheworld
+                    endOfRoundMenu.EndRound(this, player);
+                }
+            }
         }
+        
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            if (settingsMenu.gameObject.activeSelf)
+            {
+                settingsMenu.CloseMenu();
+                pauseMenu.Pause();
+            }
+            else
+            {
+                pauseMenu.TogglePause();
+            }
+        }
+    }
+
+    public void NextRound()
+    {
+        timeLeft = 60f;
+        roundActive = true;
     }
 }
