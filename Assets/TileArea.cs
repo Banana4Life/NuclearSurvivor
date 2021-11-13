@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class NavigatableTiles : MonoBehaviour
+public class TileArea : MonoBehaviour
 {
     private bool needsMeshCombining;
     private Mesh mesh;

@@ -14,7 +14,7 @@ public class AreaFloorBaker : MonoBehaviour
     
     private Vector3 worldAnchor;
     private NavMeshData data;
-    private Dictionary<NavigatableTiles, List<NavMeshBuildMarkup>> markup = new();
+    private Dictionary<TileArea, List<NavMeshBuildMarkup>> markup = new();
     private List<NavMeshBuildMarkup> markups = new();
     private List<NavMeshBuildSource> navSources = new();
     public bool active;
@@ -61,7 +61,7 @@ public class AreaFloorBaker : MonoBehaviour
         }
     }
 
-    public void UpdateNavMesh(NavigatableTiles navTiles)
+    public void UpdateNavMesh(TileArea navTiles)
     {
         // Collect all modifiers 
         var newModifiers = navTiles.GetComponentsInChildren<NavMeshModifier>();

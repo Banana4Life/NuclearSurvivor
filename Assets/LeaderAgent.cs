@@ -63,7 +63,7 @@ public class LeaderAgent : MonoBehaviour
             // Find nearby pickups
             if (currentRoom != null)
             {
-                var interactable = currentRoom.Nav.gameObject.GetComponentsInChildren<Interactable>()
+                var interactable = currentRoom.TileArea.gameObject.GetComponentsInChildren<Interactable>()
                     .Where(i => (transform.position - i.transform.position).sqrMagnitude < 100 * 100)
                     .ToList().Shuffled().FirstOrDefault();
                 if (interactable != null)
@@ -90,7 +90,7 @@ public class LeaderAgent : MonoBehaviour
                 agent.SetPath(path);
                 visited.Add(room);
                 currentRoom = room;
-                Debug.Log($"{gameObject.name} pathing to {room.RoomCoord}{room.Nav.transform.position}");
+                Debug.Log($"{gameObject.name} pathing to {room.RoomCoord}{room.TileArea.transform.position}");
             }
             else
             {   

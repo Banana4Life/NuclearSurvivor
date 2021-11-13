@@ -4,75 +4,13 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Room
-{
-    public readonly CubeCoord RoomCoord;
-    public readonly CubeCoord Origin;
-    public readonly (CubeCoord, int)[] Centers;
-    public readonly HashSet<CubeCoord> Coords;
-    public readonly NavigatableTiles Nav;
-    public readonly Vector3 WorldCenter;
-
-    public Room(CubeCoord roomCoord, CubeCoord origin, (CubeCoord, int)[] centers, HashSet<CubeCoord> coords, NavigatableTiles nav, Vector3 worldCenter)
-    {
-        RoomCoord = roomCoord;
-        Origin = origin;
-        Centers = centers;
-        Coords = coords;
-        Nav = nav;
-        WorldCenter = worldCenter;
-    }
-}
-
-public abstract class CellRole
-{
-}
-
-sealed class RoomRole : CellRole
-{
-    public readonly Room Room;
-
-    public RoomRole(Room room)
-    {
-        Room = room;
-    }
-}
-
-sealed class HallwayRole : CellRole
-{
-    public readonly List<Hallway> Hallways;
-
-    public HallwayRole(Hallway hallways)
-    {
-        Hallways = new List<Hallway> { hallways };
-    }
-}
-
-public class Hallway
-{
-    public readonly Room From;
-    public readonly Room To;
-    public readonly List<CubeCoord> Coords;
-    public readonly List<CubeCoord> Intersecting;
-    public readonly NavigatableTiles Nav;
-
-    public Hallway(Room from, Room to, ILookup<bool, CubeCoord> coords, NavigatableTiles nav)
-    {
-        From = from;
-        To = to;
-        Coords = coords[false].ToList();
-        Intersecting = coords[true].ToList();
-        Nav = nav;
-    }
-}
-
 public class TileGenerator : MonoBehaviour
 {
     public TileDictionary tiledict;
 
     public const int RoomSize = 18;
 
-    private Dictionary<CubeCoord, NavigatableTiles> _nav = new();
+    private Dictionary<CubeCoord, TileArea> _areas = new();
     private Dictionary<CubeCoord, Room> _rooms = new();
     private Dictionary<CubeCoord, CellRole> _roles = new();
     
@@ -84,7 +22,6 @@ public class TileGenerator : MonoBehaviour
     private readonly List<ShortestPath.PathFindingResult<CubeCoord, float>> _recentPathSearches = new();
 
     public AreaFloorBaker[] areaFloorBakers;
-    
     void Start()
     {
         Debug.Log(Random.seed);
@@ -124,7 +61,7 @@ public class TileGenerator : MonoBehaviour
             center = centerCandidates[Random.Range(0, outerTiles.Count)];
         }
 
-        var room = new Room(roomCoord, origin, centers, coords, Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>(),
+        var room = new Room(roomCoord, origin, centers, coords, Instantiate(roomPrefab, transform).GetComponent<TileArea>(),
                 roomCoord.FlatTopToWorld(floorHeight, tiledict.TileSize()) * RoomSize);
         _rooms[room.RoomCoord] = room;
         return room;
@@ -140,12 +77,12 @@ public class TileGenerator : MonoBehaviour
         foreach (var cellCoord in room.Coords)
         {
             _roles[cellCoord] = new RoomRole(room);
-            _nav[cellCoord] = room.Nav;
+            _areas[cellCoord] = room.TileArea;
         }
-        room.Nav.Init(this, room);
+        room.TileArea.Init(this, room);
         foreach (var areaFloorBaker in areaFloorBakers)
         {
-            areaFloorBaker.UpdateNavMesh(room.Nav);
+            areaFloorBaker.UpdateNavMesh(room.TileArea);
         }
         return room;
     }
@@ -164,16 +101,39 @@ public class TileGenerator : MonoBehaviour
     {
         var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
         var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
-        var pathResult = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
-        
-        _recentPathSearches.Add(pathResult);
+        // var pathResult = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
+        // _recentPathSearches.Add(pathResult);
 
-        var fullPath = pathResult.Path.SelectMany(cellCoord => cellCoord.FlatTopNeighbors().Shuffled().Take(2).Concat(new []{cellCoord})) .Distinct().ToList();
+        var thinPath = SearchPath(fromCenter, toCenter);
+        var fullPath = thinPath.SelectMany(cellCoord => cellCoord.FlatTopNeighbors().Shuffled().Take(2).Concat(new []{cellCoord})).Distinct().ToList();
         var path = fullPath.ToLookup(cell => isRoomCell(cell) || isHallwayCell(cell));
 
-        var nav = Instantiate(roomPrefab, transform).GetComponent<NavigatableTiles>();
+        var nav = Instantiate(roomPrefab, transform).GetComponent<TileArea>();
         var hallway = new Hallway(@from, to, path, nav);
         return hallway;
+    }
+    
+    
+    public static List<CubeCoord> SearchPath(CubeCoord from, CubeCoord to)
+    {
+        List<CubeCoord> path = new List<CubeCoord>();
+        var distance = from.Distance(to);
+        var last = from;
+        while (true)
+        {
+            var next = @last.FlatTopNeighbors().Where(coord => !path.Contains(coord))
+                .Select(coord => (coord, coord.Distance(to))).Where(cd => cd.Item2 <= distance)
+                .ToList().Shuffled().First();
+            path.Add(next.coord);
+            last = next.coord;
+            distance = next.Item2;
+            if (next.coord.Equals(to))
+            {
+                break;
+            }
+        }
+
+        return path;
     }
 
     private Hallway GenerateAndSpawnHallway(Room from, Room to)
@@ -191,12 +151,12 @@ public class TileGenerator : MonoBehaviour
             else
             {
                 _roles[coord] = new HallwayRole(hallway);
-                _nav[coord] = hallway.Nav;
+                _areas[coord] = hallway.TileArea;
             }
         }
-        hallway.Nav.Init(this, hallway);
+        hallway.TileArea.Init(this, hallway);
 
-        foreach (var nav in hallway.Intersecting.SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _nav.ContainsKey(cell)).Select(cell => _nav[cell]).Distinct())
+        foreach (var nav in hallway.Intersecting.SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
         {
             nav.UpdateWalls(hallway.Intersecting);
             foreach (var areaFloorBaker in areaFloorBakers)
@@ -329,22 +289,22 @@ public class TileGenerator : MonoBehaviour
         }
     }
 
-    public IEnumerable<NavigatableTiles> NavigatableAt(CubeCoord coord)
+    public IEnumerable<TileArea> NavigatableAt(CubeCoord coord)
     {
         if (_roles.TryGetValue(coord, out var role))
         {
             if (role is HallwayRole hallways)
             {
-                return hallways.Hallways.Select(h => h.Nav);
+                return hallways.Hallways.Select(h => h.TileArea);
             }
 
             if (role is RoomRole room)
             {
-                return new List<NavigatableTiles>() { room.Room.Nav };
+                return new List<TileArea>() { room.Room.TileArea };
             }
         }
 
-        return Array.Empty<NavigatableTiles>();
+        return Array.Empty<TileArea>();
     }
 
     public Room FindNearbyRoom(Vector3 pos, HashSet<Room> visited, float maxDistance)
