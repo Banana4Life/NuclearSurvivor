@@ -16,6 +16,7 @@ public class TileGenerator : MonoBehaviour
     
     public GameObject roomPrefab;
     public int floorHeight = 0;
+    public int widePath = 2;
 
     public bool showPathFindingResults;
     
@@ -105,7 +106,7 @@ public class TileGenerator : MonoBehaviour
         // _recentPathSearches.Add(pathResult);
 
         var thinPath = SearchPath(fromCenter, toCenter);
-        var fullPath = thinPath.SelectMany(cellCoord => cellCoord.FlatTopNeighbors().Shuffled().Take(2).Concat(new []{cellCoord})).Distinct().ToList();
+        var fullPath = thinPath.SelectMany(cellCoord => cellCoord.FlatTopNeighbors().Shuffled().Take(widePath).Concat(new []{cellCoord})).Distinct().ToList();
         var path = fullPath.ToLookup(cell => isRoomCell(cell) || isHallwayCell(cell));
 
         var nav = Instantiate(roomPrefab, transform).GetComponent<TileArea>();
@@ -158,7 +159,7 @@ public class TileGenerator : MonoBehaviour
 
         foreach (var nav in hallway.Intersecting.SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
         {
-            nav.UpdateWalls(hallway.Intersecting);
+            nav.UpdateWalls();
             foreach (var areaFloorBaker in areaFloorBakers)
             {
                 areaFloorBaker.UpdateNavMesh(nav);

@@ -6,12 +6,15 @@ using UnityEngine;
 public class TileDictionary : MonoBehaviour
 {
     public MeshRenderer referenceTile;
-    private Vector3 tileSize;
-
-    public PrefabList[] tilePrefabs;
-
+    public TileVariants[] tilePrefabs;
     public GameObject pickupPrefab;
     public Mesh baseHexMesh;
+
+    private Vector3 tileSize;
+    private Dictionary<int, Mesh> combinedMeshes = new();
+    private Dictionary<GameObject, Mesh> prefabMeshes = new();
+
+    public Mesh lastMesh;
 
     private void Start()
     {
@@ -39,7 +42,7 @@ public class TileDictionary : MonoBehaviour
         for (var i = 0; i < tilePrefabs.Length; i++)
         {
             var tilePrefabList = tilePrefabs[i];
-            foreach (var tilePrefab in tilePrefabList.list)
+            foreach (var tilePrefab in tilePrefabList.prefabs)
             {
                 if (!coords.MoveNext())
                 {
@@ -47,9 +50,9 @@ public class TileDictionary : MonoBehaviour
                 }
 
                 var pos = coords.Current.FlatTopToWorld(0, TileSize());
-                var floor = Instantiate(tilePrefabs[(int)EdgeTileType.WALL0].list[0], transform);
+                var floor = Instantiate(tilePrefabs[(int)EdgeTileType.WALL0].prefabs[0].prefab, transform);
                 floor.transform.position = pos;
-                var wall = Instantiate(tilePrefab, floor.transform);
+                var wall = Instantiate(tilePrefab.prefab, floor.transform);
                 floor.gameObject.name = ((EdgeTileType)i).ToString();
             }
         }
@@ -58,7 +61,7 @@ public class TileDictionary : MonoBehaviour
 
     public GameObject Prefab(EdgeTileType type)
     {
-        return tilePrefabs[(int)type].list[0];
+        return tilePrefabs[(int)type].prefabs[0].prefab;
     }
     
     public enum EdgeTileType
@@ -68,13 +71,13 @@ public class TileDictionary : MonoBehaviour
         WALL2,
         WALL2_P,
         WALL2_U,
-        WALL3_V,
-        WALL3_J,
         WALL3_G,
+        WALL3_J,
         WALL3_O,
+        WALL3_V,
+        WALL4_P,
         WALL4_V,
         WALL4_V2,
-        WALL4_P,
         WALL5,
         WALL6,
         DOOR
@@ -163,10 +166,81 @@ public class TileDictionary : MonoBehaviour
             DestroyImmediate(transform.GetChild(0).gameObject);
         }
     }
+
+    public Mesh Mesh(EdgeTileType type)
+    {
+        var variant = tilePrefabs[(int)type].prefabs[0];
+        if (prefabMeshes.TryGetValue(variant.prefab, out var mesh))
+        {
+            return mesh;
+        }
+        prefabMeshes[variant.prefab] = variant.prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
+        return prefabMeshes[variant.prefab];
+    }
+    
+    public int[] SubMeshs(EdgeTileType type)
+    {
+        return tilePrefabs[(int)type].prefabs[0].meshOrder;
+    }
+
+    public Mesh CombinedMesh(params EdgeTileType[] tileTypes)
+    {
+        var key = tileTypes.Select(tt => 1 << (int)tt).Aggregate(0, (prev, next) => prev | next);
+        if (combinedMeshes.TryGetValue(key, out var combinedMesh))
+        {
+            return combinedMesh;
+        }
+        
+        Dictionary<int, List<CombineInstance>> combineInstances = new();
+        foreach (var tileType in tileTypes)
+        {
+            var subMeshes = SubMeshs(tileType);
+            var mesh = Mesh(tileType);
+            for (int i = 0; i < mesh.subMeshCount; i++)
+            {
+                if (!combineInstances.TryGetValue(i, out var list))
+                {
+                    list = new();
+                    combineInstances[i] = list;
+                }
+                list.Add(new CombineInstance()
+                {
+                    mesh = mesh,
+                    subMeshIndex = subMeshes[i]
+                });
+            }
+
+        }
+
+        List<CombineInstance> combinedSubMeshes = new();
+        foreach (var list in combineInstances.Values)
+        {
+            var combinedSubMesh = new Mesh();
+            combinedSubMesh.CombineMeshes(list.ToArray(), true, false);
+            combinedSubMeshes.Add(new CombineInstance()
+            {
+                mesh = combinedSubMesh
+            });
+        }
+
+        var combined = new Mesh();
+        combined.CombineMeshes(combinedSubMeshes.ToArray(), false, false);
+        combined.name = String.Join("+", tileTypes.Select(t => t.ToString()));
+        combinedMeshes[key] = combined;
+        lastMesh = combined;
+        return combined;
+    }
 }
 
 [Serializable]
-public struct PrefabList
+public struct TileVariants
 {
-    public GameObject[] list;
+    public TileVariant[] prefabs;
+} 
+
+[Serializable]
+public struct TileVariant
+{
+    public GameObject prefab;
+    public int[] meshOrder;
 } 

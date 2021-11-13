@@ -78,11 +78,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fb62a7499ca6cce48318d2285667440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  needsNewNavMesh: 0
   floorMesh: {fileID: 0}
   wallMesh: {fileID: 0}
-  linkMesh: {fileID: 0}
-  baseLinkMesh: {fileID: 0}
+  wallMeshVoid: {fileID: 0}
 --- !u!33 &6499886199004211058
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -112,6 +110,8 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: eff9bd1fc3971e7499e63b512110dfef, type: 2}
+  - {fileID: 2100000, guid: 333a08b54ec5eec4f84f74d910ad751e, type: 2}
+  - {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -14,9 +14,9 @@ public class EndOfRoundMenu : MonoBehaviour
     {
         #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
-            return;
+        #else
+            Application.Quit();
         #endif
-        Application.Quit();
     }
 
 
