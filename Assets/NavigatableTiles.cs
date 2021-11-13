@@ -94,7 +94,6 @@ public class NavigatableTiles : MonoBehaviour
             hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
         InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
         InitCells(hallway.Coords);
-        UpdateRooms(hallway);
         InitLoadTriggers(hallway);
         UpdateCombinedMesh();
     }
@@ -111,15 +110,7 @@ public class NavigatableTiles : MonoBehaviour
         return walls;
     }
 
-    private void UpdateRooms(Hallway hallway)
-    {
-        hallway.From.Nav.UpdateWalls();
-        hallway.To.Nav.UpdateWalls();
-        
-        // TODO intersecting hallways
-    }
-
-    private void UpdateWalls()
+    public void UpdateWalls(IList<CubeCoord> affected)
     {
         List<CellData> toRespawn = new();
         foreach (var wall in walls.ToList())
@@ -131,7 +122,7 @@ public class NavigatableTiles : MonoBehaviour
             {
                 Destroy(wall.Value);
                 toRespawn.Add(cellData);
-            }
+            }   
         }
         foreach (var cellData in toRespawn)
         {
