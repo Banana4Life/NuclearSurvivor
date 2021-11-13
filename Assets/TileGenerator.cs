@@ -157,7 +157,7 @@ public class TileGenerator : MonoBehaviour
         }
         hallway.TileArea.Init(this, hallway);
 
-        foreach (var nav in hallway.Intersecting.SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
+        foreach (var nav in hallway.Intersecting.Concat(hallway.Coords).SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
         {
             nav.UpdateWalls();
             foreach (var areaFloorBaker in areaFloorBakers)
