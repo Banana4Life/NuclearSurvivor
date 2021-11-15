@@ -4,14 +4,14 @@ public class PauseMenu : MonoBehaviour
 {
    public void Pause()
    {
+      Time.timeScale = 0;      
       gameObject.SetActive(true);
-      // TODO actually pause
    }
    
    public void Unpause()
    {
+      Time.timeScale = 1;
       gameObject.SetActive(false);
-      // TODO actually unpause
    }
    
    public void ExitButton()
