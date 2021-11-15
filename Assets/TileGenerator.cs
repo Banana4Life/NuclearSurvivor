@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.AI.Navigation;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -18,15 +19,10 @@ public class TileGenerator : MonoBehaviour
     public int floorHeight = 0;
     public int widePath = 2;
 
-    public AreaFloorBaker[] areaFloorBakers;
     void Start()
     {
         Debug.Log(Random.seed);
         SpawnLevel();
-        foreach (var areaFloorBaker in areaFloorBakers)
-        {
-            areaFloorBaker.Activate();
-        }
     }
 
     private Room generateRoom(CubeCoord roomCoord)
@@ -76,10 +72,6 @@ public class TileGenerator : MonoBehaviour
             _areas[cellCoord] = room.TileArea;
         }
         room.TileArea.Init(this, room);
-        foreach (var areaFloorBaker in areaFloorBakers)
-        {
-            areaFloorBaker.UpdateNavMesh(room.TileArea);
-        }
         return room;
     }
 
@@ -177,13 +169,9 @@ public class TileGenerator : MonoBehaviour
         }
         hallway.TileArea.Init(this, hallway);
 
-        foreach (var nav in hallway.Intersecting.Concat(hallway.Coords).SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
+        foreach (var area in hallway.Intersecting.Concat(hallway.Coords).SelectMany(cell => cell.FlatTopNeighbors()).Distinct().Where(cell => _areas.ContainsKey(cell)).Select(cell => _areas[cell]).Distinct())
         {
-            nav.UpdateWalls();
-            foreach (var areaFloorBaker in areaFloorBakers)
-            {
-                areaFloorBaker.UpdateNavMesh(nav);
-            }
+            area.UpdateWalls();
         }
         return hallway;
     }
@@ -233,6 +221,8 @@ public class TileGenerator : MonoBehaviour
                 }
             }
         }
+        
+        GetComponent<NavMeshSurface>().BuildNavMesh();
     }
 
     private static Dictionary<CubeCoord, double> GetDistances(Dictionary<CubeCoord, List<CubeCoord>> connections, CubeCoord start, int depthToGo = 5)

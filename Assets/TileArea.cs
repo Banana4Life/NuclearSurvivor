@@ -33,13 +33,6 @@ public class TileArea : MonoBehaviour
         public bool hasPickup = Random.value < 0.05f;
     }
 
-    private void Start()
-    {
-        floorMeshFilter.sharedMesh = floorMesh;
-        wallMeshFilter.sharedMesh = wallMesh;
-        floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
-        wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
-    }
 
     void UpdateCombinedMesh()
     {
@@ -63,6 +56,10 @@ public class TileArea : MonoBehaviour
             wallMesh.Clear();
             wallMesh.CombineMeshes(new []{new CombineInstance(){mesh = wallMeshWall}, new CombineInstance(){mesh = wallMeshVoid}}, false, false);
         }
+        floorMeshFilter.sharedMesh = floorMesh;
+        wallMeshFilter.sharedMesh = wallMesh;
+        floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
+        wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
     }
 
     public void InitMeshes(String coord)

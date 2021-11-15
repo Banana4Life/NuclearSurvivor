@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public class TileDictionary : MonoBehaviour
@@ -13,8 +14,6 @@ public class TileDictionary : MonoBehaviour
     private Vector3 tileSize;
     private Dictionary<int, Mesh> combinedMeshes = new();
     private Dictionary<GameObject, Mesh> prefabMeshes = new();
-
-    public Mesh lastMesh;
 
     private void Start()
     {
@@ -227,7 +226,6 @@ public class TileDictionary : MonoBehaviour
         combined.CombineMeshes(combinedSubMeshes.ToArray(), false, false);
         combined.name = String.Join("+", tileTypes.Select(t => t.ToString()));
         combinedMeshes[key] = combined;
-        lastMesh = combined;
         return combined;
     }
 }

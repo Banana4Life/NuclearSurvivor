@@ -41825,6 +41825,7 @@ GameObject:
   - component: {fileID: 1838390092}
   - component: {fileID: 1838390091}
   - component: {fileID: 1838390094}
+  - component: {fileID: 1838390095}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -41919,16 +41920,36 @@ MonoBehaviour:
   roomPrefab: {fileID: 8470511201257494915, guid: 0dd81adcf885303cc811d4d7b91a0063, type: 3}
   floorHeight: 0
   widePath: 2
-  showPathFindingResults: 0
-  areaFloorBakers:
-  - {fileID: 70774110}
-  - {fileID: 340078403}
-  emptyTileCostMin: 1
-  emptyTileCostMax: 10
-  straightTileCostMin: 4
-  straightTileCostMax: 20
-  roomCost: 4
-  hallwayCost: 2
+--- !u!114 &1838390095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1838390090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_CollectObjects: 2
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 3072
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.06666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 0}
+  m_BuildHeightMesh: 0
 --- !u!1 &1902807825
 GameObject:
   m_ObjectHideFlags: 0

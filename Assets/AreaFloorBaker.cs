@@ -91,8 +91,4 @@ public class AreaFloorBaker : MonoBehaviour
         markups.AddRange(newMarkups); // Finally add markup data to global list
     }
 
-    public void Activate()
-    {
-        active = true;
-    }
 }
