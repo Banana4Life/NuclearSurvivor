@@ -6,12 +6,12 @@ using Random = UnityEngine.Random;
 
 public class TileArea : MonoBehaviour
 {
-    private bool needsMeshCombining;
+    public MeshFilter floorMeshFilter;
+    public MeshFilter wallMeshFilter;
+    
     private bool needsWallMeshCombining;
-    private Mesh mesh;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
-    private MeshRenderer meshRenderer;
 
     private TileGenerator generator;
     private Dictionary<CubeCoord, CellData> cells = new();
@@ -22,7 +22,6 @@ public class TileArea : MonoBehaviour
 
     public Mesh floorMesh;
     public Mesh wallMesh ;
-    public Mesh wallMeshVoid ;
 
     private GameObject pickups;
 
@@ -36,11 +35,10 @@ public class TileArea : MonoBehaviour
 
     private void Start()
     {
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.sharedMesh = mesh;
-        meshCollider = GetComponent<MeshCollider>();
-        meshCollider.sharedMesh = mesh;
-        meshRenderer = GetComponent<MeshRenderer>();
+        floorMeshFilter.sharedMesh = floorMesh;
+        wallMeshFilter.sharedMesh = wallMesh;
+        floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
+        wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
     }
 
     void UpdateCombinedMesh()
@@ -49,43 +47,30 @@ public class TileArea : MonoBehaviour
         {
             floorMesh.CombineMeshes(floorsToAdd.ToArray());
             floorsToAdd.Clear();
-            needsMeshCombining = true;
         }
         if (needsWallMeshCombining)
         {
+            var wallMeshWall = new Mesh();
+            var wallMeshVoid = new Mesh();
             if (wallsToCombine.Count > 0)
             {
-                wallMesh.Clear();
-                wallMesh.CombineMeshes(wallsToCombine.Values.ToArray());
-                needsMeshCombining = true;
+                wallMeshWall.CombineMeshes(wallsToCombine.Values.ToArray());
             }
             if (wallsToCombineVoid.Count > 0)
             {
-                wallMeshVoid.Clear();
                 wallMeshVoid.CombineMeshes(wallsToCombineVoid.Values.ToArray());
-                needsMeshCombining = true;
             }
-        }
-      
-        if (needsMeshCombining)
-        {
-            mesh.CombineMeshes(new []{new CombineInstance(){mesh = floorMesh}, new CombineInstance(){mesh = wallMesh}, new CombineInstance(){mesh = wallMeshVoid}}, false, false);
-            needsMeshCombining = false;
+            wallMesh.Clear();
+            wallMesh.CombineMeshes(new []{new CombineInstance(){mesh = wallMeshWall}, new CombineInstance(){mesh = wallMeshVoid}}, false, false);
         }
     }
 
     public void InitMeshes(String coord)
     {
-        mesh = new();
-        mesh.subMeshCount = 3;
         floorMesh = new();
         wallMesh = new();
-        wallMeshVoid = new();
-        mesh.name = $"Main Mesh {coord}";
         floorMesh.name = $"Floor Mesh {coord}";
         wallMesh.name = $"Wall Mesh {coord}";
-        wallMeshVoid.name = $"Wall Mesh Void {coord}";
-        mesh.subMeshCount = 3; // FloorTiles / Walls / NavMeshLinkTiles
     }
     
     public void Init(TileGenerator generator, Room room)

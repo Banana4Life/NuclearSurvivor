@@ -48,7 +48,11 @@ public class LeaderAgent : MonoBehaviour
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (plane.Raycast(ray, out var dist)) // We have no height at the moment
                 {
-                    agent.destination = ray.GetPoint(dist);
+                    var targetPos = ray.GetPoint(dist);
+                    if (NavMesh.SamplePosition(targetPos, out var hit, 200f, NavMesh.AllAreas))
+                    {
+                        agent.SetDestination(hit.position);
+                    }
                 }
             }
         }
@@ -107,6 +111,8 @@ public class LeaderAgent : MonoBehaviour
             Gizmos.DrawLine(transform.position, agent.destination);
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(agent.destination, 0.5f);    
+
+                
         }
         
     }
