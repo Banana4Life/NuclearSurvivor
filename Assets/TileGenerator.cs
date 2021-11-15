@@ -18,16 +18,11 @@ public class TileGenerator : MonoBehaviour
     public int floorHeight = 0;
     public int widePath = 2;
 
-    public bool showPathFindingResults;
-    
-    private readonly List<ShortestPath.PathFindingResult<CubeCoord, float>> _recentPathSearches = new();
-
     public AreaFloorBaker[] areaFloorBakers;
     void Start()
     {
         Debug.Log(Random.seed);
-        var room = GenerateAndSpawnRoom(CubeCoord.Origin);
-        SpawnRoomRing(room);
+        SpawnLevel();
         foreach (var areaFloorBaker in areaFloorBakers)
         {
             areaFloorBaker.Activate();
@@ -102,8 +97,6 @@ public class TileGenerator : MonoBehaviour
     {
         var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
         var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
-        // var pathResult = CubeCoord.SearchShortestPath(fromCenter, toCenter, pathCost, pathEstimation);
-        // _recentPathSearches.Add(pathResult);
 
         var thinPath = SearchPath(fromCenter, toCenter);
         var fullPath = thinPath.SelectMany(cellCoord => cellCoord.FlatTopNeighbors().Shuffled().Take(widePath).Concat(new []{cellCoord})).Distinct().ToList();
@@ -135,6 +128,33 @@ public class TileGenerator : MonoBehaviour
         }
 
         return path;
+    }
+    
+    public bool HasDirectPathWithoutRoom(CubeCoord from, CubeCoord to)
+    {
+        List<CubeCoord> path = new List<CubeCoord>();
+        var distance = from.Distance(to);
+        var last = from;
+        while (true)
+        {
+            var next = @last.FlatTopNeighbors().Where(coord => !path.Contains(coord))
+                .Select(coord => (coord, coord.Distance(to))).Where(cd => cd.Item2 <= distance)
+                .ToList().OrderBy(cd => (int)cd.Item2).First();
+            
+            path.Add(next.coord);
+            last = next.coord;
+            distance = next.Item2;
+            if (next.coord.Equals(to))
+            {
+                break;
+            }
+            if (_rooms.ContainsKey(next.coord))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private Hallway GenerateAndSpawnHallway(Room from, Room to)
@@ -168,10 +188,9 @@ public class TileGenerator : MonoBehaviour
         return hallway;
     }
   
-    public void SpawnRoomRing(Room room)
+    public void SpawnLevel()
     {
-        Debug.Log("Loading next Rooms around " + room);
-        var ringCoords = CubeCoord.Ring(room.RoomCoord, 1).ToList().Shuffled();
+        var ringCoords = new []{CubeCoord.Origin}.Concat(CubeCoord.Spiral(CubeCoord.Origin, 1 , 5).ToList().Shuffled()).ToList();
         var newRooms = new List<Room>();
         int generated = 0;
         var maxToGenerate = Mathf.CeilToInt(ringCoords.Count / 2f);
@@ -190,103 +209,90 @@ public class TileGenerator : MonoBehaviour
             }
         }
 
-        _recentPathSearches.Clear();
-        var newRingDestinations = new HashSet<Room>();
-        foreach (var newRoom in newRooms)
+        HashSet<CubeCoord> connectedSet = new();
+        Dictionary<CubeCoord, List<CubeCoord>> connections = new();
+        connectedSet.Add(CubeCoord.Origin);
+        while (connectedSet.Count < _rooms.Count)
         {
-            if (newRingDestinations.Contains(room) || newRingDestinations.Contains(newRoom))
-            {
-                continue;
-            }
-
-            GenerateAndSpawnHallway(room, newRoom);
-            if (newRooms.Contains(room))
-            {
-                newRingDestinations.Add(room);
-            }
-            else if (newRooms.Contains(newRoom))
-            {
-                newRingDestinations.Add(newRoom);
-            }
-        }
-    }
-
-    public int emptyTileCostMin = 1;
-    public int emptyTileCostMax = 10;
-    public int straightTileCostMin = 4;
-    public int straightTileCostMax = 20;
-    public int roomCost = 4;
-    public int hallwayCost = 2;
-
-    private float pathCost(Dictionary<CubeCoord, CubeCoord> prevMap, CubeCoord from, CubeCoord to)
-    {
-        // var emptyTileCost = Random.Range(emptyTileCostMin, emptyTileCostMax);
-        var emptyTileCost = emptyTileCostMin;
-        if (prevMap.TryGetValue(from, out var prev))
-        {
-            if (from - prev == to - from)
-            {
-                // emptyTileCost = Random.Range(straightTileCostMin, straightTileCostMax);
-                emptyTileCost = straightTileCostMin;
-            }    
-        }
-        
-        if (!_roles.TryGetValue(to, out var toRole))
-        {
-            return emptyTileCost;
-        }
-        
-        if (toRole is RoomRole)
-        {
-            return roomCost;
+            AddRoomConnection(connectedSet, connections);
         }
 
-        if (toRole is HallwayRole)
+        foreach (var startRoom in connections.Where(e => e.Value.Count == 1))
         {
-            return hallwayCost;
-        }
-        
-        return emptyTileCost;
-    }
-
-    private float pathEstimation(CubeCoord from, CubeCoord destination)
-    {
-        return from.ManhattenDistance(destination);
-    }
-
-    private void OnDrawGizmos()
-    {
-        void ShowResult(ShortestPath.PathFindingResult<CubeCoord, float> result)
-        {
-            foreach (var cubeCoord in result.Path)
+            if (Random.value < 0.9f)
             {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawSphere(cubeCoord.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
-            }
-
-            foreach (var open in result.OpenQueue)
-            {
-                Gizmos.color = Color.white;
-                Gizmos.DrawWireSphere(open.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
-            }
-
-            
-            float worstDistance = result.ClosedSet.Max(c => pathEstimation(c, result.To));
-
-            foreach (var closed in result.ClosedSet)
-            {
-                if (result.Path.Contains(closed))
+                var cubeCoords = CubeCoord.Spiral(startRoom.Key, 2, 4).Where(c => _rooms.ContainsKey(c));
+                var distances = GetDistances(connections, startRoom.Key);
+                foreach (var targetRoom in cubeCoords.Where(c => !distances.ContainsKey(c) || distances[c] >= 4d).ToList().Shuffled())
                 {
-                    continue;
+                    if (HasDirectPathWithoutRoom(startRoom.Key, targetRoom))
+                    {
+                        GenerateAndSpawnHallway(_rooms[startRoom.Key], _rooms[targetRoom]);
+                    }
+                    break;
                 }
-
-                Gizmos.color = Color.Lerp(Color.green, Color.red, pathEstimation(closed, result.To) / worstDistance);
-                Gizmos.DrawSphere(closed.FlatTopToWorld(0, tiledict.TileSize()), tiledict.TileSize().x / 2f);
             }
         }
-        if (showPathFindingResults && _recentPathSearches.Count > 0)
+    }
+
+    private static Dictionary<CubeCoord, double> GetDistances(Dictionary<CubeCoord, List<CubeCoord>> connections, CubeCoord start, int depthToGo = 5)
+    {
+        var currentSet = new HashSet<CubeCoord>();
+        var result = new Dictionary<CubeCoord, double>();
+        result[start] = 0;
+        var nextSet = new HashSet<CubeCoord>();
+        currentSet.Add(start);
+        for (int i = depthToGo; i > 0; i--)
         {
-            ShowResult(_recentPathSearches.Last());
+            foreach (var currentCoord in currentSet)
+            {
+                foreach (var nextCoord in connections[currentCoord])
+                {
+                    if (!result.ContainsKey(nextCoord))
+                    {
+                        var distance = nextCoord.Distance(currentCoord);
+                        result[nextCoord] = distance + result[currentCoord];
+                        nextSet.Add(nextCoord);    
+                    }
+                }
+            }
+
+            currentSet = nextSet;
+            nextSet = new HashSet<CubeCoord>();
+        }
+
+        return result;
+    }
+
+    private void AddRoomConnection(HashSet<CubeCoord> connectedSet, Dictionary<CubeCoord, List<CubeCoord>> connections)
+    {
+        for (int r = 1; r < 5; r++)
+        {
+            foreach (var roomToConnect in connectedSet.ToList().Shuffled())
+            {
+                foreach (var potentialRoom in CubeCoord.Ring(roomToConnect, r).Shuffled())
+                {
+                    if (_rooms.ContainsKey(potentialRoom) && !connectedSet.Contains(potentialRoom))
+                    {
+                        GenerateAndSpawnHallway(_rooms[roomToConnect], _rooms[potentialRoom]);
+                        connectedSet.Add(potentialRoom);
+                        if (!connections.TryGetValue(roomToConnect, out var list))
+                        {
+                            list =new();
+                            connections[roomToConnect] = list;
+                        }
+                        list.Add(potentialRoom);
+                        
+                        if (!connections.TryGetValue(potentialRoom, out var list2))
+                        {
+                            list2 = new();
+                            connections[potentialRoom] = list2;
+                        }
+                        list2.Add(roomToConnect);
+                        return;
+                    }
+                }
+            }
         }
     }
 

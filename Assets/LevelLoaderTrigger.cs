@@ -34,7 +34,7 @@ public class LevelLoaderTrigger : MonoBehaviour
     {
         if (other.GetComponent<NavMeshAgent>())
         {
-            generator.SpawnRoomRing(room);
+            // generator.SpawnLevel(room);
             Destroy(gameObject);
         }
     }

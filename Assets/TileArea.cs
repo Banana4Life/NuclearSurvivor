@@ -129,10 +129,11 @@ public class TileArea : MonoBehaviour
 
     private void InitLoadTriggers(Hallway hallway)
     {
-        var mainTrigger = new GameObject("TriggerArea");
-        mainTrigger.transform.parent = transform;
-        mainTrigger.transform.position = transform.position + Vector3.up;
-        mainTrigger.AddComponent<LevelLoaderTrigger>().Init(generator, hallway.To, floorMesh);
+        // TODO remove loadtriggers
+        // var mainTrigger = new GameObject("TriggerArea");
+        // mainTrigger.transform.parent = transform;
+        // mainTrigger.transform.position = transform.position + Vector3.up;
+        // mainTrigger.AddComponent<LevelLoaderTrigger>().Init(generator, hallway.To, floorMesh);
     }
 
     private void InitCells(IEnumerable<CubeCoord> coords)
