@@ -147,6 +147,7 @@ public class TileDictionaryEditor : Editor
             EditorGUILayout.EndHorizontal(); 
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
+        EditorUtility.SetDirty(tileDict);
     }
 
     public Object DragDropBox(Object gameObject)

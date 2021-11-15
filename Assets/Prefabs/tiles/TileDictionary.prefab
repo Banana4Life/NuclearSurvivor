@@ -48,23 +48,49 @@ MonoBehaviour:
   tilePrefabs:
   - prefabs:
     - prefab: {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
-      mesh: {fileID: 0}
-      meshOrder: 
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
-  - prefabs: []
+      meshOrder: 00000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 2600a031623139220a5b14731b43c498, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 826e0419904f39aeba16643619d6b08a, type: 3}
+      meshOrder: 0100000000000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 64dc6c27d4317dacd9f7e2eeafa997ae, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: e2cd26b17d3bf61b1b5303322bd40cba, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: ee7a4ffcf57d828c9856e6c2ecea4bd2, type: 3}
+      meshOrder: 0100000000000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 07ada24e40e125531a5f8a296dbc811e, type: 3}
+      meshOrder: 0100000000000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: a392a6ee1768a52e7be71bab3c4b6a91, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: ac8834df6962b6a50b461cc0acef4448, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 8b20e55d8a3561bcda3a20ae37aadf9b, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: f425ff9b68f98ea8b9f9e6791d89b895, type: 3}
+      meshOrder: 0000000001000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 06a84f22e43861f079999056d41e9b66, type: 3}
+      meshOrder: 0100000000000000
+  - prefabs:
+    - prefab: {fileID: 6986203231764649966, guid: 2449764d0969efc3ea801cb726526d57, type: 3}
+      meshOrder: 0100000000000000
+  - prefabs:
+    - prefab: {fileID: 7112680389594819905, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
+      meshOrder: 000000000100000002000000
+  - prefabs:
+    - prefab: {fileID: 6550469495783084857, guid: b3bbfb783976e3e28865851ca18a23db, type: 3}
+      meshOrder: 00000000010000000200000003000000
   pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
   baseHexMesh: {fileID: -8089699231438940418, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
-  alsoAMesh: {fileID: 0}
-  alsoAMesh2: {fileID: 0}
+  lastMesh: {fileID: 0}
