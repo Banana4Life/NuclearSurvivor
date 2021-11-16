@@ -1,13 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EndOfRoundMenu : MonoBehaviour
 {
 
-    private Game game;
     public void NextRound()
     {
-        gameObject.SetActive(false);
-        game.NextRound();
+        SceneManager.LoadScene("Main");
     }
     
     public void ExitButton()
@@ -19,10 +18,8 @@ public class EndOfRoundMenu : MonoBehaviour
         #endif
     }
 
-
-    public void EndRound(Game game, LeaderAgent player)
+    public static void Score(Game game, LeaderAgent player)
     {
-        this.game = game;
-        gameObject.SetActive(true);
+        // TODO do stuff with it
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
@@ -18,7 +19,7 @@ public class Game : MonoBehaviour
     public GameObject editorTiles;
     public PauseMenu pauseMenu;
     public SettingsMenu settingsMenu;
-    public EndOfRoundMenu endOfRoundMenu;
+    public bool endRound;
     
     void OnGUI()
     {
@@ -63,10 +64,10 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (timeLeft < -3f && !endOfRoundMenu.gameObject.activeSelf)
+                if (timeLeft < -3f && endRound)
                 {
-                    // TODO stoptheworld
-                    endOfRoundMenu.EndRound(this, player);
+                    EndOfRoundMenu.Score(this, player);
+                    SceneManager.LoadScene("EndOfRound");
                 }
             }
         }
@@ -85,9 +86,4 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void NextRound()
-    {
-        timeLeft = 60f;
-        roundActive = true;
-    }
 }
