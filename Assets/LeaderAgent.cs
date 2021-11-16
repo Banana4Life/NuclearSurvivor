@@ -23,6 +23,8 @@ public class LeaderAgent : MonoBehaviour
     
     public AudioSource pickupAudio;
 
+    private bool holding;
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -45,14 +47,25 @@ public class LeaderAgent : MonoBehaviour
             }
             else
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (plane.Raycast(ray, out var dist)) // We have no height at the moment
+                if (Input.GetMouseButtonDown(0))
                 {
-                    var targetPos = ray.GetPoint(dist);
-                    if (NavMesh.SamplePosition(targetPos, out var hit, 200f, NavMesh.AllAreas))
+                    holding = true;
+                }
+                if (Input.GetMouseButtonUp(0))
+                {
+                    holding = false;
+                }
+                if (holding)
+                {
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    if (plane.Raycast(ray, out var dist)) // We have no height at the moment
                     {
-                        agent.SetDestination(hit.position);
-                    }
+                        var targetPos = ray.GetPoint(dist);
+                        if (NavMesh.SamplePosition(targetPos, out var hit, 200f, NavMesh.AllAreas))
+                        {
+                            agent.SetDestination(hit.position);
+                        }
+                    }    
                 }
             }
         }

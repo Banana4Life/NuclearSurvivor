@@ -239,7 +239,7 @@ public class TileArea : MonoBehaviour
 
                 var decoPos = rot * child.position + cellData.position;
                 var decoration = Instantiate(decorationSupplier(), cellDeco.transform);
-                decoration.transform.position = decoPos;
+                decoration.transform.position = decoration.transform.localPosition + decoPos;
                 decoration.transform.rotation = child.rotation;
                 decoration.transform.Rotate(0, cellData.type.rotation * 60, 0);
             }
