@@ -225,9 +225,9 @@ public class TileArea : MonoBehaviour
             return;
         }
         var rot = Quaternion.Euler(0, cellData.type.rotation * 60, 0);
-        foreach (Transform child in cellData.variant.prefab.transform)
+        foreach (Transform mountPoint in cellData.variant.prefab.transform)
         {
-            if (child.CompareTag(decoType) && shouldPlace())
+            if (mountPoint.CompareTag(decoType) && shouldPlace())
             {
                 if (!cellDecorations.TryGetValue(cellData.coord, out var cellDeco))
                 {
@@ -236,12 +236,13 @@ public class TileArea : MonoBehaviour
                     cellDeco.transform.position = cellData.position;
                     cellDecorations[cellData.coord] = cellDeco;
                 }
-
-                var decoPos = rot * child.position + cellData.position;
+                
+                var decoPos = rot * mountPoint.position + cellData.position;
                 var decoration = Instantiate(decorationSupplier(), cellDeco.transform);
+                var initialRot = decoration.transform.rotation;
                 decoration.transform.position = decoration.transform.localPosition + decoPos;
-                decoration.transform.rotation = child.rotation;
-                decoration.transform.Rotate(0, cellData.type.rotation * 60, 0);
+                decoration.transform.localRotation = mountPoint.rotation * rot;
+                decoration.transform.rotation *= initialRot;
             }
         }
     }
