@@ -3,23 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 public class TileDictionary : MonoBehaviour
 {
     public MeshRenderer referenceTile;
     public TileVariants[] tilePrefabs;
     public GameObject pickupPrefab;
-    public Mesh baseHexMesh;
+    public GameObject[] wallDecorations;
 
     private Vector3 tileSize;
     private Dictionary<int, Mesh> combinedMeshes = new();
     private Dictionary<GameObject, Mesh> prefabMeshes = new();
-
-    private void Start()
-    {
-        baseHexMesh = Prefab(EdgeTileType.WALL0).GetComponent<MeshFilter>().sharedMesh;
-    }
-
+ 
     public Vector3 TileSize()
     {
         if (tileSize == Vector3.zero)
@@ -56,13 +53,7 @@ public class TileDictionary : MonoBehaviour
             }
         }
     }
-    
 
-    public GameObject Prefab(EdgeTileType type)
-    {
-        return tilePrefabs[(int)type].prefabs[0].prefab;
-    }
-    
     public enum EdgeTileType
     {
         WALL0,
@@ -166,15 +157,17 @@ public class TileDictionary : MonoBehaviour
         }
     }
 
-    public Mesh Mesh(EdgeTileType type)
+    public (TileVariant, Mesh, int) Variant(EdgeTileType type)
     {
-        var variant = tilePrefabs[(int)type].prefabs[0];
+        var allVariants = tilePrefabs[(int)type].prefabs;
+        var variantIndex = Random.Range(0, allVariants.Length);
+        var variant = allVariants[variantIndex];
         if (prefabMeshes.TryGetValue(variant.prefab, out var mesh))
         {
-            return mesh;
+            return (variant, mesh, variantIndex);
         }
         prefabMeshes[variant.prefab] = variant.prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
-        return prefabMeshes[variant.prefab];
+        return (variant, prefabMeshes[variant.prefab], variantIndex);
     }
     
     public int[] SubMeshs(EdgeTileType type)
@@ -194,7 +187,7 @@ public class TileDictionary : MonoBehaviour
         foreach (var tileType in tileTypes)
         {
             var subMeshes = SubMeshs(tileType);
-            var mesh = Mesh(tileType);
+            var mesh = Variant(tileType).Item2;
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 if (!combineInstances.TryGetValue(i, out var list))
@@ -227,6 +220,11 @@ public class TileDictionary : MonoBehaviour
         combined.name = String.Join("+", tileTypes.Select(t => t.ToString()));
         combinedMeshes[key] = combined;
         return combined;
+    }
+
+    public GameObject DecorationPrefab()
+    {
+        return wallDecorations[Random.Range(0, wallDecorations.Length)];
     }
 }
 

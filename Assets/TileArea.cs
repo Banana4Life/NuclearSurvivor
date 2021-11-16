@@ -15,6 +15,7 @@ public class TileArea : MonoBehaviour
 
     private TileGenerator generator;
     private Dictionary<CubeCoord, CellData> cells = new();
+    private Dictionary<CubeCoord, GameObject> wallDecorations = new();
 
     private List<CombineInstance> floorsToAdd = new();
     private Dictionary<CubeCoord, CombineInstance> wallsToCombine = new();
@@ -24,6 +25,7 @@ public class TileArea : MonoBehaviour
     public Mesh wallMesh ;
 
     private GameObject pickups;
+    private GameObject decorations;
 
     public class CellData
     {
@@ -137,6 +139,11 @@ public class TileArea : MonoBehaviour
     {
         pickups = new GameObject("Pickups");
         pickups.transform.parent = transform;
+        pickups.transform.position = transform.position;
+        
+        decorations = new GameObject("Decorations");
+        decorations.transform.parent = transform;
+        decorations.transform.position = transform.position;
         
         foreach (var cellCoord in coords)
         {
@@ -157,6 +164,11 @@ public class TileArea : MonoBehaviour
     {
         if (TileDictionary.edgeTileMap.TryGetValue(cellData.walls, out var type))
         {
+            if (wallDecorations.TryGetValue(cellData.coord, out var deco))
+            {
+                wallDecorations.Remove(cellData.coord);
+                Destroy(deco);
+            }
             if (type.type == TileDictionary.EdgeTileType.WALL0)
             {
                 wallsToCombine.Remove(cellData.coord);
@@ -175,7 +187,10 @@ public class TileArea : MonoBehaviour
                 }
                 else
                 {
-                    var wallMesh = generator.tiledict.Mesh(type.type);
+                    var variant = generator.tiledict.Variant(type.type);
+                    SpawnWallDecoration(cellData, variant.Item1.prefab, rot, type);
+                    
+                    var wallMesh = variant.Item2;
                     var wallSubMeshes = generator.tiledict.SubMeshs(type.type);
                     wallsToCombine[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[0]);
                     wallsToCombineVoid[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[1]);
@@ -186,6 +201,32 @@ public class TileArea : MonoBehaviour
         else
         {
             Debug.Log("Wall Type not found " + string.Join("|", cellData.walls));
+        }
+    }
+
+    private void SpawnWallDecoration(CellData cellData, GameObject prefab, Quaternion rot, TileDictionary.RotatedTileType type)
+    {
+        if (Random.value < 0.5f)
+        {
+            foreach (Transform child in prefab.transform)
+            {
+                if (child.CompareTag("WallDeco") && Random.value < 0.5f)
+                {
+                    if (!wallDecorations.TryGetValue(cellData.coord, out var wallDeco))
+                    {
+                        wallDeco = new GameObject(cellData.coord.ToString());
+                        wallDeco.transform.parent = decorations.transform;
+                        wallDeco.transform.position = cellData.position;
+                        wallDecorations[cellData.coord] = wallDeco;
+                    }
+
+                    var decoPos = rot * child.position + cellData.position;
+                    var decoration = Instantiate(generator.tiledict.DecorationPrefab(), wallDeco.transform);
+                    decoration.transform.position = decoPos;
+                    decoration.transform.rotation = child.rotation;
+                    decoration.transform.Rotate(0, 60 * type.rotation, 0);
+                }
+            }
         }
     }
 
@@ -200,8 +241,7 @@ public class TileArea : MonoBehaviour
 
     private void SpawnFloor(CellData cellData)
     {
-        var baseMesh = generator.tiledict.baseHexMesh;
-        floorsToAdd.Add(MeshAsCombineInstance(baseMesh, cellData.position - transform.position, Quaternion.identity));
+        floorsToAdd.Add(MeshAsCombineInstance(generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item2, cellData.position - transform.position, Quaternion.identity));
     }
 
     private CombineInstance MeshAsCombineInstance(Mesh baseMesh, Vector3 position, Quaternion rotation, int subMesh = 0)

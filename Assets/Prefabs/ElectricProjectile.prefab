@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 1169797376497251623}
   - component: {fileID: 1169797376497251622}
   - component: {fileID: 3487189218759927266}
-  - component: {fileID: 2029563332906177470}
   - component: {fileID: 3135940222170237222}
   m_Layer: 0
   m_Name: ElectricProjectile
@@ -4899,20 +4898,6 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.25
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2029563332906177470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1169797376497251672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56d9c234ab254f55698a7147617a6e8e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  velocity: {x: 0, y: 0, z: 0}
-  speed: 20
 --- !u!54 &3135940222170237222
 Rigidbody:
   m_ObjectHideFlags: 0
