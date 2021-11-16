@@ -20,7 +20,8 @@ public class Game : MonoBehaviour
     public PauseMenu pauseMenu;
     public SettingsMenu settingsMenu;
     public bool endRound;
-    
+
+    private FogOfWarMesh fogOfWar;
     void OnGUI()
     {
         GUI.Label(new Rect(10, 10, 50, 20), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
@@ -46,6 +47,7 @@ public class Game : MonoBehaviour
     private void Start()
     {
         audioSourcePool = GetComponent<AudioSourcePool>();
+        fogOfWar = GetComponentInChildren<FogOfWarMesh>();
         Destroy(editorTiles);
         roundActive = true;
     }
@@ -57,6 +59,10 @@ public class Game : MonoBehaviour
         timeLeft -= Time.deltaTime;
         if (timeLeft < 0)
         {
+            if (fogOfWar)
+            {
+                fogOfWar.lightRange += -timeLeft;
+            }
             if (roundActive)
             {
                 roundActive = false;
@@ -64,7 +70,7 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (timeLeft < -3f && endRound)
+                if (timeLeft < -4f && endRound)
                 {
                     EndOfRoundMenu.Score(this, player);
                     SceneManager.LoadScene("EndOfRound");

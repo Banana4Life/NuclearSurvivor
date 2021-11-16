@@ -160,7 +160,7 @@ public class FogOfWarMesh : MonoBehaviour
             }
         }
     }
-    
+
     private void OnDrawGizmos()
     {
         // // Camera to Player Line
