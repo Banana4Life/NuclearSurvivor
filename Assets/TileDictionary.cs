@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AI.Navigation;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 public class TileDictionary : MonoBehaviour
@@ -12,6 +10,7 @@ public class TileDictionary : MonoBehaviour
     public TileVariants[] tilePrefabs;
     public GameObject pickupPrefab;
     public GameObject[] wallDecorations;
+    public GameObject[] floorDecorations;
 
     private Vector3 tileSize;
     private Dictionary<int, Mesh> combinedMeshes = new();
@@ -222,9 +221,14 @@ public class TileDictionary : MonoBehaviour
         return combined;
     }
 
-    public GameObject DecorationPrefab()
+    public GameObject WallDecorationPrefab()
     {
         return wallDecorations[Random.Range(0, wallDecorations.Length)];
+    }
+    
+    public GameObject FloorDecorationPrefab()
+    {
+        return floorDecorations[Random.Range(0, floorDecorations.Length)];
     }
 }
 

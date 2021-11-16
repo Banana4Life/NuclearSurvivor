@@ -15,7 +15,7 @@ public class TileArea : MonoBehaviour
 
     private TileGenerator generator;
     private Dictionary<CubeCoord, CellData> cells = new();
-    private Dictionary<CubeCoord, GameObject> wallDecorations = new();
+    private Dictionary<CubeCoord, GameObject> cellDecorations = new();
 
     private List<CombineInstance> floorsToAdd = new();
     private Dictionary<CubeCoord, CombineInstance> wallsToCombine = new();
@@ -24,15 +24,16 @@ public class TileArea : MonoBehaviour
     public Mesh floorMesh;
     public Mesh wallMesh ;
 
-    private GameObject pickups;
-    private GameObject decorations;
+    private GameObject areaPickups;
+    private GameObject areaDecorations;
 
     public class CellData
     {
         public CubeCoord coord;
         public bool[] walls = new bool[6];
         public Vector3 position;
-        public bool hasPickup = Random.value < 0.05f;
+        public TileVariant variant;
+        public TileDictionary.RotatedTileType type;
     }
 
 
@@ -137,13 +138,13 @@ public class TileArea : MonoBehaviour
 
     private void InitCells(IEnumerable<CubeCoord> coords)
     {
-        pickups = new GameObject("Pickups");
-        pickups.transform.parent = transform;
-        pickups.transform.position = transform.position;
+        areaPickups = new GameObject("Pickups");
+        areaPickups.transform.parent = transform;
+        areaPickups.transform.position = transform.position;
         
-        decorations = new GameObject("Decorations");
-        decorations.transform.parent = transform;
-        decorations.transform.position = transform.position;
+        areaDecorations = new GameObject("Decorations");
+        areaDecorations.transform.parent = transform;
+        areaDecorations.transform.position = transform.position;
         
         foreach (var cellCoord in coords)
         {
@@ -156,27 +157,41 @@ public class TileArea : MonoBehaviour
             cells[cellCoord] = cellData;
             SpawnFloor(cellData);
             SpawnWall(cellData);
-            SpawnPickups(cellData);
+            SpawnPickup(cellData);
+            SpawnDecorations(cellData);
         }
+    }
+
+    private void SpawnPickup(CellData cellData)
+    {
+        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.pickupPrefab, () => Random.value < 0.3f, areaPickups);
+    }
+
+    private void SpawnDecorations(CellData cellData)
+    {
+        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.WallDecorationPrefab(), () => Random.value < 0.2f, areaDecorations);
+        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.FloorDecorationPrefab(), () => Random.value < 0.2f, areaDecorations);
     }
 
     private void SpawnWall(CellData cellData)
     {
         if (TileDictionary.edgeTileMap.TryGetValue(cellData.walls, out var type))
         {
-            if (wallDecorations.TryGetValue(cellData.coord, out var deco))
+            cellData.type = type;
+            if (cellDecorations.TryGetValue(cellData.coord, out var deco))
             {
-                wallDecorations.Remove(cellData.coord);
+                cellDecorations.Remove(cellData.coord);
                 Destroy(deco);
             }
             if (type.type == TileDictionary.EdgeTileType.WALL0)
             {
+                cellData.variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item1;
                 wallsToCombine.Remove(cellData.coord);
                 wallsToCombineVoid.Remove(cellData.coord);
             }
             else
             {
-                var rot = Quaternion.Euler(0, 60 * type.rotation, 0);
+                var rot = Quaternion.Euler(0, type.rotation * 60, 0);
                 var pos = cellData.position - transform.position;
                 if (type.type == TileDictionary.EdgeTileType.WALL2_P && Random.value < 0.5f)
                 {
@@ -188,8 +203,7 @@ public class TileArea : MonoBehaviour
                 else
                 {
                     var variant = generator.tiledict.Variant(type.type);
-                    SpawnWallDecoration(cellData, variant.Item1.prefab, rot, type);
-                    
+                    cellData.variant = variant.Item1;
                     var wallMesh = variant.Item2;
                     var wallSubMeshes = generator.tiledict.SubMeshs(type.type);
                     wallsToCombine[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[0]);
@@ -204,38 +218,31 @@ public class TileArea : MonoBehaviour
         }
     }
 
-    private void SpawnWallDecoration(CellData cellData, GameObject prefab, Quaternion rot, TileDictionary.RotatedTileType type)
+    private void SpawnDecoration(CellData cellData, String decoType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
     {
-        if (Random.value < 0.5f)
+        if (cellData.variant.prefab == null) // No Variant set
         {
-            foreach (Transform child in prefab.transform)
-            {
-                if (child.CompareTag("WallDeco") && Random.value < 0.5f)
-                {
-                    if (!wallDecorations.TryGetValue(cellData.coord, out var wallDeco))
-                    {
-                        wallDeco = new GameObject(cellData.coord.ToString());
-                        wallDeco.transform.parent = decorations.transform;
-                        wallDeco.transform.position = cellData.position;
-                        wallDecorations[cellData.coord] = wallDeco;
-                    }
-
-                    var decoPos = rot * child.position + cellData.position;
-                    var decoration = Instantiate(generator.tiledict.DecorationPrefab(), wallDeco.transform);
-                    decoration.transform.position = decoPos;
-                    decoration.transform.rotation = child.rotation;
-                    decoration.transform.Rotate(0, 60 * type.rotation, 0);
-                }
-            }
+            return;
         }
-    }
-
-    private void SpawnPickups(CellData cellData)
-    {
-        if (cellData.hasPickup)
+        var rot = Quaternion.Euler(0, cellData.type.rotation * 60, 0);
+        foreach (Transform child in cellData.variant.prefab.transform)
         {
-            var pickup = Instantiate(generator.tiledict.pickupPrefab, pickups.transform);
-            pickup.transform.position = cellData.position;
+            if (child.CompareTag(decoType) && shouldPlace())
+            {
+                if (!cellDecorations.TryGetValue(cellData.coord, out var cellDeco))
+                {
+                    cellDeco = new GameObject(cellData.coord.ToString());
+                    cellDeco.transform.parent = parent.transform;
+                    cellDeco.transform.position = cellData.position;
+                    cellDecorations[cellData.coord] = cellDeco;
+                }
+
+                var decoPos = rot * child.position + cellData.position;
+                var decoration = Instantiate(decorationSupplier(), cellDeco.transform);
+                decoration.transform.position = decoPos;
+                decoration.transform.rotation = child.rotation;
+                decoration.transform.Rotate(0, cellData.type.rotation * 60, 0);
+            }
         }
     }
 
