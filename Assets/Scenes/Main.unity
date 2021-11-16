@@ -504,7 +504,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 18
+  m_Speed: 10
   m_Acceleration: 1000
   avoidancePriority: 0
   m_AngularSpeed: 10000
@@ -565,6 +565,9 @@ MonoBehaviour:
   auto: 0
   points: 0
   pickupAudio: {fileID: 70774111}
+  baseSpeed: 10
+  boostedSpeed: 20
+  boosted: 0
 --- !u!114 &70774110
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5714,7 +5717,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 18
+  m_Speed: 10
   m_Acceleration: 1000
   avoidancePriority: 0
   m_AngularSpeed: 10000
@@ -5745,6 +5748,9 @@ MonoBehaviour:
   auto: 1
   points: 0
   pickupAudio: {fileID: 340078404}
+  baseSpeed: 10
+  boostedSpeed: 20
+  boosted: 0
 --- !u!114 &340078403
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -25,6 +25,11 @@ public class LeaderAgent : MonoBehaviour
 
     private bool holding;
 
+    public float baseSpeed = 10f;
+    public float boostedSpeed = 20f;
+
+    public bool boosted;
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -37,7 +42,10 @@ public class LeaderAgent : MonoBehaviour
         if (irradiated < 0)
         {
             radiationLight.Deactivate();
+            boosted = false;
         }
+
+        agent.speed = Mathf.Lerp(agent.speed,  boosted ? boostedSpeed : baseSpeed, Time.deltaTime * 10);
         
         if (agent.isOnNavMesh)
         {
@@ -137,6 +145,7 @@ public class LeaderAgent : MonoBehaviour
             pickupAudio.PlayOneShot(pickupAudio.clip);
         }
         irradiated = 15f;
+        boosted = true;
         radiationLight.Activate();
         Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
         points++;
