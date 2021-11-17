@@ -42,6 +42,14 @@ public class TileArea : MonoBehaviour
         if (floorsToAdd.Count > 0)
         {
             floorMesh.CombineMeshes(floorsToAdd.ToArray());
+            for (var i = 0; i < floorMesh.vertices.Length; i++)
+            {
+                var vertex = floorMesh.vertices[i] + transform.position;
+                var uvs = floorMesh.uv;
+                uvs[i] = new Vector2(vertex.x, vertex.z);
+                floorMesh.uv = uvs;
+            }
+
             floorsToAdd.Clear();
         }
         if (needsWallMeshCombining)
@@ -260,7 +268,8 @@ public class TileArea : MonoBehaviour
 
     private void SpawnFloor(CellData cellData)
     {
-        floorsToAdd.Add(MeshAsCombineInstance(generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item2, cellData.position - transform.position, Quaternion.identity));
+        var floorMesh = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item2;
+        floorsToAdd.Add(MeshAsCombineInstance(floorMesh, cellData.position - transform.position, Quaternion.identity));
     }
 
     private CombineInstance MeshAsCombineInstance(Mesh baseMesh, Vector3 position, Quaternion rotation, int subMesh = 0)
