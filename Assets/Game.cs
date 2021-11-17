@@ -16,7 +16,6 @@ public class Game : MonoBehaviour
 
     public float timeLeft = 60;
 
-    public GameObject editorTiles;
     public PauseMenu pauseMenu;
     public SettingsMenu settingsMenu;
     public bool endRound;
@@ -48,7 +47,6 @@ public class Game : MonoBehaviour
     {
         audioSourcePool = GetComponent<AudioSourcePool>();
         fogOfWar = GetComponentInChildren<FogOfWarMesh>();
-        Destroy(editorTiles);
         roundActive = true;
     }
 

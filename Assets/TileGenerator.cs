@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
-using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -20,9 +19,14 @@ public class TileGenerator : MonoBehaviour
     public int floorHeight = 0;
     public int widePath = 2;
 
+    public GameObject editorTiles;
+
+    
     void Start()
     {
         Debug.Log(Random.seed);
+        editorTiles.SetActive(false);
+        Destroy(editorTiles);
         SpawnLevel();
     }
 

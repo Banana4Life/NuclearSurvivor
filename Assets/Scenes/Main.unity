@@ -41870,6 +41870,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Room Q_ 0, R_ 0, S_ 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5521609508782133283, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
+      propertyPath: m_Intensity
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5521609508782133283, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6654749076907396543, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -41985,7 +41993,6 @@ MonoBehaviour:
   player: {fileID: 70774108}
   endOfRoundPs: {fileID: 1902807828}
   timeLeft: 60
-  editorTiles: {fileID: 888181640}
   pauseMenu: {fileID: 671230198}
   settingsMenu: {fileID: 2118464007}
   endRound: 0
@@ -42023,6 +42030,7 @@ MonoBehaviour:
   roomPrefab: {fileID: 8470511201257494915, guid: 0dd81adcf885303cc811d4d7b91a0063, type: 3}
   floorHeight: 0
   widePath: 2
+  editorTiles: {fileID: 888181640}
 --- !u!114 &1838390095
 MonoBehaviour:
   m_ObjectHideFlags: 0
