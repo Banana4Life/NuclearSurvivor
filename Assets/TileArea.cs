@@ -138,6 +138,8 @@ public class TileArea : MonoBehaviour
 
     private void InitCells(IEnumerable<CubeCoord> coords)
     {
+        var cellCnt = coords.ToList().Count; 
+        
         areaPickups = new GameObject("Pickups");
         areaPickups.transform.parent = transform;
         areaPickups.transform.position = transform.position;
@@ -145,7 +147,8 @@ public class TileArea : MonoBehaviour
         areaDecorations = new GameObject("Decorations");
         areaDecorations.transform.parent = transform;
         areaDecorations.transform.position = transform.position;
-        
+
+        // Init Cell Floor & Walls + store CellData
         foreach (var cellCoord in coords)
         {
             var cellData = new CellData()
@@ -157,20 +160,28 @@ public class TileArea : MonoBehaviour
             cells[cellCoord] = cellData;
             SpawnFloor(cellData);
             SpawnWall(cellData);
-            SpawnPickup(cellData);
-            SpawnDecorations(cellData);
+        }
+        
+        foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt / 20))
+        {
+            SpawnPickup(cells[cellCoord]);
+        }
+        
+        foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt * 2/3))
+        {
+            SpawnDecorations(cells[cellCoord]);
         }
     }
 
     private void SpawnPickup(CellData cellData)
     {
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.pickupPrefab, () => Random.value < 0.3f, areaPickups);
+        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.pickupPrefab, () => true, areaPickups);
     }
 
     private void SpawnDecorations(CellData cellData)
     {
-        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.WallDecorationPrefab(), () => Random.value < 0.2f, areaDecorations);
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.FloorDecorationPrefab(), () => Random.value < 0.2f, areaDecorations);
+        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.WallDecorationPrefab(), () => Random.value < 0.3f, areaDecorations);
+        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.FloorDecorationPrefab(), () => Random.value < 0.3f, areaDecorations);
     }
 
     private void SpawnWall(CellData cellData)
