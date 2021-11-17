@@ -94,6 +94,22 @@ public class FogOfWarMeshEditor : Editor
 }
 
 
+[CustomEditor(typeof(TileArea))]
+public class TileAreaEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if (GUILayout.Button("Save Meshes"))
+        {
+            AssetDatabase.CreateAsset(((TileArea)target).floorMesh, "Assets/Editor/editorFloor.asset");
+            AssetDatabase.CreateAsset(((TileArea)target).wallMesh, "Assets/Editor/editorWalls.asset");
+            AssetDatabase.SaveAssets();
+        }
+    }
+
+}
+
 [CustomEditor(typeof(TileDictionary))]
 public class TileDictionaryEditor : Editor
 {
