@@ -1,11 +1,32 @@
 fileFormatVersion: 2
-guid: d9ef3063e0c595d1babbcdd24c2febe7
+guid: 5ac3ba1219ef64efa82e55ea78cc342b
 ModelImporter:
   serializedVersion: 21202
   internalIDToNameTable:
   - first:
-      74: -623603649343465320
-    second: Scene
+      74: -249943526360575620
+    second: Sensor
+  - first:
+      74: 3241236141992979400
+    second: Legs
+  - first:
+      74: 885944232402757753
+    second: Armature|Action
+  - first:
+      74: 4781951162920444690
+    second: Armature|ArmatureAction
+  - first:
+      74: -1422011007694221501
+    second: Armature|ArmatureAction.001
+  - first:
+      74: -3102525531955111880
+    second: Armature|Legs
+  - first:
+      74: 2920023865792766560
+    second: Armature|PlaneAction
+  - first:
+      74: -1922764674188268323
+    second: Armature|Sensor.001
   externalObjects: {}
   materials:
     materialImportMode: 2
