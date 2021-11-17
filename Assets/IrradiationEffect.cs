@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.WSA;
 
 public class IrradiationEffect : MonoBehaviour
 {

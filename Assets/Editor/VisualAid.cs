@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -22,8 +23,73 @@ public class FogOfWarMeshEditor : Editor
         base.OnInspectorGUI();
         if (GUILayout.Button("Generate Mesh Template"))
         {
-            ((FogOfWarMesh)target).GenerateMeshTemplate();
+            GenerateMeshTemplate((FogOfWarMesh)target);
         }
+    }
+
+    public void GenerateMeshTemplate(FogOfWarMesh fogOfWarMesh)
+    {
+        var templateMesh = new Mesh();
+        fogOfWarMesh.template.GetComponent<MeshFilter>().sharedMesh = templateMesh;
+        fogOfWarMesh.template.GetComponent<MeshCollider>().sharedMesh = templateMesh;
+        fogOfWarMesh.template.layer = 13;
+      
+        Vector2[] quadTriangles =
+        {
+            new(0,0), // ct
+            new(-1f / 2f, -1f / 2f), // bl
+            new(-1f / 2f, 1f / 2f), // tl
+            
+            new(0,0), // ct
+            new(-1f / 2f, 1f / 2f), // tl
+            new(1f / 2f, 1f / 2f), // tr
+            
+            new(0,0), // ct
+            new(1f / 2f, 1f / 2f), // tr
+            new(1f / 2f, -1f / 2f), // br
+            
+            new(0,0), // ct
+            new(1f / 2f, -1f / 2f), // br
+            new(-1f / 2f, -1f / 2f), // bl
+        };
+        
+        // Vertices in triples for triangles (clockwise order)
+        var allVerts = quadTriangles.Select(c => new Vector3(c.x * fogOfWarMesh.gridTileSize, fogOfWarMesh.gridHeight, c.y * fogOfWarMesh.gridTileSize)).ToArray();
+        // Tessellate offsets as needed
+        allVerts = FogOfWarMesh.Tessellate(allVerts, fogOfWarMesh.tessellate);
+        
+        // Collect Mesh Data
+        Dictionary<Vector3, int> dictionary = new();
+        var triangles = new int[ allVerts.Length]; 
+        // Build Vertex Mapping and add triangles
+        for (var i = 0; i < allVerts.Length; i++)
+        {
+            if (dictionary.TryAdd(allVerts[i], dictionary.Count))
+            {
+                triangles[i] = dictionary.Count - 1; // New Vertex
+            }
+            else
+            {
+                triangles[i] = dictionary[allVerts[i]]; // Existing Vertex - reuse index for triangle
+            }
+        }
+        // Deduplicated verts array
+        var deduplicatedVerts = new Vector3[dictionary.Count];
+        foreach (var (v, i) in dictionary)
+        {
+            deduplicatedVerts[i] = v;
+        }
+        templateMesh.vertices = deduplicatedVerts;
+        templateMesh.triangles = triangles;
+        templateMesh.uv = deduplicatedVerts.Select(v => new Vector2(v.x, v.z) * fogOfWarMesh.gridTileSize).ToArray();
+        // All Normals are Up
+        templateMesh.normals = Enumerable.Range(0, deduplicatedVerts.Length).Select(_ => Vector3.up).ToArray();
+
+        Debug.Log($"Generated Fog Mesh with {templateMesh.vertices.Length} Verticies");
+        
+        AssetDatabase.DeleteAsset("Assets/fog.asset");
+        AssetDatabase.CreateAsset(templateMesh, "Assets/fog.asset");
+        AssetDatabase.SaveAssets();
     }
 }
 
