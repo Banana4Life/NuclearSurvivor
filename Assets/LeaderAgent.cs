@@ -30,14 +30,23 @@ public class LeaderAgent : MonoBehaviour
 
     public bool boosted;
 
+    private Animator animator;
+    public float moving;
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
         // agent.destination = Vector3.zero;
     }
 
     private void Update()
     {
+        moving = agent.velocity.sqrMagnitude == 0 ? moving - Time.deltaTime : 0.2f;
+        if (animator)
+        {
+            animator.SetFloat("movespeed", moving <= 0 ? 0.1f : 1);
+        }
+        
         irradiated -= Time.deltaTime;
         if (irradiated < 0)
         {
