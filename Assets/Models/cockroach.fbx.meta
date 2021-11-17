@@ -9,25 +9,12 @@ ModelImporter:
   - first:
       74: 3241236141992979400
     second: Legs
+  externalObjects:
   - first:
-      74: 885944232402757753
-    second: Armature|Action
-  - first:
-      74: 4781951162920444690
-    second: Armature|ArmatureAction
-  - first:
-      74: -1422011007694221501
-    second: Armature|ArmatureAction.001
-  - first:
-      74: -3102525531955111880
-    second: Armature|Legs
-  - first:
-      74: 2920023865792766560
-    second: Armature|PlaneAction
-  - first:
-      74: -1922764674188268323
-    second: Armature|Sensor.001
-  externalObjects: {}
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cockroaches
+    second: {fileID: 2800000, guid: 7d2d5d770c30658e987bb553f1139e9f, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -55,65 +42,7 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
-    clipAnimations:
-    - serializedVersion: 16
-      name: Sensor
-      takeName: Sensor
-      internalID: 0
-      firstFrame: 0
-      lastFrame: 100
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: Legs
-      takeName: Legs
-      internalID: 0
-      firstFrame: 0
-      lastFrame: 100
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
+    clipAnimations: []
     isReadable: 0
   meshes:
     lODScreenPercentages: []
