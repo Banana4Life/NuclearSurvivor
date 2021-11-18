@@ -1,20 +1,8 @@
 fileFormatVersion: 2
-guid: 6de7ac3e7a01447369a6afe88715577f
+guid: 1355aa6fd516703159a3db755ea4f1df
 ModelImporter:
   serializedVersion: 21202
-  internalIDToNameTable:
-  - first:
-      74: 6578264637068645899
-    second: RedWire|CylinderAction
-  - first:
-      74: -5755030544070476856
-    second: RedWire|CylinderAction.001
-  - first:
-      74: 7453190013377246429
-    second: BlueWire|CylinderAction
-  - first:
-      74: 7312316604717138998
-    second: BlueWire|CylinderAction.001
+  internalIDToNameTable: []
   externalObjects: {}
   materials:
     materialImportMode: 2
