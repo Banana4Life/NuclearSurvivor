@@ -91,11 +91,11 @@ MonoBehaviour:
   - prefabs:
     - prefab: {fileID: 6550469495783084857, guid: b3bbfb783976e3e28865851ca18a23db, type: 3}
       meshOrder: 00000000010000000200000003000000
-  pickupPrefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
+  barrelPickup: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
+  cubePickup: {fileID: 3071730729852679434, guid: 23eb34415a2f870cb93233f90b79bc9f, type: 3}
   wallDecorations:
   - {fileID: 596292639687199706, guid: 92f7f7de45a8ed8c58a5975782456c27, type: 3}
   - {fileID: 2564170167148306567, guid: 24d763801eababfd8922cc56da52068d, type: 3}
   floorDecorations:
   - {fileID: 6020667341606642995, guid: 19c1e228d047cd343a925460a2f6f1cf, type: 3}
   - {fileID: 5970109467128300569, guid: 79456754789dc9922894c7e5e4ec7035, type: 3}
-  - {fileID: 4842817432592993276, guid: 8127e870ee796b2d3a13ebdbe5dc2d0d, type: 3}

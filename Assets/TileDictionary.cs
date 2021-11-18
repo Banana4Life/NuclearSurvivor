@@ -8,7 +8,8 @@ public class TileDictionary : MonoBehaviour
 {
     public MeshRenderer referenceTile;
     public TileVariants[] tilePrefabs;
-    public GameObject pickupPrefab;
+    public GameObject barrelPickup;
+    public GameObject cubePickup;
     public GameObject[] wallDecorations;
     public GameObject[] floorDecorations;
 

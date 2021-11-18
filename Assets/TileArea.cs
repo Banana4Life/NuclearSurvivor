@@ -172,7 +172,7 @@ public class TileArea : MonoBehaviour
         
         foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt / 20))
         {
-            SpawnPickup(cells[cellCoord]);
+            SpawnPickup(cells[cellCoord], Random.value > 0.5f ? generator.tiledict.barrelPickup : generator.tiledict.cubePickup);
         }
         
         foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt * 2/3))
@@ -181,9 +181,9 @@ public class TileArea : MonoBehaviour
         }
     }
 
-    private void SpawnPickup(CellData cellData)
+    private void SpawnPickup(CellData cellData, GameObject prefab)
     {
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.pickupPrefab, () => true, areaPickups);
+        SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaPickups);
     }
 
     private void SpawnDecorations(CellData cellData)
