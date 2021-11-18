@@ -224,7 +224,7 @@ public class TileArea : MonoBehaviour
                     var variant = generator.tiledict.Variant(type.type);
                     cellData.variant = variant.Item1;
                     var wallMesh = variant.Item2;
-                    var wallSubMeshes = generator.tiledict.SubMeshs(type.type);
+                    var wallSubMeshes = variant.Item1.meshOrder;
                     wallsToCombine[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[0]);
                     wallsToCombineVoid[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[1]);
                 }

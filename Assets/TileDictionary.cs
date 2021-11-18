@@ -14,7 +14,7 @@ public class TileDictionary : MonoBehaviour
     public GameObject[] floorDecorations;
 
     private Vector3 tileSize;
-    private Dictionary<int, Mesh> combinedMeshes = new();
+    private Dictionary<int, Dictionary<int[], Mesh>> combinedMeshes = new();
     private Dictionary<GameObject, Mesh> prefabMeshes = new();
  
     public Vector3 TileSize()
@@ -142,6 +142,27 @@ public class TileDictionary : MonoBehaviour
             return result;
         }
     }
+    
+    private class IntArrayEqualityComparer : IEqualityComparer<int[]>
+    {
+        public bool Equals(int[] x, int[] y)
+        {
+            return x.SequenceEqual(y);
+        }
+
+        public int GetHashCode(int[] obj)
+        {
+            int result = 17;
+            for (int i = 0; i < obj.Length; i++)
+            {
+                unchecked
+                {
+                    result = result * 23 + obj[i];
+                }
+            }
+            return result;
+        }
+    }
 
 
     public void ClearTiles()
@@ -170,24 +191,30 @@ public class TileDictionary : MonoBehaviour
         return (variant, prefabMeshes[variant.prefab], variantIndex);
     }
     
-    public int[] SubMeshs(EdgeTileType type)
-    {
-        return tilePrefabs[(int)type].prefabs[0].meshOrder;
-    }
-
     public Mesh CombinedMesh(params EdgeTileType[] tileTypes)
     {
         var key = tileTypes.Select(tt => 1 << (int)tt).Aggregate(0, (prev, next) => prev | next);
-        if (combinedMeshes.TryGetValue(key, out var combinedMesh))
+        var variants = tileTypes.Select(tt => Variant(tt)).ToList();
+        var variantKey = variants.Select(v => v.Item3).ToArray();
+        if (combinedMeshes.TryGetValue(key, out var combinedMeshVariants))
         {
-            return combinedMesh;
+            if (combinedMeshVariants.TryGetValue(variantKey, out var combinedMesh))
+            {
+                return combinedMesh;
+            }
+        }
+        else
+        {
+            combinedMeshVariants = new Dictionary<int[], Mesh>(new IntArrayEqualityComparer());
+            combinedMeshes[key] = combinedMeshVariants;
         }
         
         Dictionary<int, List<CombineInstance>> combineInstances = new();
         foreach (var tileType in tileTypes)
         {
-            var subMeshes = SubMeshs(tileType);
-            var mesh = Variant(tileType).Item2;
+            var variant = Variant(tileType);
+            var subMeshes = variant.Item1.meshOrder;
+            var mesh = variant.Item2;
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 if (!combineInstances.TryGetValue(i, out var list))
@@ -218,7 +245,7 @@ public class TileDictionary : MonoBehaviour
         var combined = new Mesh();
         combined.CombineMeshes(combinedSubMeshes.ToArray(), false, false);
         combined.name = String.Join("+", tileTypes.Select(t => t.ToString()));
-        combinedMeshes[key] = combined;
+        combinedMeshVariants[variantKey] = combined;
         return combined;
     }
 
