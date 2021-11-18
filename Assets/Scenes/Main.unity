@@ -6704,7 +6704,6 @@ GameObject:
   m_Component:
   - component: {fileID: 690741010}
   - component: {fileID: 690741012}
-  - component: {fileID: 690741011}
   m_Layer: 0
   m_Name: TexCam - Barrel
   m_TagString: Untagged
@@ -6727,14 +6726,6 @@ Transform:
   m_Father: {fileID: 1075607169}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 33, y: 0, z: 0}
---- !u!81 &690741011
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 690741009}
-  m_Enabled: 1
 --- !u!20 &690741012
 Camera:
   m_ObjectHideFlags: 0
@@ -49743,7 +49734,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2010190303}
   - component: {fileID: 2010190305}
-  - component: {fileID: 2010190304}
   m_Layer: 0
   m_Name: TexCam - Cube
   m_TagString: Untagged
@@ -49766,14 +49756,6 @@ Transform:
   m_Father: {fileID: 1075607169}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 33, y: 0, z: 0}
---- !u!81 &2010190304
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2010190302}
-  m_Enabled: 1
 --- !u!20 &2010190305
 Camera:
   m_ObjectHideFlags: 0
