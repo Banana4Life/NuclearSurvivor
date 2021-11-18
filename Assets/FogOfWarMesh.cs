@@ -11,6 +11,7 @@ public class FogOfWarMesh : MonoBehaviour
     private Queue<Vector2> toBeCovered = new(); 
     
     public float lightRange = 5f;
+    public float maxLightRange = 60f;
     public float maxObscure = 0.9f;
     public float maxReObscure = 0.7f;
     public float reobscureRate = 0.02f;
@@ -87,6 +88,10 @@ public class FogOfWarMesh : MonoBehaviour
 
     private void ClearFog()
     {
+        if (lightRange > maxLightRange)
+        {
+            gameObject.SetActive(false);
+        }
         var camPos = Camera.main.transform.position;
         var ray = new Ray(camPos, player.position - camPos);
         if (Physics.Raycast(ray, out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
@@ -97,7 +102,7 @@ public class FogOfWarMesh : MonoBehaviour
 
     public void ClearFogAround(Vector3 point)
     {
-        foreach (var fogOfWarTiles in Physics.OverlapSphere(point, lightRange, 1 << 13))
+        foreach (var fogOfWarTiles in Physics.OverlapSphere(point, Math.Min(lightRange, maxLightRange), 1 << 13))
         {
             fogOfWarTiles.gameObject.GetComponent<FogOfWarTile>().ClearFogAround(point);
         }
