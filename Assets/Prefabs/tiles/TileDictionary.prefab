@@ -86,11 +86,15 @@ MonoBehaviour:
     - prefab: {fileID: 6986203231764649966, guid: 2449764d0969efc3ea801cb726526d57, type: 3}
       meshOrder: 0100000000000000
   - prefabs:
-    - prefab: {fileID: 7112680389594819905, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
-      meshOrder: 000000000100000002000000
+    - prefab: {fileID: 3884700127797611449, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
+      meshOrder: 00000000
   - prefabs:
-    - prefab: {fileID: 6550469495783084857, guid: b3bbfb783976e3e28865851ca18a23db, type: 3}
-      meshOrder: 00000000010000000200000003000000
+    - prefab: {fileID: 7952011740274558575, guid: 08e1397365d66c114a5ceb3a8fe6909b, type: 3}
+      meshOrder: 0100000000000000
+    - prefab: {fileID: 2092461263707905443, guid: 00dba303df9e1e04d95a3f89ea68f09c, type: 3}
+      meshOrder: 0100000000000000
+    - prefab: {fileID: 2746363905325924461, guid: 7e0efb8f927179c5ba62d5265a78dd00, type: 3}
+      meshOrder: 010000000000000002000000
   barrelPickup: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
   cubePickup: {fileID: 3071730729852679434, guid: 23eb34415a2f870cb93233f90b79bc9f, type: 3}
   wallDecorations:

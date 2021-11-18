@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0f5610b4e2766fea58058bc2b37d8c92
+guid: e6b72db4bb3308d32b9828f58b93a1f0
 ModelImporter:
   serializedVersion: 21202
   internalIDToNameTable: []
@@ -7,13 +7,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Void_Side
-    second: {fileID: 2100000, guid: 97f8711c616909c20bed0b378f3cd4c5, type: 2}
+      name: Void
+    second: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Void_Top
-    second: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
+      name: Wall
+    second: {fileID: 2100000, guid: 2c134f663e7284049b3e54d9aa8a49b6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -50,10 +50,10 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
-    importVisibility: 1
-    importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0
@@ -86,7 +86,7 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
   humanDescription:
     serializedVersion: 3
     human: []
@@ -105,7 +105,7 @@ ModelImporter:
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   avatarSetup: 0
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
