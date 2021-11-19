@@ -26,6 +26,9 @@ public class TileArea : MonoBehaviour
     private GameObject areaPickups;
     private GameObject areaDecorations;
 
+    public int textureIdx;
+    public int appliedTextureIdx;
+
     public class CellData
     {
         public CubeCoord coord;
@@ -35,21 +38,37 @@ public class TileArea : MonoBehaviour
         public TileDictionary.RotatedTileType type;
     }
 
+    private void Update()
+    {
+        if (floorMesh)
+        {
+            if (textureIdx != appliedTextureIdx || floorMesh.colors.Length != floorMesh.vertexCount)
+            {
+                appliedTextureIdx = textureIdx;
+                var newColors = new Color[floorMesh.vertexCount];
+                for (int i = 0; i < newColors.Length; i++)
+                {
+                    newColors[i] = new Color(textureIdx == 0 ? 1 : 0, textureIdx == 1 ? 1 : 0, textureIdx == 2 ? 1 : 0, textureIdx == 3 ? 1 : 0);
+                }
+
+                floorMesh.colors = newColors;
+            }
+        }
+    }
 
     void UpdateCombinedMesh()
     {
         if (floorsToAdd.Count > 0)
         {
             floorMesh.CombineMeshes(floorsToAdd.ToArray());
-            for (var i = 0; i < floorMesh.vertices.Length; i++)
+            var floorMeshVertices = floorMesh.vertices;
+            for (var i = 0; i < floorMeshVertices.Length; i++)
             {
-                var vertex = floorMesh.vertices[i] + transform.position;
+                var vertex = floorMeshVertices[i] + transform.position;
                 var uvs = floorMesh.uv;
                 uvs[i] = new Vector2(vertex.x, vertex.z) / generator.uvFactor;
                 floorMesh.uv = uvs;
             }
-
-            floorsToAdd.Clear();
         }
         if (needsWallMeshCombining)
         {
@@ -85,6 +104,7 @@ public class TileArea : MonoBehaviour
         InitMeshes(room.Origin.ToString());
         InitCells(room.Coords);
         UpdateCombinedMesh();
+        textureIdx = Random.Range(0, 4);
     }
 
     public void Init(TileGenerator generator, Hallway hallway)
