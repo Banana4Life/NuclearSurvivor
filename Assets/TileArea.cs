@@ -18,8 +18,7 @@ public class TileArea : MonoBehaviour
     private Dictionary<CubeCoord, GameObject> cellDecorations = new();
 
     private List<CombineInstance> floorsToAdd = new();
-    private Dictionary<CubeCoord, CombineInstance> wallsToCombine = new();
-    private Dictionary<CubeCoord, CombineInstance> wallsToCombineVoid = new();
+    private Dictionary<int, Dictionary<CubeCoord, CombineInstance>> wallsToCombine = new();
 
     public Mesh floorMesh;
     public Mesh wallMesh ;
@@ -54,18 +53,15 @@ public class TileArea : MonoBehaviour
         }
         if (needsWallMeshCombining)
         {
-            var wallMeshWall = new Mesh();
-            var wallMeshVoid = new Mesh();
-            if (wallsToCombine.Count > 0)
+            List<CombineInstance> subMeshes = new();
+            foreach (var combineInstances in wallsToCombine.Values)
             {
-                wallMeshWall.CombineMeshes(wallsToCombine.Values.ToArray());
-            }
-            if (wallsToCombineVoid.Count > 0)
-            {
-                wallMeshVoid.CombineMeshes(wallsToCombineVoid.Values.ToArray());
+                var subMesh = new Mesh();
+                subMesh.CombineMeshes(combineInstances.Values.ToArray());
+                subMeshes.Add(new CombineInstance() { mesh = subMesh});
             }
             wallMesh.Clear();
-            wallMesh.CombineMeshes(new []{new CombineInstance(){mesh = wallMeshWall}, new CombineInstance(){mesh = wallMeshVoid}}, false, false);
+            wallMesh.CombineMeshes(subMeshes.ToArray(), false, false);
         }
         floorMeshFilter.sharedMesh = floorMesh;
         wallMeshFilter.sharedMesh = wallMesh;
@@ -118,9 +114,8 @@ public class TileArea : MonoBehaviour
     public void UpdateWalls()
     {
         List<CellData> toRespawn = new();
-        foreach (var wall in wallsToCombine.ToList())
+        foreach (var cellData in cells.Values)
         {
-            var cellData = cells[wall.Key];
             var oldWalls = cellData.walls;
             cellData.walls = GetEdgeWalls(cellData.coord);
             if (!oldWalls.SequenceEqual(cellData.walls))
@@ -205,8 +200,10 @@ public class TileArea : MonoBehaviour
             if (type.type == TileDictionary.EdgeTileType.WALL0)
             {
                 cellData.variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item1;
-                wallsToCombine.Remove(cellData.coord);
-                wallsToCombineVoid.Remove(cellData.coord);
+                foreach (var walls in wallsToCombine.Values)
+                {
+                    walls.Remove(cellData.coord);
+                }
             }
             else
             {
@@ -216,17 +213,32 @@ public class TileArea : MonoBehaviour
                 {
                     var combined = generator.tiledict.CombinedMesh(TileDictionary.EdgeTileType.WALL2_P,
                         TileDictionary.EdgeTileType.DOOR);
-                    wallsToCombine[cellData.coord] = MeshAsCombineInstance(combined, pos, rot, 0);
-                    wallsToCombineVoid[cellData.coord] = MeshAsCombineInstance(combined, pos, rot, 1);
+                    for (int subMeshIdx = 0; subMeshIdx < combined.subMeshCount; subMeshIdx++)
+                    {
+                        if (!wallsToCombine.TryGetValue(subMeshIdx, out var meshes))
+                        {
+                            meshes = new Dictionary<CubeCoord, CombineInstance>();
+                            wallsToCombine[subMeshIdx] = meshes;
+                        }
+                        meshes[cellData.coord] = MeshAsCombineInstance(combined, pos, rot, subMeshIdx);
+                    }
                 }
                 else
                 {
                     var variant = generator.tiledict.Variant(type.type);
                     cellData.variant = variant.Item1;
                     var wallMesh = variant.Item2;
-                    var wallSubMeshes = variant.Item1.meshOrder;
-                    wallsToCombine[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[0]);
-                    wallsToCombineVoid[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, wallSubMeshes[1]);
+                    var subMeshIdxMapping = variant.Item1.meshOrder;
+
+                    for (int subMeshIdx = 0; subMeshIdx < wallMesh.subMeshCount; subMeshIdx++)
+                    {
+                        if (!wallsToCombine.TryGetValue(subMeshIdx, out var meshes))
+                        {
+                            meshes = new Dictionary<CubeCoord, CombineInstance>();
+                            wallsToCombine[subMeshIdx] = meshes;
+                        }
+                        meshes[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, subMeshIdxMapping[subMeshIdx]);
+                    }
                 }
             }
             needsWallMeshCombining = true;

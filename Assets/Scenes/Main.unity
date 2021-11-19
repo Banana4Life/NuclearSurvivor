@@ -43798,6 +43798,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7708498700496556936, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7708498700496556936, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
+      propertyPath: m_Materials.Array.data[2]
+      value: 
+      objectReference: {fileID: 2100000, guid: a013e8af2b87509aa94d0dc653448afd, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
 --- !u!1 &1838390090
@@ -43905,7 +43913,7 @@ MonoBehaviour:
   tiledict: {fileID: 8656434900817512572, guid: d63412a644d19e6c697247afe256ea35, type: 3}
   roomPrefab: {fileID: 8470511201257494915, guid: 0dd81adcf885303cc811d4d7b91a0063, type: 3}
   floorHeight: 0
-  widePath: 2
+  widePath: 0
   editorTiles: {fileID: 888181640}
 --- !u!114 &1838390095
 MonoBehaviour:

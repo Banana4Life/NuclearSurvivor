@@ -119,6 +119,7 @@ public class TileDictionaryEditor : Editor
     private bool unfoldedPrefabs = true;
     public override void OnInspectorGUI()
     {
+        bool modified = false;
         var tileDict = ((TileDictionary)target);
         base.OnInspectorGUI();
 
@@ -146,6 +147,7 @@ public class TileDictionaryEditor : Editor
         if (tileDict.tilePrefabs.Length == 0)
         {
             tileDict.tilePrefabs = new TileVariants[Enum.GetNames(typeof(TileDictionary.EdgeTileType)).Length];
+            modified = true;
         }
 
         unfoldedPrefabs = EditorGUILayout.BeginFoldoutHeaderGroup(unfoldedPrefabs, "Prefabs");
@@ -165,6 +167,7 @@ public class TileDictionaryEditor : Editor
                 if (prefabList.Length == 0)
                 {
                     prefabList = new []{ new TileVariant() };
+                    modified = true;
                 }
                 
                 EditorGUILayout.BeginHorizontal();
@@ -183,12 +186,14 @@ public class TileDictionaryEditor : Editor
                     Array.Resize(ref prefabList, prefabList.Length + 1);
                     prefabList[prefabList.Length - 1] = new TileVariant();
                     sliders[i] = prefabList.Length - 1;
+                    modified = true;
                 }
                 if (GUILayout.Button("X"))
                 {
                     deleteAt = sliderPos;
                     prefab = null;
                     sliders[i] = Math.Min(sliderPos, prefabList.Length - 1);
+                    modified = true;
                 }
                 EditorGUILayout.EndHorizontal();
                 prefab = (GameObject) EditorGUILayout.ObjectField(prefab, typeof(GameObject), false);
@@ -204,6 +209,8 @@ public class TileDictionaryEditor : Editor
                         {
                             meshPrefab.meshOrder[i1] = i1;
                         }
+                        
+                        modified = true;
                     }
 
                     var materials1 = prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
@@ -213,7 +220,12 @@ public class TileDictionaryEditor : Editor
                     EditorGUILayout.BeginHorizontal();
                     for (var i1 = 0; i1 < meshPrefab.meshOrder.Length; i1++)
                     {
-                        meshPrefab.meshOrder[i1] = EditorGUILayout.IntPopup(meshPrefab.meshOrder[i1], materials, Enumerable.Range(0, meshPrefab.meshOrder.Length).ToArray());
+                        var newVal = EditorGUILayout.IntPopup(meshPrefab.meshOrder[i1], materials, Enumerable.Range(0, meshPrefab.meshOrder.Length).ToArray());
+                        if (meshPrefab.meshOrder[i1] != newVal)
+                        {
+                            modified = true;
+                        }
+                        meshPrefab.meshOrder[i1] = newVal;
                     }
                     EditorGUILayout.EndHorizontal();
                 }
@@ -229,7 +241,10 @@ public class TileDictionaryEditor : Editor
             EditorGUILayout.EndHorizontal(); 
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
-        EditorUtility.SetDirty(tileDict);
+        if (modified)
+        {
+            EditorUtility.SetDirty(tileDict);
+        }
     }
 
     public Object DragDropBox(Object gameObject)
