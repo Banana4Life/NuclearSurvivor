@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 
 public class FogOfWarMesh : MonoBehaviour
@@ -26,6 +25,13 @@ public class FogOfWarMesh : MonoBehaviour
     public Material fogMaterial;
     public float refreshRate = 1f;
 
+    private Camera _mainCam;
+
+    private void Start()
+    {
+        _mainCam = Camera.main;
+    }
+
     public static Vector3[] Tessellate(Vector3[] input, int steps = 1)
     {
         if (steps == 0)
@@ -37,7 +43,7 @@ public class FogOfWarMesh : MonoBehaviour
             throw new ArgumentException("Input Vertices must be a multiple of 3");
         }
 
-        var tesselated = new Vector3[input.Length * 4];
+        var tessellated = new Vector3[input.Length * 4];
         for (int i = 0; i < input.Length / 3; i++)
         {
             var a = input[i * 3 + 0];
@@ -47,24 +53,24 @@ public class FogOfWarMesh : MonoBehaviour
             var e = Vector3.Lerp(b, c, 0.5f);
             var f = Vector3.Lerp(c, a, 0.5f);
 
-            tesselated[i * 12 + 0] = a;
-            tesselated[i * 12 + 1] = d;
-            tesselated[i * 12 + 2] = f;
+            tessellated[i * 12 + 0] = a;
+            tessellated[i * 12 + 1] = d;
+            tessellated[i * 12 + 2] = f;
             
-            tesselated[i * 12 + 3] = b;
-            tesselated[i * 12 + 4] = e;
-            tesselated[i * 12 + 5] = d;
+            tessellated[i * 12 + 3] = b;
+            tessellated[i * 12 + 4] = e;
+            tessellated[i * 12 + 5] = d;
             
-            tesselated[i * 12 + 6] = c;
-            tesselated[i * 12 + 7] = f;
-            tesselated[i * 12 + 8] = e;
+            tessellated[i * 12 + 6] = c;
+            tessellated[i * 12 + 7] = f;
+            tessellated[i * 12 + 8] = e;
             
-            tesselated[i * 12 + 9] = d;
-            tesselated[i * 12 + 10] = e;
-            tesselated[i * 12 + 11] = f;
+            tessellated[i * 12 + 9] = d;
+            tessellated[i * 12 + 10] = e;
+            tessellated[i * 12 + 11] = f;
         }
 
-        return Tessellate(tesselated, steps - 1);
+        return Tessellate(tessellated, steps - 1);
     }
 
  
@@ -92,7 +98,7 @@ public class FogOfWarMesh : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
-        var camPos = Camera.main.transform.position;
+        var camPos = _mainCam.transform.position;
         var ray = new Ray(camPos, player.position - camPos);
         if (Physics.Raycast(ray, out RaycastHit hit, 200, 1 << gameObject.layer, QueryTriggerInteraction.Collide))
         {
@@ -114,19 +120,18 @@ public class FogOfWarMesh : MonoBehaviour
         var max = Vector3.zero;
         
         // Detect min/max View
-        var cam = Camera.main;
-        Ray ray = cam.ViewportPointToRay(new Vector3(0,0,0));
+        Ray ray = _mainCam.ViewportPointToRay(new Vector3(0,0,0));
         if (plane.Raycast(ray, out var botLeftDist))
         {
             var botLeft = ray.GetPoint(botLeftDist);
-            ray = cam.ViewportPointToRay(new Vector3(0,1,0));
+            ray = _mainCam.ViewportPointToRay(new Vector3(0,1,0));
             if (plane.Raycast(ray, out var topLeftDist))
             {
                 var topLeft = ray.GetPoint(topLeftDist);
                 min = Vector3.Min(botLeft, topLeft);
             }
         }
-        ray = cam.ViewportPointToRay(new Vector3(1,1,0));
+        ray = _mainCam.ViewportPointToRay(new Vector3(1,1,0));
         if (plane.Raycast(ray, out var topRightDist))
         {
             max = ray.GetPoint(topRightDist);
