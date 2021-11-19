@@ -73,7 +73,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _Texture0:
         m_Texture: {fileID: 2800000, guid: 542ce65084a84cb0da75b2bd5e90731a, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture0Bump:
         m_Texture: {fileID: 2800000, guid: 8581eb1955faef0b38232fd075fc9f00, type: 3}
@@ -81,15 +81,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _Texture0Normal:
         m_Texture: {fileID: 2800000, guid: ef4b6f5f6fc407b94b05a5115ca3c6d6, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture0Parallax:
         m_Texture: {fileID: 2800000, guid: c6b8832d9adc18dfb8b769c7ddd27f56, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture1:
         m_Texture: {fileID: 2800000, guid: 69aaed0ea5c2ffd9d80b7d3c5aea710d, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture1Bump:
         m_Texture: {fileID: 2800000, guid: f2247d4fe760142c8b12360f930fcb01, type: 3}
@@ -97,15 +97,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _Texture1Normal:
         m_Texture: {fileID: 2800000, guid: f2247d4fe760142c8b12360f930fcb01, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture1Parallax:
         m_Texture: {fileID: 2800000, guid: 21afa763c59d9cd1c9a4eb405049a2f0, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2:
         m_Texture: {fileID: 2800000, guid: 70f7fe09ab75ad153b16dabb3fafcf91, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2Bump:
         m_Texture: {fileID: 2800000, guid: 40ef3c4eb8e32791db4167e657e024e9, type: 3}
@@ -113,15 +113,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _Texture2Normal:
         m_Texture: {fileID: 2800000, guid: 40ef3c4eb8e32791db4167e657e024e9, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2Parallax:
         m_Texture: {fileID: 2800000, guid: 983daf8a8b242fbf9b5f36afc6f3e9fa, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture3:
         m_Texture: {fileID: 2800000, guid: 7b6468559e0ae59a18ed4f8801dc8fe3, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture3Bump:
         m_Texture: {fileID: 2800000, guid: da1b8d82a05b21ff68ca220d11faf612, type: 3}
@@ -129,11 +129,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _Texture3Normal:
         m_Texture: {fileID: 2800000, guid: 40ef3c4eb8e32791db4167e657e024e9, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture3Parallax:
         m_Texture: {fileID: 2800000, guid: 983daf8a8b242fbf9b5f36afc6f3e9fa, type: 3}
-        m_Scale: {x: 0.15, y: 0.15}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
@@ -149,7 +149,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _ParallaxStrength: 0.0304
+    - _ParallaxStrength: 0.03
     - _ShowVertexColor: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

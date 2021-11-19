@@ -53,6 +53,8 @@ Shader "BLF/TextureMix" {
             #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma target 3.0
+            #pragma shader_feature_local _PARALLAXMAP
+            
             uniform float _Metallic;
             uniform float _Gloss;
             uniform sampler2D _Texture0; uniform float4 _Texture0_ST;
@@ -79,7 +81,6 @@ Shader "BLF/TextureMix" {
                 float2 texcoord1 : TEXCOORD1;
                 float2 texcoord2 : TEXCOORD2;
                 float4 vertexColor : COLOR;
-                float3 viewDir : TEXCOORD3;
             };
             struct VertexOutput {
                 float4 pos : SV_POSITION;
@@ -93,7 +94,7 @@ Shader "BLF/TextureMix" {
                 float4 vertexColor : COLOR;
                 LIGHTING_COORDS(7,8)
                 UNITY_FOG_COORDS(9)
-                float3 viewDir: TEXCOORD10;
+                float3 viewDirForParallax : TEXCOORD10;
                 #if defined(LIGHTMAP_ON) || defined(UNITY_SHOULD_SAMPLE_SH)
                     float4 ambientOrLightmapUV : TEXCOORD11;
                 #endif
@@ -106,7 +107,6 @@ Shader "BLF/TextureMix" {
                 o.uv1 = v.texcoord1;
                 o.uv2 = v.texcoord2;
                 o.vertexColor = v.vertexColor;
-                o.viewDir = v.viewDir;
                 #ifdef LIGHTMAP_ON
                     o.ambientOrLightmapUV.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
                     o.ambientOrLightmapUV.zw = 0;
@@ -123,6 +123,8 @@ Shader "BLF/TextureMix" {
                 o.pos = UnityObjectToClipPos( v.vertex );
                 UNITY_TRANSFER_FOG(o,o.pos);
                 TRANSFER_VERTEX_TO_FRAGMENT(o)
+                TANGENT_SPACE_ROTATION;
+                o.viewDirForParallax = mul(rotation, ObjSpaceViewDir(v.vertex));
                 return o;
             }
             float4 frag(VertexOutput i) : COLOR {
@@ -132,15 +134,14 @@ Shader "BLF/TextureMix" {
                     return i.vertexColor;
                 }
 
-                
                 i.normalDir = normalize(i.normalDir);
                 float3x3 tangentTransform = float3x3( i.tangentDir, i.bitangentDir, i.normalDir);
                 float3 viewDirection = normalize(_WorldSpaceCameraPos.xyz - i.posWorld.xyz);
 
-                float2 texOffset0 = ParallaxOffset(tex2D(_Texture0Parallax, i.uv0).r, _ParallaxStrength, i.viewDir);
-                float2 texOffset1 = ParallaxOffset(tex2D(_Texture1Parallax, i.uv0).r, _ParallaxStrength, i.viewDir);
-                float2 texOffset2 = ParallaxOffset(tex2D(_Texture2Parallax, i.uv0).r, _ParallaxStrength, i.viewDir);
-                float2 texOffset3 = ParallaxOffset(tex2D(_Texture3Parallax, i.uv0).r, _ParallaxStrength, i.viewDir);
+                float2 texOffset0 = ParallaxOffset(tex2D(_Texture0Parallax, i.uv0).r, _ParallaxStrength, i.viewDirForParallax);
+                float2 texOffset1 = ParallaxOffset(tex2D(_Texture1Parallax, i.uv0).r, _ParallaxStrength, i.viewDirForParallax);
+                float2 texOffset2 = ParallaxOffset(tex2D(_Texture2Parallax, i.uv0).r, _ParallaxStrength, i.viewDirForParallax);
+                float2 texOffset3 = ParallaxOffset(tex2D(_Texture3Parallax, i.uv0).r, _ParallaxStrength, i.viewDirForParallax);
 
                 if (_UseHeightMap == 0)
                 {

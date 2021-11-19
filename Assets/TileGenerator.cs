@@ -20,8 +20,8 @@ public class TileGenerator : MonoBehaviour
     public int widePath = 2;
 
     public GameObject editorTiles;
+    public float uvFactor = 10f;
 
-    
     void Start()
     {
         Debug.Log(Random.seed);

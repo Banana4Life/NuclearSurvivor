@@ -45,7 +45,7 @@ public class TileArea : MonoBehaviour
             {
                 var vertex = floorMesh.vertices[i] + transform.position;
                 var uvs = floorMesh.uv;
-                uvs[i] = new Vector2(vertex.x, vertex.z);
+                uvs[i] = new Vector2(vertex.x, vertex.z) / generator.uvFactor;
                 floorMesh.uv = uvs;
             }
 
