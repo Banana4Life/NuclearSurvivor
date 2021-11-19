@@ -43741,7 +43741,7 @@ PrefabInstance:
     - target: {fileID: 844702586555728692, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: a0c3fa0d67c357ca99e7ab31ab74f153, type: 2}
+      objectReference: {fileID: 2100000, guid: 24f68aecae97de9cd989ef270eb4bfe9, type: 2}
     - target: {fileID: 4300092115562265974, guid: e0300a82c7823ad519b1a3bb5920803f, type: 3}
       propertyPath: m_Name
       value: Room Q_ 0, R_ 0, S_ 0

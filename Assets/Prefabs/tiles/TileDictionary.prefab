@@ -47,7 +47,7 @@ MonoBehaviour:
   referenceTile: {fileID: -6471036689783332660, guid: 5316391a98c2f1c57b80032b147f23bc, type: 3}
   tilePrefabs:
   - prefabs:
-    - prefab: {fileID: 2967970090265022856, guid: 12bec41357cad5beaac8b98baacd59a7, type: 3}
+    - prefab: {fileID: 6670254331212016185, guid: 74ebb67a717f9b0488776c3737589575, type: 3}
       meshOrder: 00000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 2600a031623139220a5b14731b43c498, type: 3}
