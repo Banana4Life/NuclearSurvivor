@@ -54,7 +54,7 @@ public class PrefabCombiner<T>
         }
         
         List<CombineInstance> subMeshes = new();
-        foreach (var combineInstances in meshCombineInstances.Values)
+        foreach (var (_, combineInstances) in meshCombineInstances.OrderBy(key => key.Key))
         {
             var subMesh = new Mesh();
             subMesh.CombineMeshes(combineInstances.Values.SelectMany(l => l).ToArray());
