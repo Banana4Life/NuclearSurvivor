@@ -3,30 +3,42 @@ using UnityEngine.AI;
 
 public class Follower : MonoBehaviour
 {
-    private LeaderAgent leaderAgent;
-    private NavMeshAgent agent;
+    private LeaderAgent _leaderAgent;
+    private NavMeshAgent _agent;
+    private float _updateTime;
 
     private void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-        agent.enabled = true;
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.enabled = true;
     }
-
-    private float updateTime;
 
     private void Update()
     {
-        updateTime -= Time.deltaTime;
-        if (updateTime < 0)
+        if (!_leaderAgent || !_agent.enabled)
         {
-            agent.destination = leaderAgent.transform.position;
-            updateTime = 0.2f;
+            return;
+        }
+        _updateTime -= Time.deltaTime;
+        if (_updateTime < 0)
+        {
+            _agent.destination = _leaderAgent.transform.position;
+            _updateTime = 0.2f;
         }
     }
 
     public void Init(LeaderAgent leaderAgent)
     {
-        this.leaderAgent = leaderAgent;
+        this._leaderAgent = leaderAgent;
         transform.position = leaderAgent.transform.position;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        var cablesContact = other.gameObject.GetComponent<CablesContact>();
+        if (cablesContact && cablesContact.Fry(this))
+        {
+            _agent.enabled = false;
+        }
     }
 }
