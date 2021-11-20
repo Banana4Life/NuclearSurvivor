@@ -25,8 +25,9 @@ jobs:
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.1
+        uses: JamesIves/github-pages-deploy-action@4.1.6
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: build/WebGL/WebGL
+          single-commit: true
           target-folder: ${{ env.RELEASE_VERSION }}
