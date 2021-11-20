@@ -1,8 +1,10 @@
 Nuclear Survivor
 ================
 
+Play it [here](https://banana4life.github.io/NuclearSurvivor/main).
+
 Assets Sources
 --------------
 
 * High Quality PBR Textures (floor and walls): https://freepbr.com
-* Background music: [Legendary Legionnaire Food Massacre](https://github.com/Banana4Life/LegendaryLegionnaireFoodMassacre) 
+* Background music: [Legendary Legionnaire Food Massacre](https://github.com/Banana4Life/LegendaryLegionnaireFoodMassacre)
