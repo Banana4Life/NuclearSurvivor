@@ -27,7 +27,9 @@ public class TileArea : MonoBehaviour
     private GameObject areaDecorations;
 
     public int textureIdx;
-    public int appliedTextureIdx;
+
+    // private static Dictionary<Vector3, Dictionary<Vector3, (float, float, float, float)>> _globalVertexColors = new();
+    private static Dictionary<Vector3, (float, float, float, float)> _areas = new();
 
     public class CellData
     {
@@ -36,24 +38,6 @@ public class TileArea : MonoBehaviour
         public Vector3 position;
         public TileVariant variant;
         public TileDictionary.RotatedTileType type;
-    }
-
-    private void Update()
-    {
-        if (floorMesh)
-        {
-            if (textureIdx != appliedTextureIdx || floorMesh.colors.Length != floorMesh.vertexCount)
-            {
-                appliedTextureIdx = textureIdx;
-                var newColors = new Color[floorMesh.vertexCount];
-                for (int i = 0; i < newColors.Length; i++)
-                {
-                    newColors[i] = new Color(textureIdx == 0 ? 1 : 0, textureIdx == 1 ? 1 : 0, textureIdx == 2 ? 1 : 0, textureIdx == 3 ? 1 : 0);
-                }
-
-                floorMesh.colors = newColors;
-            }
-        }
     }
 
     void UpdateCombinedMesh()
@@ -86,6 +70,8 @@ public class TileArea : MonoBehaviour
         wallMeshFilter.sharedMesh = wallMesh;
         floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
         wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
+        
+        CalcVertexColor();
     }
 
     public void InitMeshes(String coord)
@@ -104,7 +90,6 @@ public class TileArea : MonoBehaviour
         InitMeshes(room.Origin.ToString());
         InitCells(room.Coords);
         UpdateCombinedMesh();
-        textureIdx = Random.Range(0, 4);
     }
 
     public void Init(TileGenerator generator, Hallway hallway)
@@ -117,6 +102,49 @@ public class TileArea : MonoBehaviour
         InitCells(hallway.Coords);
         InitLoadTriggers(hallway);
         UpdateCombinedMesh();
+    }
+
+    public void CalcVertexColor()
+    {
+        textureIdx = Random.Range(0, 4);
+        var color = (textureIdx == 0 ? 1 : 0, textureIdx == 1 ? 1 : 0, textureIdx == 2 ? 1 : 0, textureIdx == 3 ? 1 : 0);
+        _areas[transform.position] = color;
+    }
+
+    public void ApplyVertexColors()
+    {
+        float r = 0;
+        float g = 0;
+        float b = 0;
+        float a = 0;
+        
+        var areaPos = transform.position;
+        var nearbyAreaColors = _areas.Select(e => ((e.Key - areaPos).sqrMagnitude, e.Key, e.Value))
+            .Where(t => t.Item1 < Mathf.Pow(generator.paintInfluence * TileGenerator.RoomSize, 2f))
+            .ToList();
+        var newColors = new Color[floorMesh.vertexCount];
+        for (int i = 0; i < newColors.Length; i++)
+        {
+            var vertex = floorMesh.vertices[i];
+            foreach (var (_, pos, (rr,gg,bb,aa)) in nearbyAreaColors)
+            {
+                var dist = (vertex - pos).magnitude;
+                r += rr / dist;
+                g += gg / dist;
+                b += bb / dist;
+                a += aa / dist;
+            }
+
+            var normalize = 1 / Mathf.Max(r, g, b, a);
+            r *= normalize;
+            g *= normalize;
+            b *= normalize;
+            a *= normalize;
+
+            newColors[i] = new Color(r, g, b, a);
+        }        
+
+        floorMesh.colors = newColors;
     }
 
     public bool[] GetEdgeWalls(CubeCoord coord)

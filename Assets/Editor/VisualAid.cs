@@ -15,6 +15,20 @@ public class GameEditor : Editor
     
 }
 
+[CustomEditor(typeof(TileGenerator))]
+public class TileGeneratorEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        if (GUILayout.Button("Recolor Vertices"))
+        {
+            ((TileGenerator)target).ApplyVertexColors();
+        }
+        base.OnInspectorGUI();
+
+    }
+}
+
 [CustomEditor(typeof(FogOfWarMesh))]
 public class FogOfWarMeshEditor : Editor
 {

@@ -22,6 +22,8 @@ public class TileGenerator : MonoBehaviour
     public GameObject editorTiles;
     public float uvFactor = 10f;
 
+    public float paintInfluence = 2f; 
+
     void Start()
     {
         Debug.Log(Random.seed);
@@ -90,7 +92,7 @@ public class TileGenerator : MonoBehaviour
     private bool isRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
     private bool isHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
 
-    private Hallway generateHallway(Room from, Room to)
+    private Hallway GenerateHallway(Room from, Room to)
     {
         var fromCenter = from.Centers[Random.Range(0, from.Centers.Length)].Item1;
         var toCenter = to.Centers[Random.Range(0, to.Centers.Length)].Item1;
@@ -156,7 +158,7 @@ public class TileGenerator : MonoBehaviour
 
     private Hallway GenerateAndSpawnHallway(Room from, Room to)
     {
-        var hallway = generateHallway(from, to);
+        var hallway = GenerateHallway(from, to);
         foreach (var coord in hallway.Coords)
         {
             if (_roles.TryGetValue(coord, out var existingRole))
@@ -227,7 +229,25 @@ public class TileGenerator : MonoBehaviour
             }
         }
         
+        Debug.Log("Calc Vertex Colors... " + Time.realtimeSinceStartup);
+        foreach (var area in _areas.Values.Distinct())
+        {
+            area.CalcVertexColor();
+        }
+
+        ApplyVertexColors();
+        
         GetComponent<NavMeshSurface>().BuildNavMesh();
+    }
+
+    public void ApplyVertexColors()
+    {
+        Debug.Log("Apply Vertex Colors... " + Time.realtimeSinceStartup);
+        foreach (var area in _areas.Values.Distinct())
+        {
+            area.ApplyVertexColors();
+        }
+        Debug.Log("Done Coloring " + Time.realtimeSinceStartup);
     }
 
     private static Dictionary<CubeCoord, double> GetDistances(Dictionary<CubeCoord, List<CubeCoord>> connections, CubeCoord start, int depthToGo = 5)

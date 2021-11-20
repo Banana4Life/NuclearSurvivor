@@ -265,3 +265,4 @@ MonoBehaviour:
   wallMeshFilter: {fileID: 2617892963275356209}
   floorMesh: {fileID: 0}
   wallMesh: {fileID: 0}
+  textureIdx: 0

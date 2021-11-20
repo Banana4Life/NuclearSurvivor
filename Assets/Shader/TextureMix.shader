@@ -5,6 +5,9 @@
 
 Shader "BLF/TextureMix" {
     Properties {
+        [Toggle] _ShowVertexColor ("Show Vertex Color", Float) = 0
+        [Toggle] _UseHeightMap ("Use HeightMap", Float) = 1
+        
         _Metallic ("Metallic", Range(0, 1)) = 0.25
         _Gloss ("Gloss", Range(0, 1)) = 0.5
         _ParallaxStrength ("HeightMap Strength", Range (0.005, 0.08)) = 0.02
@@ -24,9 +27,6 @@ Shader "BLF/TextureMix" {
         _Texture3 ("Texture 3 Albedo", 2D) = "albedo" {}
         _Texture3Normal ("Texture 3 Normal", 2D) = "normal" {}
         _Texture3Parallax ("Texture 3 Height", 2D) = "height" {}
-        
-        [Toggle] _ShowVertexColor ("Show Vertex Color", Float) = 0
-        [Toggle] _UseHeightMap ("Use HeightMap", Float) = 1
     }
     SubShader {
         Tags {
