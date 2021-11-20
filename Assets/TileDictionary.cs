@@ -14,8 +14,6 @@ public class TileDictionary : MonoBehaviour
     public GameObject[] floorDecorations;
 
     private Vector3 tileSize;
-    private Dictionary<int, Dictionary<int[], Mesh>> combinedMeshes = new();
-    private Dictionary<GameObject, Mesh> prefabMeshes = new();
  
     public Vector3 TileSize()
     {
@@ -91,9 +89,6 @@ public class TileDictionary : MonoBehaviour
         { new[] { true, true, true, true, true, true}, EdgeTileType.WALL6},
     };
     
-
-
-    
     public static Dictionary<bool[], RotatedTileType> edgeTileMap = CalcEdgeRotatedTileMap();
     static Dictionary<bool[], RotatedTileType> CalcEdgeRotatedTileMap()
     {
@@ -143,26 +138,6 @@ public class TileDictionary : MonoBehaviour
         }
     }
     
-    private class IntArrayEqualityComparer : IEqualityComparer<int[]>
-    {
-        public bool Equals(int[] x, int[] y)
-        {
-            return x.SequenceEqual(y);
-        }
-
-        public int GetHashCode(int[] obj)
-        {
-            int result = 17;
-            for (int i = 0; i < obj.Length; i++)
-            {
-                unchecked
-                {
-                    result = result * 23 + obj[i];
-                }
-            }
-            return result;
-        }
-    }
 
 
     public void ClearTiles()
@@ -178,75 +153,11 @@ public class TileDictionary : MonoBehaviour
         }
     }
 
-    public (TileVariant, Mesh, int) Variant(EdgeTileType type)
+    public TileVariant Variant(EdgeTileType type)
     {
         var allVariants = tilePrefabs[(int)type].prefabs;
         var variantIndex = Random.Range(0, allVariants.Length);
-        var variant = allVariants[variantIndex];
-        if (prefabMeshes.TryGetValue(variant.prefab, out var mesh))
-        {
-            return (variant, mesh, variantIndex);
-        }
-        prefabMeshes[variant.prefab] = variant.prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
-        return (variant, prefabMeshes[variant.prefab], variantIndex);
-    }
-    
-    public Mesh CombinedMesh(params EdgeTileType[] tileTypes)
-    {
-        var key = tileTypes.Select(tt => 1 << (int)tt).Aggregate(0, (prev, next) => prev | next);
-        var variants = tileTypes.Select(tt => Variant(tt)).ToList();
-        var variantKey = variants.Select(v => v.Item3).ToArray();
-        if (combinedMeshes.TryGetValue(key, out var combinedMeshVariants))
-        {
-            if (combinedMeshVariants.TryGetValue(variantKey, out var combinedMesh))
-            {
-                return combinedMesh;
-            }
-        }
-        else
-        {
-            combinedMeshVariants = new Dictionary<int[], Mesh>(new IntArrayEqualityComparer());
-            combinedMeshes[key] = combinedMeshVariants;
-        }
-        
-        Dictionary<int, List<CombineInstance>> combineInstances = new();
-        foreach (var tileType in tileTypes)
-        {
-            var variant = Variant(tileType);
-            var subMeshes = variant.Item1.meshOrder;
-            var mesh = variant.Item2;
-            for (int i = 0; i < mesh.subMeshCount; i++)
-            {
-                if (!combineInstances.TryGetValue(i, out var list))
-                {
-                    list = new();
-                    combineInstances[i] = list;
-                }
-                list.Add(new CombineInstance()
-                {
-                    mesh = mesh,
-                    subMeshIndex = subMeshes[i]
-                });
-            }
-
-        }
-
-        List<CombineInstance> combinedSubMeshes = new();
-        foreach (var list in combineInstances.Values)
-        {
-            var combinedSubMesh = new Mesh();
-            combinedSubMesh.CombineMeshes(list.ToArray(), true, false);
-            combinedSubMeshes.Add(new CombineInstance()
-            {
-                mesh = combinedSubMesh
-            });
-        }
-
-        var combined = new Mesh();
-        combined.CombineMeshes(combinedSubMeshes.ToArray(), false, false);
-        combined.name = String.Join("+", tileTypes.Select(t => t.ToString()));
-        combinedMeshVariants[variantKey] = combined;
-        return combined;
+        return allVariants[variantIndex];;
     }
 
     public GameObject WallDecorationPrefab()

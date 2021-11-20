@@ -17,10 +17,10 @@ public class TileArea : MonoBehaviour
     private Dictionary<CubeCoord, CellData> cells = new();
     private Dictionary<CubeCoord, GameObject> cellDecorations = new();
 
-    private List<CombineInstance> floorsToAdd = new();
-    private Dictionary<int, Dictionary<CubeCoord, CombineInstance>> wallsToCombine = new();
-
-    public Mesh floorMesh;
+    private PrefabCombiner<CubeCoord> floorPrefabCombiner;
+    private PrefabCombiner<CubeCoord> wallPrefabCombiner;
+    
+    public Mesh floorMesh ;
     public Mesh wallMesh ;
 
     private GameObject areaPickups;
@@ -40,44 +40,22 @@ public class TileArea : MonoBehaviour
     }
 
     void UpdateCombinedMesh()
-    {
-        if (floorsToAdd.Count > 0)
-        {
-            floorMesh.CombineMeshes(floorsToAdd.ToArray());
-            var floorMeshVertices = floorMesh.vertices;
-            for (var i = 0; i < floorMeshVertices.Length; i++)
-            {
-                var vertex = floorMeshVertices[i] + transform.position;
-                var uvs = floorMesh.uv;
-                uvs[i] = new Vector2(vertex.x, vertex.z) / generator.uvFactor;
-                floorMesh.uv = uvs;
-            }
-        }
-        if (needsWallMeshCombining)
-        {
-            List<CombineInstance> subMeshes = new();
-            foreach (var combineInstances in wallsToCombine.Values)
-            {
-                var subMesh = new Mesh();
-                subMesh.CombineMeshes(combineInstances.Values.ToArray());
-                subMeshes.Add(new CombineInstance() { mesh = subMesh});
-            }
-            wallMesh.Clear();
-            wallMesh.CombineMeshes(subMeshes.ToArray(), false, false);
-        }
+    {       
+        floorMesh = floorPrefabCombiner.CombineMeshes();
+        wallMesh = wallPrefabCombiner.CombineMeshes();
         floorMeshFilter.sharedMesh = floorMesh;
         wallMeshFilter.sharedMesh = wallMesh;
         floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
+        floorMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = floorPrefabCombiner.Materials();
         wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
-        
+        wallMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = wallPrefabCombiner.Materials();
+
         CalcVertexColor();
     }
 
     public void InitMeshes(String coord)
     {
-        floorMesh = new();
         wallMesh = new();
-        floorMesh.name = $"Floor Mesh {coord}";
         wallMesh.name = $"Wall Mesh {coord}";
     }
     
@@ -99,7 +77,6 @@ public class TileArea : MonoBehaviour
             hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
         InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
         InitCells(hallway.Coords);
-        InitLoadTriggers(hallway);
         UpdateCombinedMesh();
     }
 
@@ -193,15 +170,6 @@ public class TileArea : MonoBehaviour
         UpdateCombinedMesh();
     }
 
-    private void InitLoadTriggers(Hallway hallway)
-    {
-        // TODO remove loadtriggers
-        // var mainTrigger = new GameObject("TriggerArea");
-        // mainTrigger.transform.parent = transform;
-        // mainTrigger.transform.position = transform.position + Vector3.up;
-        // mainTrigger.AddComponent<LevelLoaderTrigger>().Init(generator, hallway.To, floorMesh);
-    }
-
     private void InitCells(IEnumerable<CubeCoord> coords)
     {
         var cellCnt = coords.ToList().Count; 
@@ -213,6 +181,9 @@ public class TileArea : MonoBehaviour
         areaDecorations = new GameObject("Decorations");
         areaDecorations.transform.parent = transform;
         areaDecorations.transform.position = transform.position;
+
+        floorPrefabCombiner = new PrefabCombiner<CubeCoord>(transform.position, true, generator.uvFactor);
+        wallPrefabCombiner = new PrefabCombiner<CubeCoord>(transform.position);
 
         // Init Cell Floor & Walls + store CellData
         foreach (var cellCoord in coords)
@@ -262,46 +233,20 @@ public class TileArea : MonoBehaviour
             }
             if (type.type == TileDictionary.EdgeTileType.WALL0)
             {
-                cellData.variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item1;
-                foreach (var walls in wallsToCombine.Values)
-                {
-                    walls.Remove(cellData.coord);
-                }
+                cellData.variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0);
+                wallPrefabCombiner.Remove(cellData.coord);
             }
             else
             {
                 var rot = Quaternion.Euler(0, type.rotation * 60, 0);
                 var pos = cellData.position - transform.position;
+                
+                cellData.variant = generator.tiledict.Variant(type.type);
+                wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
                 if (type.type == TileDictionary.EdgeTileType.WALL2_P && Random.value < 0.5f)
                 {
-                    var combined = generator.tiledict.CombinedMesh(TileDictionary.EdgeTileType.WALL2_P,
-                        TileDictionary.EdgeTileType.DOOR);
-                    for (int subMeshIdx = 0; subMeshIdx < combined.subMeshCount; subMeshIdx++)
-                    {
-                        if (!wallsToCombine.TryGetValue(subMeshIdx, out var meshes))
-                        {
-                            meshes = new Dictionary<CubeCoord, CombineInstance>();
-                            wallsToCombine[subMeshIdx] = meshes;
-                        }
-                        meshes[cellData.coord] = MeshAsCombineInstance(combined, pos, rot, subMeshIdx);
-                    }
-                }
-                else
-                {
-                    var variant = generator.tiledict.Variant(type.type);
-                    cellData.variant = variant.Item1;
-                    var wallMesh = variant.Item2;
-                    var subMeshIdxMapping = variant.Item1.meshOrder;
-
-                    for (int subMeshIdx = 0; subMeshIdx < wallMesh.subMeshCount; subMeshIdx++)
-                    {
-                        if (!wallsToCombine.TryGetValue(subMeshIdx, out var meshes))
-                        {
-                            meshes = new Dictionary<CubeCoord, CombineInstance>();
-                            wallsToCombine[subMeshIdx] = meshes;
-                        }
-                        meshes[cellData.coord] = MeshAsCombineInstance(wallMesh, pos, rot, subMeshIdxMapping[subMeshIdx]);
-                    }
+                    var doorVariant = generator.tiledict.Variant(TileDictionary.EdgeTileType.DOOR);
+                    wallPrefabCombiner.AddPrefab(cellData.coord, pos, rot, doorVariant.prefab);
                 }
             }
             needsWallMeshCombining = true;
@@ -343,8 +288,8 @@ public class TileArea : MonoBehaviour
 
     private void SpawnFloor(CellData cellData)
     {
-        var floorMesh = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0).Item2;
-        floorsToAdd.Add(MeshAsCombineInstance(floorMesh, cellData.position - transform.position, Quaternion.identity));
+        var variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0);
+        floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, variant.prefab);
     }
 
     private CombineInstance MeshAsCombineInstance(Mesh baseMesh, Vector3 position, Quaternion rotation, int subMesh = 0)
