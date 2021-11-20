@@ -569,7 +569,6 @@ MonoBehaviour:
   generator: {fileID: 1838390094}
   irradiated: 0
   auto: 0
-  points: 0
   pickupAudio: {fileID: 70774111}
   baseSpeed: 10
   boostedSpeed: 20
@@ -6032,7 +6031,6 @@ MonoBehaviour:
   generator: {fileID: 1838390094}
   irradiated: 0
   auto: 1
-  points: 0
   pickupAudio: {fileID: 340078404}
   baseSpeed: 10
   boostedSpeed: 20
@@ -7240,6 +7238,10 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 70774103}
+    - target: {fileID: 471701624769391072, guid: a212dc2f5f6863935b3389401563f304, type: 3}
+      propertyPath: maxReObscure
+      value: 0.75
+      objectReference: {fileID: 0}
     - target: {fileID: 471701624769391073, guid: a212dc2f5f6863935b3389401563f304, type: 3}
       propertyPath: m_Name
       value: FogOfWar
@@ -55013,6 +55015,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 888181641}
     m_Modifications:
+    - target: {fileID: 1658052389542475597, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_Intensity
+      value: 36.4
+      objectReference: {fileID: 0}
     - target: {fileID: 4150759472173896249, guid: e3e837155f155081ea921116f397a637, type: 3}
       propertyPath: m_Name
       value: ERoom2
@@ -55059,6 +55065,46 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4422114714017504386, guid: e3e837155f155081ea921116f397a637, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4831608931162151018, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 4831608931162151018, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 13.66
+      objectReference: {fileID: 0}
+    - target: {fileID: 6635024996996753726, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_Range
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6635024996996753726, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_Intensity
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944020007904868266, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 15.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944020007904868266, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 22.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 7882318956974522022, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_Range
+      value: 11.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 7882318956974522022, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_Intensity
+      value: 3.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 9128684682642578712, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9128684682642578712, guid: e3e837155f155081ea921116f397a637, type: 3}
+      propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
