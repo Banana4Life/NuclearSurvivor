@@ -247,10 +247,17 @@ public class TileGenerator : MonoBehaviour
     private IEnumerator ApplyVertexColors()
     {
         Debug.Log("[coroutine] Coloring Floors " + Time.realtimeSinceStartup);
-        // TODO ordering so area around player is done earlier
-        foreach (var area in _areas.Values.Distinct())
+        using var toBeProcessed = _areas.Values
+            .Distinct()
+            .OrderBy(a => a.transform.position.sqrMagnitude)
+            .GetEnumerator();
+        for (int i = 0; i < 5 && toBeProcessed.MoveNext(); i++)
         {
-            area.ApplyVertexColors();
+            toBeProcessed.Current.ApplyVertexColors();
+        }
+        while (toBeProcessed.MoveNext())
+        {
+            toBeProcessed.Current.ApplyVertexColors();
             yield return null;
         }
         Debug.Log("[coroutine] Done Coloring Floors " + Time.realtimeSinceStartup);
