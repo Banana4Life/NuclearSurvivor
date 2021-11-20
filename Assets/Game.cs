@@ -25,7 +25,6 @@ public class Game : MonoBehaviour
     {
         GUI.Label(new Rect(10, 10, 50, 20), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
         GUI.Label(new Rect(10, 30, 50, 20), timeLeft.ToString());        
-        GUI.Label(new Rect(10, 50, 50, 20), player.points.ToString());        
     }
     private void Awake()
     {

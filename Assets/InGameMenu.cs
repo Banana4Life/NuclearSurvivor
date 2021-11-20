@@ -22,7 +22,7 @@ public class InGameMenu : MonoBehaviour
         leftTime.sizeDelta = new Vector2(leftTime.sizeDelta.x, parentTimeRect.rect.height * (game.timeLeft / 60f));
         rightTime.sizeDelta = new Vector2(rightTime.sizeDelta.x, parentTimeRect.rect.height * (game.timeLeft / 60f));
 
-        barrelPoints.text = game.player.points.ToString();
-        cubePoints.text = 0.ToString();
+        barrelPoints.text = game.player.points[Interactable.Type.BARREL].ToString();
+        cubePoints.text = game.player.points[Interactable.Type.CUBE].ToString();
     }
 }

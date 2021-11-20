@@ -2,13 +2,20 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    public Type type;
     private void OnTriggerEnter(Collider other)
     {
         var agent = other.GetComponent<LeaderAgent>();
         if (agent)
         {
-            agent.SetIrradiated();
+            agent.Pickup(type);
             Destroy(gameObject);
         }
+    }
+
+    public enum Type
+    {
+        BARREL,
+        CUBE,
     }
 }

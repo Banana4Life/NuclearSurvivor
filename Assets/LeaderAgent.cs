@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,7 +17,7 @@ public class LeaderAgent : MonoBehaviour
 
     private NavMeshAgent agent;
     private Plane plane = new(Vector3.up, Vector3.zero);
-    public int points;
+    public Dictionary<Interactable.Type, int> points = new();
 
     private HashSet<Room> visited = new();
     public Room currentRoom;
@@ -28,7 +29,7 @@ public class LeaderAgent : MonoBehaviour
     public float baseSpeed = 10f;
     public float boostedSpeed = 20f;
 
-    public bool boosted;
+    public float boosted;
 
     private Animator animator;
     public float moving;
@@ -36,6 +37,10 @@ public class LeaderAgent : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
+        foreach (Interactable.Type pickupType in Enum.GetValues(typeof(Interactable.Type)))
+        {
+            points[pickupType] = 0;
+        }
         // agent.destination = Vector3.zero;
     }
 
@@ -48,13 +53,13 @@ public class LeaderAgent : MonoBehaviour
         }
         
         irradiated -= Time.deltaTime;
+        boosted -= Time.deltaTime;
         if (irradiated < 0)
         {
             radiationLight.Deactivate();
-            boosted = false;
         }
 
-        agent.speed = Mathf.Lerp(agent.speed,  boosted ? boostedSpeed : baseSpeed, Time.deltaTime * 10);
+        agent.speed = Mathf.Lerp(agent.speed,  boosted > 0 ? boostedSpeed : baseSpeed, Time.deltaTime * 10);
         
         if (agent.isOnNavMesh)
         {
@@ -144,16 +149,30 @@ public class LeaderAgent : MonoBehaviour
         }
     }
 
-    public void SetIrradiated()
+    public void Pickup(Interactable.Type type)
     {
         if (pickupAudio)
         {
             pickupAudio.PlayOneShot(pickupAudio.clip);
         }
-        irradiated = 15f;
-        boosted = true;
-        radiationLight.Activate();
-        Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
-        points++;
+        
+        switch (type)
+        {
+            case Interactable.Type.BARREL:
+                boosted = 15f;
+                break;
+            case Interactable.Type.CUBE:
+                irradiated = 15f;
+                radiationLight.Activate();
+                Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
+                break;
+        }
+
+        if (!points.TryGetValue(type, out var value))
+        {
+            value = 0;
+        }
+
+        points[type] = value + 1;
     }
 }
