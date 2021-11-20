@@ -92,7 +92,7 @@ public class LeaderAgent : MonoBehaviour
     {
         if (agent.remainingDistance <= agent.stoppingDistance)
         {
-            Debug.Log("Autopilot Retargeting");
+            // Debug.Log("Autopilot Retargeting");
             Vector3 newDest = Vector3.zero;
             // Find nearby pickups
             if (currentRoom != null)
@@ -104,10 +104,10 @@ public class LeaderAgent : MonoBehaviour
                 {
                     newDest = interactable.transform.position;
                     agent.destination = newDest;
-                    Debug.Log($"{gameObject.name} pickup thing at {newDest}");
+                    // Debug.Log($"{gameObject.name} pickup thing at {newDest}");
                     return;
                 }
-                Debug.Log($"{gameObject.name} cannot find anything in Room {currentRoom.RoomCoord}");
+                // Debug.Log($"{gameObject.name} cannot find anything in Room {currentRoom.RoomCoord}");
             }
 
             // If none found move to another room
@@ -124,11 +124,11 @@ public class LeaderAgent : MonoBehaviour
                 agent.SetPath(path);
                 visited.Add(room);
                 currentRoom = room;
-                Debug.Log($"{gameObject.name} pathing to {room.RoomCoord}{room.TileArea.transform.position}");
+                // Debug.Log($"{gameObject.name} pathing to {room.RoomCoord}{room.TileArea.transform.position}");
             }
             else
             {   
-                Debug.Log($"{gameObject.name} cannot path to {room.WorldCenter}");
+                // Debug.Log($"{gameObject.name} cannot path to {room.WorldCenter}");
             }
         }
     }
@@ -141,10 +141,7 @@ public class LeaderAgent : MonoBehaviour
             Gizmos.DrawLine(transform.position, agent.destination);
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(agent.destination, 0.5f);    
-
-                
         }
-        
     }
 
     public void SetIrradiated()

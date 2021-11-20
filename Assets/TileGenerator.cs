@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Navigation;
@@ -22,7 +23,11 @@ public class TileGenerator : MonoBehaviour
     public GameObject editorTiles;
     public float uvFactor = 10f;
 
-    public float paintInfluence = 2f; 
+    public int paintInfluenceHex = 3;
+    public float additionalHallwayChance = 0.1f;
+    public int levelRings = 5;
+
+    private Dictionary<CubeCoord, List<CubeCoord>> connections;
 
     void Start()
     {
@@ -185,7 +190,8 @@ public class TileGenerator : MonoBehaviour
   
     public void SpawnLevel()
     {
-        var ringCoords = new []{CubeCoord.Origin}.Concat(CubeCoord.Spiral(CubeCoord.Origin, 1 , 5).ToList().Shuffled()).ToList();
+        Debug.Log("Spawning Level... " + Time.realtimeSinceStartup);
+        var ringCoords = new []{CubeCoord.Origin}.Concat(CubeCoord.Spiral(CubeCoord.Origin, 1 , levelRings).ToList().Shuffled()).ToList();
         var newRooms = new List<Room>();
         int generated = 0;
         var maxToGenerate = Mathf.CeilToInt(ringCoords.Count / 2f);
@@ -203,18 +209,21 @@ public class TileGenerator : MonoBehaviour
                 generated++;
             }
         }
+        
+        Debug.Log("Connecting Rooms... " + Time.realtimeSinceStartup);
 
         HashSet<CubeCoord> connectedSet = new();
-        Dictionary<CubeCoord, List<CubeCoord>> connections = new();
+        connections = new();
         connectedSet.Add(CubeCoord.Origin);
         while (connectedSet.Count < _rooms.Count)
         {
             AddRoomConnection(connectedSet, connections);
         }
 
+        Debug.Log("Connecting More Rooms... " + Time.realtimeSinceStartup);
         foreach (var startRoom in connections.Where(e => e.Value.Count == 1))
         {
-            if (Random.value < 0.9f)
+            if (Random.value > additionalHallwayChance)
             {
                 var cubeCoords = CubeCoord.Spiral(startRoom.Key, 2, 4).Where(c => _rooms.ContainsKey(c));
                 var distances = GetDistances(connections, startRoom.Key);
@@ -229,25 +238,22 @@ public class TileGenerator : MonoBehaviour
             }
         }
         
-        Debug.Log("Calc Vertex Colors... " + Time.realtimeSinceStartup);
-        foreach (var area in _areas.Values.Distinct())
-        {
-            area.CalcVertexColor();
-        }
-
-        ApplyVertexColors();
-        
+        Debug.Log("Baking Navmesh... " + Time.realtimeSinceStartup);
         GetComponent<NavMeshSurface>().BuildNavMesh();
+        Debug.Log("Done Spawning Level " + Time.realtimeSinceStartup);
+        StartCoroutine(ApplyVertexColors());
     }
 
-    public void ApplyVertexColors()
+    private IEnumerator ApplyVertexColors()
     {
-        Debug.Log("Apply Vertex Colors... " + Time.realtimeSinceStartup);
+        Debug.Log("[coroutine] Coloring Floors " + Time.realtimeSinceStartup);
+        // TODO ordering so area around player is done earlier
         foreach (var area in _areas.Values.Distinct())
         {
             area.ApplyVertexColors();
+            yield return null;
         }
-        Debug.Log("Done Coloring " + Time.realtimeSinceStartup);
+        Debug.Log("[coroutine] Done Coloring Floors " + Time.realtimeSinceStartup);
     }
 
     private static Dictionary<CubeCoord, double> GetDistances(Dictionary<CubeCoord, List<CubeCoord>> connections, CubeCoord start, int depthToGo = 5)
@@ -372,5 +378,10 @@ public class TileGenerator : MonoBehaviour
             .Where(r => !visited.Contains(r))
             .Where(r => (r.WorldCenter - pos).sqrMagnitude < maxDistance * maxDistance)
             .ToList().Shuffled().FirstOrDefault();
+    }
+
+    public void ApplyVertexColorsCoroutined()
+    {
+        StartCoroutine(ApplyVertexColors());
     }
 }

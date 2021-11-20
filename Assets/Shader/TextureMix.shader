@@ -209,7 +209,7 @@ Shader "BLF/TextureMix" {
                 float4 _Texture1_var = tex2D(_Texture1,TRANSFORM_TEX(i.uv0 + texOffset1, _Texture1));
                 float4 _Texture2_var = tex2D(_Texture2,TRANSFORM_TEX(i.uv0 + texOffset2, _Texture2));
                 float4 _Texture3_var = tex2D(_Texture3,TRANSFORM_TEX(i.uv0 + texOffset3, _Texture3));
-                float3 diffuseColor = (lerp( lerp( lerp( lerp( _Texture0_var.rgb, _Texture0_var.rgb, node_6660.r ), _Texture1_var.rgb, node_6660.g ), _Texture2_var.rgb, node_6660.b ), _Texture3_var.rgb, node_6660.a )); // Need this for specular when using metallic
+                float3 diffuseColor = (lerp( lerp( lerp( lerp( 0, _Texture0_var.rgb, node_6660.r ), _Texture1_var.rgb, node_6660.g ), _Texture2_var.rgb, node_6660.b ), _Texture3_var.rgb, node_6660.a )); // Need this for specular when using metallic
                 diffuseColor = DiffuseAndSpecularFromMetallic( diffuseColor, specularColor, specularColor, specularMonochrome );
                 specularMonochrome = 1.0-specularMonochrome;
                 float NdotV = abs(dot( normalDirection, viewDirection ));

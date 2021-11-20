@@ -28,8 +28,7 @@ public class TileArea : MonoBehaviour
 
     public int textureIdx;
 
-    // private static Dictionary<Vector3, Dictionary<Vector3, (float, float, float, float)>> _globalVertexColors = new();
-    private static Dictionary<Vector3, (float, float, float, float)> _areas = new();
+    private static Dictionary<CubeCoord, (float, float, float, float)> _colorInfluencedHexes = new();
 
     public class CellData
     {
@@ -108,7 +107,10 @@ public class TileArea : MonoBehaviour
     {
         textureIdx = Random.Range(0, 4);
         var color = (textureIdx == 0 ? 1 : 0, textureIdx == 1 ? 1 : 0, textureIdx == 2 ? 1 : 0, textureIdx == 3 ? 1 : 0);
-        _areas[transform.position] = color;
+        foreach (var cellData in cells.Values)
+        {
+            _colorInfluencedHexes[cellData.coord] = color;
+        }
     }
 
     public void ApplyVertexColors()
@@ -117,29 +119,42 @@ public class TileArea : MonoBehaviour
         float g = 0;
         float b = 0;
         float a = 0;
-        
+
         var areaPos = transform.position;
-        var nearbyAreaColors = _areas.Select(e => ((e.Key - areaPos).sqrMagnitude, e.Key, e.Value))
-            .Where(t => t.Item1 < Mathf.Pow(generator.paintInfluence * TileGenerator.RoomSize, 2f))
-            .ToList();
         var newColors = new Color[floorMesh.vertexCount];
         for (int i = 0; i < newColors.Length; i++)
         {
             var vertex = floorMesh.vertices[i];
-            foreach (var (_, pos, (rr,gg,bb,aa)) in nearbyAreaColors)
+            var coord = CubeCoord.FlatTopFromWorld(vertex + areaPos, generator.tiledict.TileSize());
+            if (_colorInfluencedHexes.TryGetValue(coord, out var tuple))
             {
-                var dist = (vertex - pos).magnitude;
-                r += rr / dist;
-                g += gg / dist;
-                b += bb / dist;
-                a += aa / dist;
+                var (rr, gg, bb, aa) = tuple;
+                r += rr * generator.paintInfluenceHex;
+                g += gg * generator.paintInfluenceHex;
+                b += bb * generator.paintInfluenceHex;
+                a += aa * generator.paintInfluenceHex;
+            }
+            for (int ring = 1; ring < generator.paintInfluenceHex; ring++)
+            {
+                foreach (var ringCoord in CubeCoord.Ring(coord, ring))
+                {
+                    if (_colorInfluencedHexes.TryGetValue(ringCoord, out var t))
+                    {
+                        var (rr, gg, bb, aa) = t;
+                        r += rr * (generator.paintInfluenceHex - ring + 1);
+                        g += gg * (generator.paintInfluenceHex - ring + 1);
+                        b += bb * (generator.paintInfluenceHex - ring + 1);
+                        a += aa * (generator.paintInfluenceHex - ring + 1);
+                    }
+                }
             }
 
-            var normalize = 1 / Mathf.Max(r, g, b, a);
-            r *= normalize;
-            g *= normalize;
-            b *= normalize;
-            a *= normalize;
+            // var normalizeFactor = (r + g + b + a) * 1.5f;
+            var normalizeFactor = Mathf.Max(r, g, b, a);
+            r /= normalizeFactor;
+            g /= normalizeFactor;
+            b /= normalizeFactor;
+            a /= normalizeFactor;
 
             newColors[i] = new Color(r, g, b, a);
         }        

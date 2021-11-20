@@ -22,7 +22,7 @@ public class TileGeneratorEditor : Editor
     {
         if (GUILayout.Button("Recolor Vertices"))
         {
-            ((TileGenerator)target).ApplyVertexColors();
+            ((TileGenerator)target).ApplyVertexColorsCoroutined();
         }
         base.OnInspectorGUI();
 
@@ -114,10 +114,14 @@ public class TileAreaEditor : Editor
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-        if (GUILayout.Button("Save Meshes"))
+        if (GUILayout.Button("Save As EditorRoom"))
         {
+            AssetDatabase.DeleteAsset("Assets/Editor/EditorRoom.prefab");
+            AssetDatabase.DeleteAsset("Assets/Editor/editorFloor.asset");
+            AssetDatabase.DeleteAsset("Assets/Editor/editorWalls.asset");
             AssetDatabase.CreateAsset(((TileArea)target).floorMesh, "Assets/Editor/editorFloor.asset");
             AssetDatabase.CreateAsset(((TileArea)target).wallMesh, "Assets/Editor/editorWalls.asset");
+            PrefabUtility.SaveAsPrefabAsset(((TileArea)target).gameObject, "Assets/Editor/EditorRoom.prefab");
             AssetDatabase.SaveAssets();
         }
     }
