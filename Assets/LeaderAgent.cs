@@ -186,12 +186,16 @@ public class LeaderAgent : MonoBehaviour
                 radiationLight.Activate();
                 break;
             case Interactable.Type.FOOD:
-                // TODO play sound
+                if (pickupAudio)
+                {
+                    // TODO eat sound
+                    pickupAudio.PlayOneShot(pickupAudio.clip);
+                }
+                
                 Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
                 break;
             case Interactable.Type.HIDEOUT:
-                isInHiding = enter;
-                // TODO play sound
+                isInHiding = enter; // sound gets muffled
                 break;
         }
 

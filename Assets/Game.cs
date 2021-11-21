@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
@@ -20,6 +21,7 @@ public class Game : MonoBehaviour
     public PauseMenu pauseMenu;
     public SettingsMenu settingsMenu;
     public bool endRound;
+    public AudioMixer mainMixer;
 
     private FogOfWarMesh fogOfWar;
     void OnGUI()
@@ -60,8 +62,19 @@ public class Game : MonoBehaviour
 
     public bool roundActive;
 
+    public float muffleValue = 3000f;
+    
     private void Update()
     {
+        if (player.isInHiding)
+        {
+            muffleValue = Mathf.Lerp(muffleValue, 320f, Time.deltaTime * 3f);
+        }
+        else
+        {
+            muffleValue = Mathf.Lerp(muffleValue, 3200f, Time.deltaTime * 3f);
+        }
+        mainMixer.SetFloat("muffler", muffleValue);
         timeLeft -= Time.deltaTime;
         timeLeftTarget -= Time.deltaTime;
         timeLeft = Mathf.Lerp(timeLeft, timeLeftTarget, Time.deltaTime);
@@ -83,8 +96,6 @@ public class Game : MonoBehaviour
                     if (player.SurvivesEnd()) // If player is in Hiding Spot - continue game
                     {
                         player.NewFollowers();
-                        // TODO only survive with followers? 
-                        // TODO kill all followers
                         timeLeft = 1f;
                         timeLeftTarget = 30f;
                         roundActive = true;
