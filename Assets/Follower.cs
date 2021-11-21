@@ -30,7 +30,7 @@ public class Follower : MonoBehaviour
 
     public void Init(LeaderAgent leaderAgent)
     {
-        this._leaderAgent = leaderAgent;
+        _leaderAgent = leaderAgent;
         transform.position = leaderAgent.transform.position;
     }
 
@@ -40,6 +40,10 @@ public class Follower : MonoBehaviour
         if (cablesContact && cablesContact.Fry(this))
         {
             fryPs.Play();
+            if (_leaderAgent.auto == false)
+            {
+                Game.ExtendTimer();
+            }
             // TODO play sound
             _agent.enabled = false;
         }

@@ -15,6 +15,7 @@ public class Game : MonoBehaviour
     public ParticleSystem endOfRoundPs;
 
     public float timeLeft = 60;
+    public float timeLeftTarget = 60;
 
     public PauseMenu pauseMenu;
     public SettingsMenu settingsMenu;
@@ -49,11 +50,21 @@ public class Game : MonoBehaviour
         roundActive = true;
     }
 
+    public static void ExtendTimer()
+    {
+        if (INSTANCE.roundActive)
+        {
+            INSTANCE.timeLeftTarget += 5f;
+        }
+    }
+
     public bool roundActive;
 
     private void Update()
     {
         timeLeft -= Time.deltaTime;
+        timeLeftTarget -= Time.deltaTime;
+        timeLeft = Mathf.Lerp(timeLeft, timeLeftTarget, Time.deltaTime);
         if (timeLeft < 0)
         {
             if (fogOfWar)

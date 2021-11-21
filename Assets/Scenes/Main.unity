@@ -43958,6 +43958,7 @@ MonoBehaviour:
   player: {fileID: 70774108}
   endOfRoundPs: {fileID: 1902807828}
   timeLeft: 60
+  timeLeftTarget: 60
   pauseMenu: {fileID: 671230198}
   settingsMenu: {fileID: 2118464007}
   endRound: 0
@@ -55974,6 +55975,10 @@ PrefabInstance:
     - target: {fileID: 5927684777738892370, guid: b1da431102f7975f8ba8503589d4b548, type: 3}
       propertyPath: m_Name
       value: AmbientPS2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5927684777738892370, guid: b1da431102f7975f8ba8503589d4b548, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5927684777738892375, guid: b1da431102f7975f8ba8503589d4b548, type: 3}
       propertyPath: m_RootOrder
