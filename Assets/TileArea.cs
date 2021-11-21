@@ -205,7 +205,7 @@ public class TileArea : MonoBehaviour
     private void SpawnInstance(CellData cellData, TileDictionary.TileType tileType, MountType mountType)
     {
         var prefab = generator.tiledict.Variant(tileType).prefab;
-        SpawnDecoration(cellData, MountType.FLOOR, () => prefab, () => true, areaInteractables);
+        SpawnDecoration(cellData, mountType, () => prefab, () => true, areaInteractables);
     }
 
     private void WithCellData(CubeCoord coord, Action<CellData> f)
