@@ -272,6 +272,27 @@ public class TileGenerator : MonoBehaviour
 
     private void PopulateLevel(List<Room> rooms, List<Hallway> hallways)
     {
+        // only allow WALL1 which have a visible face, rotations 3 and 4 are not generally visible
+        var allowedRotations = new[] { 0, 1, 2, 5, 6 };
+        var candidates = rooms.Select(room =>
+        {
+            var walls = new List<CubeCoord>();
+            foreach (var coord in room.Coords)
+            {
+                if (_areas.TryGetValue(coord, out var area) && area)
+                {
+                    var data = area.GetData(coord);
+                    if (data.type.type == WALL1 && allowedRotations.Contains(data.type.rotation))
+                    {
+                        area.TransformIntoHideout(coord);
+                        walls.Add(coord);
+                    }
+                }
+            }
+
+            return (room, walls);
+        }).ToList();
+
         foreach (var room in rooms)
         {
             PopulateRoom(room);

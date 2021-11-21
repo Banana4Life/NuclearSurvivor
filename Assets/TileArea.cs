@@ -47,6 +47,8 @@ public class TileArea : MonoBehaviour
         public bool IsWall => walls.Any(x => x);
     }
 
+    public CellData GetData(CubeCoord coord) => cells.GetValueOrDefault(coord, null);
+
     public bool IsWall(CubeCoord coord)
     {
         if (cells.TryGetValue(coord, out var cell))
@@ -273,11 +275,6 @@ public class TileArea : MonoBehaviour
                 }
             }
             cells[cellData.coord] = cellData;
-            
-            if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
-            {
-                TransformIntoHideout(cellData.coord);
-            }
         }
         else
         {
