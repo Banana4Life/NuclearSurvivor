@@ -289,7 +289,7 @@ public class TileGenerator : MonoBehaviour
         var rest = new List<CubeCoord>();
         foreach (var coord in room.Coords)
         {
-            if (coord.Neighbors().Any(neighbor => !room.Coords.Contains(neighbor)))
+            if (_areas.TryGetValue(coord, out var area) && area.IsWall(coord))
             {
                 outline.Add(coord);
             }
@@ -297,6 +297,15 @@ public class TileGenerator : MonoBehaviour
             {
                 rest.Add(coord);
             }
+        }
+
+        var center = room.Centers
+            .Select(a => a.Item1)
+            .Aggregate(CubeCoord.Origin, (c, a) => c + a) * (1f/room.Centers.Length);
+
+        foreach (var cubeCoord in outline.OrderBy(coord => center * (coord - center)).Where((coord, i) => i % 2 == 0))
+        {
+            room.TileArea.SpawnOnWall(cubeCoord, WALL_DECO);
         }
 
         var freeSlots = new HashSet<CubeCoord>(room.Coords);
@@ -328,7 +337,16 @@ public class TileGenerator : MonoBehaviour
     {
         foreach (var coord in hallway.Coords)
         {
-            var type = WeightedRandom.ChooseWeighted(new[] { 2f, 1f, 20}, new[] { (int)PICKUP_BARREL, (int)PICKUP_CUBE, -1 });
+            if (_areas.TryGetValue(coord, out var area) && area.IsWall(coord))
+            {
+                area.SpawnOnWall(coord, WALL_DECO);
+            }
+        }
+
+
+        foreach (var coord in hallway.Coords)
+        {
+            var type = WeightedRandom.ChooseWeighted(new[] { 2f, 1f, 30}, new[] { (int)PICKUP_BARREL, (int)PICKUP_CUBE, -1 });
             if (type != -1)
             {
                 hallway.TileArea.SpawnOnFloor(coord, (TileDictionary.TileType)type);
@@ -486,5 +504,21 @@ public class TileGenerator : MonoBehaviour
     public void ApplyVertexColorsCoroutined()
     {
         StartCoroutine(ApplyVertexColors());
+    }
+
+    private Dictionary<Color, IList<CubeCoord>> gizmoTiles = new();
+
+    private void OnDrawGizmos()
+    {
+        var tileSize = tiledict.TileSize();
+        var size = tileSize.z / 2;
+        foreach (var (color, coords) in gizmoTiles)
+        {
+            Gizmos.color = color;
+            foreach (var coord in coords)
+            {
+                Gizmos.DrawWireSphere(coord.ToWorld(0, tileSize), size);
+            }
+        }
     }
 }

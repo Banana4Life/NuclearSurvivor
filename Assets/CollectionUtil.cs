@@ -1,6 +1,8 @@
 
+using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
+using Random = UnityEngine.Random;
 
 public static class CollectionExt
 {
@@ -26,5 +28,16 @@ public static class CollectionExt
             var k = Random.Range(0, n + 1);
             (l[k], l[n]) = (l[n], l[k]);
         }
+    }
+
+    public static IEnumerable<(T1, T2)> Zip<T1, T2>(this IEnumerable<T1> a, IEnumerable<T2> b)
+    {
+        return a.Zip(b, (x, y) => (x, y));
+    }
+
+    [Obsolete(message:"Use Select with a binary lambda!", error:true)]
+    public static IEnumerable<(T, int)> ZipWithIndex<T>(this IEnumerable<T> a)
+    {
+        return a.Select((x, i) => (x, i));
     }
 }

@@ -61,6 +61,8 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public static CubeCoord operator +(CubeCoord a, CubeCoord b) => new(a.Q + b.Q, a.R + b.R, a.S + b.S);
     public static CubeCoord operator -(CubeCoord a, CubeCoord b) => new(a.Q - b.Q, a.R - b.R, a.S - b.S);
     public static CubeCoord operator *(CubeCoord a, int b) => new(a.Q * b, a.R * b, a.S * b);
+    public static CubeCoord operator *(CubeCoord a, float b) => new(Mathf.RoundToInt(a.Q * b), Mathf.RoundToInt(a.R * b));
+    public static int operator *(CubeCoord a, CubeCoord b) => a.Q * b.Q + a.R * b.R + a.S * b.S;
 
     public override string ToString()
     {

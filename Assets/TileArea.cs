@@ -37,8 +37,19 @@ public class TileArea : MonoBehaviour
         public Vector3 position;
         public TileVariant variant;
         public TileDictionary.RotatedTileType type;
+
+        public bool IsWall => walls.Any(x => x);
     }
 
+    public bool IsWall(CubeCoord coord)
+    {
+        if (cells.TryGetValue(coord, out var cell))
+        {
+            return cell.IsWall;
+        }
+
+        return false;
+    }
 
     public void InitMeshes(String coord)
     {
@@ -189,21 +200,28 @@ public class TileArea : MonoBehaviour
         SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaInteractables);
     }
 
-    public void SpawnOnFloor(CubeCoord coord, TileDictionary.TileType type)
+    private void WithCellData(CubeCoord coord, Action<CellData> f)
     {
-        if (cells.TryGetValue(coord, out var data))
-        {
-            SpawnInstance(data, type);
-        }
-        else
+        if (!cells.TryGetValue(coord, out var data))
         {
             throw new Exception("no tiledata");
         }
+        f(data);
+    }
+
+    public void SpawnOnFloor(CubeCoord coord, TileDictionary.TileType type)
+    {
+        WithCellData(coord, data => SpawnInstance(data, type));
+    }
+
+    public void SpawnOnWall(CubeCoord coord, TileDictionary.TileType type)
+    {
+        WithCellData(coord, data => SpawnDecoration(data, "WallDeco", () => generator.tiledict.Variant(type).prefab, () => true, areaDecorations));
     }
 
     private void SpawnDecorations(CellData cellData)
     {
-        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
+        //SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
         SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
     }
 
