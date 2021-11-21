@@ -187,6 +187,7 @@ public class LeaderAgent : MonoBehaviour
                 Game.EnlargeFogOfWar(this);
                 break;
             case Interactable.Type.FOOD:
+                // TODO spawn egg and spawn follower with delay
                 Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
                 break;
             case Interactable.Type.HIDEOUT:
