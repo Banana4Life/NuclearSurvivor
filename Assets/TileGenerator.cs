@@ -285,13 +285,13 @@ public class TileGenerator : MonoBehaviour
 
     private void PopulateRoom(Room room)
     {
-        var outline = new List<CubeCoord>();
+        var walls = new List<CubeCoord>();
         var rest = new List<CubeCoord>();
         foreach (var coord in room.Coords)
         {
             if (_areas.TryGetValue(coord, out var area) && area.IsWall(coord))
             {
-                outline.Add(coord);
+                walls.Add(coord);
             }
             else
             {
@@ -303,19 +303,33 @@ public class TileGenerator : MonoBehaviour
             .Select(a => a.Item1)
             .Aggregate(CubeCoord.Origin, (c, a) => c + a) * (1f/room.Centers.Length);
 
-        foreach (var cubeCoord in outline.OrderBy(coord => center * (coord - center)).Where((coord, i) => i % 2 == 0))
+        float AngleAroundCenter(CubeCoord coord)
         {
-            room.TileArea.SpawnOnWall(cubeCoord, WALL_DECO);
+            var diff = coord - center;
+            return Mathf.Atan2(diff.Q, diff.R);
+        }
+
+        var wallsInWindingOrder = walls.OrderBy(AngleAroundCenter);
+        foreach (var (cubeCoord, i) in wallsInWindingOrder.ZipWithIndex())
+        {
+            if (i % 2 == 0)
+            {
+                room.TileArea.SpawnOnWall(cubeCoord, WALL_DECO_CANDLE);
+            }
+            else
+            {
+                room.TileArea.SpawnOnWall(cubeCoord, WALL_DECO_CHAINS);
+            }
         }
 
         var freeSlots = new HashSet<CubeCoord>(room.Coords);
-        outline.Shuffle();
+        walls.Shuffle();
         rest.Shuffle();
 
         for (int i = 0; i < Random.Range(1, room.Centers.Length); i++)
         {
-            room.TileArea.SpawnOnFloor(outline[i], PICKUP_CUBE);
-            freeSlots.Remove(outline[i]);
+            room.TileArea.SpawnOnFloor(walls[i], PICKUP_CUBE);
+            freeSlots.Remove(walls[i]);
         }
         for (int i = 0; i < Random.Range(1, rest.Count / 3); i++)
         {
@@ -346,7 +360,7 @@ public class TileGenerator : MonoBehaviour
 
         foreach (var coord in hallway.Coords)
         {
-            var type = WeightedRandom.ChooseWeighted(new[] { 2f, 1f, 30}, new[] { (int)PICKUP_BARREL, (int)PICKUP_CUBE, -1 });
+            var type = WeightedRandom.ChooseWeighted(new[] { 5f, 1f, 30}, new[] { (int)PICKUP_BARREL, (int)PICKUP_CUBE, -1 });
             if (type != -1)
             {
                 hallway.TileArea.SpawnOnFloor(coord, (TileDictionary.TileType)type);

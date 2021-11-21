@@ -35,7 +35,6 @@ public static class CollectionExt
         return a.Zip(b, (x, y) => (x, y));
     }
 
-    [Obsolete(message:"Use Select with a binary lambda!", error:true)]
     public static IEnumerable<(T, int)> ZipWithIndex<T>(this IEnumerable<T> a)
     {
         return a.Select((x, i) => (x, i));

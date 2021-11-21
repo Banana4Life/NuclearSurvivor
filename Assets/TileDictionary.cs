@@ -72,7 +72,9 @@ public class TileDictionary : MonoBehaviour
         WALL_DECO,
         PICKUP_BARREL,
         PICKUP_CUBE,
-        CABLES
+        CABLES,
+        WALL_DECO_CANDLE,
+        WALL_DECO_CHAINS,
     }
     
     public static Dictionary<bool[], TileType> tilemap = new()
