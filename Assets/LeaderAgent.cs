@@ -120,7 +120,7 @@ public class LeaderAgent : MonoBehaviour
             {
                 var interactable = currentRoom.TileArea.gameObject.GetComponentsInChildren<Interactable>()
                     .Where(i => (transform.position - i.transform.position).sqrMagnitude < 100 * 100)
-                    .Where(i => i.type == Interactable.Type.CUBE || i.type == Interactable.Type.BARREL)
+                    .Where(i => i.type == Interactable.Type.CUBE || i.type == Interactable.Type.FOOD || i.type == Interactable.Type.BATTERY)
                     .ToList().Shuffled().FirstOrDefault();
                 if (interactable != null)
                 {
@@ -170,7 +170,7 @@ public class LeaderAgent : MonoBehaviour
     {
         switch (type)
         {
-            case Interactable.Type.BARREL:
+            case Interactable.Type.BATTERY:
                 if (pickupAudio)
                 {
                     pickupAudio.PlayOneShot(pickupAudio.clip);
@@ -184,6 +184,9 @@ public class LeaderAgent : MonoBehaviour
                 }
                 irradiated = 15f;
                 radiationLight.Activate();
+                break;
+            case Interactable.Type.FOOD:
+                // TODO play sound
                 Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
                 break;
             case Interactable.Type.HIDEOUT:

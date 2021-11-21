@@ -70,11 +70,12 @@ public class TileDictionary : MonoBehaviour
         FLOOR_HIDEOUT,
         FLOOR_DECO,
         WALL_DECO,
-        PICKUP_BARREL,
+        PICKUP_BATTERY,
         PICKUP_CUBE,
         CABLES,
         WALL_DECO_CANDLE,
         WALL_DECO_CHAINS,
+        FOOD,
     }
     
     public static Dictionary<bool[], TileType> tilemap = new()

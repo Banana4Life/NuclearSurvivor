@@ -28,8 +28,9 @@ public class Interactable : MonoBehaviour
 
     public enum Type
     {
-        BARREL,
+        BATTERY,
         CUBE,
-        HIDEOUT
+        HIDEOUT,
+        FOOD
     }
 }

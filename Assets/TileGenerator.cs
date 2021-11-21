@@ -353,9 +353,10 @@ public class TileGenerator : MonoBehaviour
             room.TileArea.SpawnOnFloor(walls[i], PICKUP_CUBE);
             freeSlots.Remove(walls[i]);
         }
-        for (int i = 0; i < Random.Range(1, rest.Count / 3); i++)
+        for (int i = 0; i < Random.Range(3, rest.Count / 3); i++)
         {
-            room.TileArea.SpawnOnFloor(rest[i], PICKUP_BARREL);
+            var type = WeightedRandom.ChooseWeighted(new[] { 10f, 10f }, new[] { (int)PICKUP_BATTERY, (int)FOOD });
+            room.TileArea.SpawnOnFloor(rest[i], (TileDictionary.TileType)type);
             freeSlots.Remove(rest[i]);
         }
 
@@ -392,7 +393,7 @@ public class TileGenerator : MonoBehaviour
 
         foreach (var coord in hallway.Coords)
         {
-            var type = WeightedRandom.ChooseWeighted(new[] { 5f, 1f, 30}, new[] { (int)PICKUP_BARREL, (int)PICKUP_CUBE, -1 });
+            var type = WeightedRandom.ChooseWeighted(new[] { 5f, 1f, 30}, new[] { (int)PICKUP_BATTERY, (int)PICKUP_CUBE, -1 });
             if (type != -1)
             {
                 hallway.TileArea.SpawnOnFloor(coord, (TileDictionary.TileType)type);
