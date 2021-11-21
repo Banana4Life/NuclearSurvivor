@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FlatTop;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -39,7 +40,7 @@ public class TileDictionary : MonoBehaviour
                     return;
                 }
 
-                var pos = coords.Current.FlatTopToWorld(0, TileSize());
+                var pos = coords.Current.ToWorld(0, TileSize());
                 var floor = Instantiate(tilePrefabs[(int)TileType.FLOOR].prefabs[0].prefab, transform);
                 floor.transform.position = pos;
                 var wall = Instantiate(tilePrefab.prefab, floor.transform);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FlatTop;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -58,8 +59,8 @@ public class TileArea : MonoBehaviour
     {
         this.generator = generator;
         gameObject.name = "Hallway";
-        transform.position = Vector3.Lerp(hallway.From.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()),
-            hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
+        transform.position = Vector3.Lerp(hallway.From.Origin.ToWorld(generator.floorHeight,  generator.tiledict.TileSize()),
+            hallway.To.Origin.ToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
         InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
         InitCells(hallway.Coords);
     }
@@ -86,7 +87,7 @@ public class TileArea : MonoBehaviour
         for (int i = 0; i < newColors.Length; i++)
         {
             var vertex = floorMesh.vertices[i];
-            var coord = CubeCoord.FlatTopFromWorld(vertex + areaPos, generator.tiledict.TileSize());
+            var coord = CubeCoordFlatTop.FromWorld(vertex + areaPos, generator.tiledict.TileSize());
             if (_colorInfluencedHexes.TryGetValue(coord, out var tuple))
             {
                 var (rr, gg, bb, aa) = tuple;
@@ -126,7 +127,7 @@ public class TileArea : MonoBehaviour
     public bool[] GetEdgeWalls(CubeCoord coord)
     {
         var walls = new bool[6];
-        var neighbors = coord.FlatTopNeighbors();
+        var neighbors = coord.Neighbors();
         for (var i = 0; i < neighbors.Length; i++)
         {
             var neighbor = neighbors[i];
@@ -174,7 +175,7 @@ public class TileArea : MonoBehaviour
             var cellData = new CellData()
             {
                 coord = cellCoord,
-                position = cellCoord.FlatTopToWorld(generator.floorHeight, generator.tiledict.TileSize()),
+                position = cellCoord.ToWorld(generator.floorHeight, generator.tiledict.TileSize()),
                 walls = GetEdgeWalls(cellCoord)
             };
             SpawnTile(cellData);
@@ -188,10 +189,22 @@ public class TileArea : MonoBehaviour
         SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaInteractables);
     }
 
+    public void SpawnOnFloor(CubeCoord coord, TileDictionary.TileType type)
+    {
+        if (cells.TryGetValue(coord, out var data))
+        {
+            SpawnInstance(data, type);
+        }
+        else
+        {
+            throw new Exception("no tiledata");
+        }
+    }
+
     private void SpawnDecorations(CellData cellData)
     {
-        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
+        //SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
+        //SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
     }
 
     private void SpawnTile(CellData cellData)
@@ -285,24 +298,24 @@ public class TileArea : MonoBehaviour
         var cellCnt = cells.Count;
         var coords = cells.Keys.ToList();
         
-        foreach (var cellCoord in coords.Shuffled().Take(cellCnt / 20))
-        {
-            SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_BARREL);
-        }
+        // foreach (var cellCoord in coords.Shuffled().Take(cellCnt / 20))
+        // {
+        //     SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_BARREL);
+        // }
+        //
+        // foreach (var cellCoord in coords.Shuffled().Take(2))
+        // {
+        //     SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_CUBE);
+        // }
         
-        foreach (var cellCoord in coords.Shuffled().Take(2))
-        {
-            SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_CUBE);
-        }
+        // foreach (var cellCoord in coords.Shuffled().Take(1))
+        // {
+        //     SpawnInstance(cells[cellCoord], TileDictionary.TileType.CABLES);
+        // }
         
-        foreach (var cellCoord in coords.Shuffled().Take(1))
-        {
-            SpawnInstance(cells[cellCoord], TileDictionary.TileType.CABLES);
-        }
-        
-        foreach (var cellCoord in coords.Shuffled().Take(cellCnt * 2/3))
-        {
-            SpawnDecorations(cells[cellCoord]);
-        }
+        // foreach (var cellCoord in coords.Shuffled().Take(cellCnt * 2/3))
+        // {
+        //     SpawnDecorations(cells[cellCoord]);
+        // }
     }
 }

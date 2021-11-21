@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Priority_Queue;
 
-public static class ShortestPath
+public static class Graph
 {
     public struct PathFindingResult<TNode, TCost>
     {
@@ -28,7 +28,7 @@ public static class ShortestPath
         }
     }
     
-    public static PathFindingResult<TNode, TCost> Search<TNode, TCost>(TNode from, TNode to,
+    public static PathFindingResult<TNode, TCost> FindPath<TNode, TCost>(TNode from, TNode to,
         Func<TNode, IEnumerable<TNode>> neighbors,
         Func<Dictionary<TNode, TNode>, TNode, TNode, TCost> cost,
         Func<TNode, TNode, TCost> estimate,
@@ -91,7 +91,57 @@ public static class ShortestPath
         return new PathFindingResult<TNode, TCost>(from, to, closedSet, openQueue, exactCosts, previousNodes, path);
     }
 
-    public static PathFindingResult<TNode, float> Search<TNode>(TNode from, TNode to, Func<TNode, IEnumerable<TNode>> neighbors,
+    public static PathFindingResult<TNode, float> FindPath<TNode>(TNode from, TNode to, Func<TNode, IEnumerable<TNode>> neighbors,
         Func<Dictionary<TNode, TNode>, TNode, TNode, float> cost, Func<TNode, TNode, float> estimate) where TNode : IEquatable<TNode> =>
-        Search(from, to, neighbors, cost, estimate, 0, float.PositiveInfinity, (a, b) => a + b);
+        FindPath(from, to, neighbors, cost, estimate, 0, float.PositiveInfinity, (a, b) => a + b);
+
+    public static IEnumerable<TNode> TraverseNodes<TNode>(TNode from, Func<TNode, IEnumerable<TNode>> neighbors) where TNode : IEquatable<TNode>
+    {
+        var seen = new HashSet<TNode>();
+        var next = new Queue<TNode>();
+        next.Enqueue(from);
+
+        while (next.Count > 0)
+        {
+            var current = next.Dequeue();
+            seen.Add(current);
+
+            yield return current;
+            
+            foreach (var newNeighbor in neighbors(current))
+            {
+                if (!seen.Contains(newNeighbor))
+                {
+                    next.Enqueue(newNeighbor);
+                }
+            }
+        }
+    }
+
+    public static IEnumerable<(TNode, TNode)> TraverseEdges<TNode>(TNode from, Func<TNode, IEnumerable<TNode>> neighbors) where TNode : IEquatable<TNode>
+    {
+        var seenEdges = new HashSet<(TNode, TNode)>();
+        var seenNodes = new HashSet<TNode>();
+        var next = new Queue<TNode>();
+        next.Enqueue(from);
+
+        while (next.Count > 0)
+        {
+            var current = next.Dequeue();
+            seenNodes.Add(current);
+            
+            foreach (var newNeighbor in neighbors(current))
+            {
+                if (!seenNodes.Contains(newNeighbor))
+                {
+                    next.Enqueue(newNeighbor);
+                    var edge = (current, newNeighbor);
+                    if (!seenEdges.Contains(edge) && !seenEdges.Contains((edge.Item2, edge.Item1)))
+                    {
+                        yield return edge;
+                    }
+                }
+            }
+        }
+    }
 }

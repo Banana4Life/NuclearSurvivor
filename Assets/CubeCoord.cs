@@ -2,37 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
+
 
 // Further reading: https://www.redblobgames.com/grids/hexagons/
 public struct CubeCoord : IEquatable<CubeCoord>
 {
-    // pointy top
-    private static readonly float[] PointyCubeToWorldMatrix = {
-        1f, 1f / 2f,
-        0f, 3f / 4f,
-    };
-    private static readonly float[] PointyWorldToCubeMatrix = {
-        3f / 4f * 4f / 3f, -1f / 2f * 4f / 3f,
-        0f               , 4f / 3f           ,
-    };
-    
-    // flat top
-    private static readonly float[] FlatCubeToWorldMatrix = {
-        3f / 4f, 0,
-        1f / 2f, 1f,
-    };
-    
-    private static readonly float[] FlatWorldToCubeMatrix = {
-        4f / 3f           , 0,
-        -1f / 2f * 4f / 3f, 3f / 4f * 4f / 3f,
-    };
-
-    public enum WorldType
-    {
-        PointyTop, FlatTop
-    }
-    
     public static readonly CubeCoord Origin = new(0, 0);
     
     public static readonly CubeCoord NorthEast = new( 0, 1);
@@ -43,7 +17,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
     public static readonly CubeCoord[] PointyTopNeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // counter-clockwiese
-    public static readonly CubeCoord[] FlatTopNeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
+    public static readonly CubeCoord[] FlatTopNeighborOffsets =   { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
     
     public int Q { get; }
     public int R { get; }
@@ -74,34 +48,14 @@ public struct CubeCoord : IEquatable<CubeCoord>
         return Math.Abs(d.Q) + Math.Abs(d.R);
     }
 
-    private Vector3 _toWorld(int y, Vector3 size, float[] matrix)
+    internal Vector3 ToWorld(int y, Vector3 size, float[] matrix)
     {
         return new((matrix[0] * Q + matrix[1] * R) * size.x, y, (matrix[2] * Q + matrix[3] * R) * size.z);
     }
 
-    public Vector3 FlatTopToWorld(int y, Vector3 size)
-    {
-        return _toWorld(y, size, FlatCubeToWorldMatrix);
-    }
-
-    public Vector3 PointyTopToWorld(int y, Vector3 size)
-    {
-        return _toWorld(y, size, PointyCubeToWorldMatrix);
-    }
-
-    private static CubeCoord _fromWorld(Vector3 p, Vector3 size, float[] matrix)
+    internal static CubeCoord FromWorld(Vector3 p, Vector3 size, float[] matrix)
     {
         return new(Mathf.RoundToInt((matrix[0] * p.x + matrix[1] * p.z) / size.x), Mathf.RoundToInt((matrix[2] * p.x + matrix[3] * p.z) / size.z));
-    }
-
-    public static CubeCoord FlatTopFromWorld(Vector3 p, Vector3 size)
-    {
-        return _fromWorld(p, size, FlatWorldToCubeMatrix);
-    }
-
-    public static CubeCoord PointyTopFromWorld(Vector3 p, Vector3 size)
-    {
-        return _fromWorld(p, size, PointyWorldToCubeMatrix);
     }
 
     public static CubeCoord operator +(CubeCoord a, CubeCoord b) => new(a.Q + b.Q, a.R + b.R, a.S + b.S);
@@ -125,7 +79,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighborOffsets.Length);
 
-    private CubeCoord[] Neighbors(CubeCoord[] offsets)
+    public CubeCoord[] Neighbors(CubeCoord[] offsets)
     {
         var output = new CubeCoord[offsets.Length];
         for (var i = 0; i < offsets.Length; i++)
@@ -135,9 +89,6 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
         return output;
     }
-
-    public CubeCoord[] FlatTopNeighbors() => Neighbors(FlatTopNeighborOffsets);
-    public CubeCoord[] PointyTopNeighbors() => Neighbors(PointyTopNeighborOffsets);
 
     public static CubeCoord[] Ring(CubeCoord center, int radius)
     {
@@ -201,47 +152,4 @@ public struct CubeCoord : IEquatable<CubeCoord>
             }
         }
     }
-
-    public static ShortestPath.PathFindingResult<CubeCoord, float> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost)
-    {
-        return ShortestPath.Search(from, to, item => PointyTopNeighborOffsets.Select(neighbor => item + neighbor), cost, (_, _) => 0);
-    }
-
-    public static ShortestPath.PathFindingResult<CubeCoord, float> SearchShortestPath(CubeCoord from, CubeCoord to, Func<Dictionary<CubeCoord, CubeCoord>, CubeCoord, CubeCoord, float> cost, Func<CubeCoord, CubeCoord, float> estimate)
-    {
-        return ShortestPath.Search(from, to, item => item.FlatTopNeighbors(), cost, estimate);
-    }
-
-    public bool IsAdjacent(CubeCoord coord)
-    {
-        // PointyTop or FlatTopNeighbors does not matter 
-        return FlatTopNeighborOffsets.Contains(this - coord);
-    }
 }
-
-public static class EnumeratorExt
-{
-    public static IList<T> Shuffled<T>(this IList<T> l)
-    {
-        var copy = new List<T>(l);
-        int n = copy.Count;
-        while (n > 1)
-        {
-            n--;
-            var k = Random.Range(0, n + 1);
-            (copy[k], copy[n]) = (copy[n], copy[k]);
-        }
-        return copy;
-    }
-    
-    public static void Shuffle<T>(this T[] l)
-    {
-        int n = l.Length;
-        while (n > 1)
-        {
-            n--;
-            var k = Random.Range(0, n + 1);
-            (l[k], l[n]) = (l[n], l[k]);
-        }
-    }
-} 
