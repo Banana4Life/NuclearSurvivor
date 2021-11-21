@@ -3,6 +3,7 @@ using UnityEngine.AI;
 
 public class Follower : MonoBehaviour
 {
+    public AudioSource fryAudio;
     private LeaderAgent _leaderAgent;
     private NavMeshAgent _agent;
     private float _updateTime;
@@ -40,11 +41,11 @@ public class Follower : MonoBehaviour
         if (cablesContact && cablesContact.Fry(this))
         {
             fryPs.Play();
+            fryAudio.Play();
             if (_leaderAgent.auto == false)
             {
                 Game.ExtendTimer();
             }
-            // TODO play sound
             _agent.enabled = false;
         }
     }

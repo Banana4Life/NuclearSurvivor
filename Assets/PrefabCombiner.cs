@@ -16,7 +16,6 @@ public class PrefabCombiner<T>
     private bool tiledUv;
     private float uvFactor;
 
-    // TODO create gameobjects to instance after mesh combining
     public PrefabCombiner(Vector3 baseOffset, bool tiledUv = false, float uvFactor = 0)
     {
         this.baseOffset = baseOffset;

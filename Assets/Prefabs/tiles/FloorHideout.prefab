@@ -75,6 +75,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36a39ba2af82c223d9fa62fc55ec9836, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enterAudio: {fileID: 0}
+  visual: {fileID: 0}
+  triggerOn: 2
   destroyOnInteract: 0
   type: 2
 --- !u!1 &6057239614550052433

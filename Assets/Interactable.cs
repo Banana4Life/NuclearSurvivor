@@ -4,22 +4,29 @@ public class Interactable : MonoBehaviour
 {
     public AudioSource enterAudio;
     public GameObject visual;
-    
+
+    public TriggeOn triggerOn = TriggeOn.ENTER;
     public bool destroyOnInteract = true;
     public Type type;
     private bool destroy;
     
     private void OnTriggerEnter(Collider other)
     {
-        var agent = other.GetComponent<LeaderAgent>();
-        if (agent)
+        if (triggerOn != TriggeOn.EXIT)
         {
-            if (enterAudio)
+            if (!destroy)
             {
-                enterAudio.Play();
+                var agent = other.GetComponent<LeaderAgent>();
+                if (agent)
+                {
+                    if (enterAudio)
+                    {
+                        enterAudio.Play();
+                    }
+                    agent.InteractWith(type);
+                    destroy = destroyOnInteract;
+                }    
             }
-            agent.InteractWith(type);
-            destroy = destroyOnInteract;
         }
     }
 
@@ -40,10 +47,13 @@ public class Interactable : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        var agent = other.GetComponent<LeaderAgent>();
-        if (agent)
+        if (triggerOn != TriggeOn.ENTER)
         {
-            agent.InteractWith(type, false);
+            var agent = other.GetComponent<LeaderAgent>();
+            if (agent)
+            {
+                agent.InteractWith(type, false);
+            }    
         }
     }
 
@@ -53,5 +63,12 @@ public class Interactable : MonoBehaviour
         CUBE,
         HIDEOUT,
         FOOD
+    }
+
+    public enum TriggeOn
+    {
+        ENTER,
+        EXIT,
+        BOTH
     }
 }

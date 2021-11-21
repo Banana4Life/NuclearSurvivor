@@ -175,7 +175,7 @@ public class LeaderAgent : MonoBehaviour
                 {
                     pickupAudio.PlayOneShot(pickupAudio.clip);
                 }
-                boosted = 15f;
+                boosted = 15f;    
                 break;
             case Interactable.Type.CUBE:
                 if (pickupAudio)
@@ -183,15 +183,9 @@ public class LeaderAgent : MonoBehaviour
                     pickupAudio.PlayOneShot(pickupAudio.clip);
                 }
                 irradiated = 15f;
-                radiationLight.Activate();
+                radiationLight.Activate();    
                 break;
             case Interactable.Type.FOOD:
-                if (pickupAudio)
-                {
-                    // TODO eat sound
-                    pickupAudio.PlayOneShot(pickupAudio.clip);
-                }
-                
                 Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
                 break;
             case Interactable.Type.HIDEOUT:
@@ -199,12 +193,16 @@ public class LeaderAgent : MonoBehaviour
                 break;
         }
 
-        if (!points.TryGetValue(type, out var value))
+        if (enter)
         {
-            value = 0;
-        }
+            if (!points.TryGetValue(type, out var value))
+            {
+                value = 0;
+            }
 
-        points[type] = value + 1;
+            points[type] = value + 1;    
+        }
+        
     }
 
     public bool SurvivesEnd()
