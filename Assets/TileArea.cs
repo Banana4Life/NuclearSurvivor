@@ -22,7 +22,7 @@ public class TileArea : MonoBehaviour
     public Mesh floorMesh ;
     public Mesh wallMesh ;
 
-    private GameObject areaPickups;
+    private GameObject areaInteractables;
     private GameObject areaDecorations;
 
     public int textureIdx;
@@ -38,7 +38,7 @@ public class TileArea : MonoBehaviour
         public TileDictionary.RotatedTileType type;
     }
 
-    void UpdateCombinedMesh()
+    private void UpdateCombinedMesh()
     {       
         floorMesh = floorPrefabCombiner.CombineMeshes();
         wallMesh = wallPrefabCombiner.CombineMeshes();
@@ -49,7 +49,7 @@ public class TileArea : MonoBehaviour
         wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
         wallMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = wallPrefabCombiner.Materials();
 
-        CalcVertexColor();
+        InitVertexColors();
     }
 
     public void InitMeshes(String coord)
@@ -65,7 +65,6 @@ public class TileArea : MonoBehaviour
         transform.position = room.WorldCenter;
         InitMeshes(room.Origin.ToString());
         InitCells(room.Coords);
-        UpdateCombinedMesh();
     }
 
     public void Init(TileGenerator generator, Hallway hallway)
@@ -76,10 +75,9 @@ public class TileArea : MonoBehaviour
             hallway.To.Origin.FlatTopToWorld(generator.floorHeight,  generator.tiledict.TileSize()), 0.5f);
         InitMeshes($"{hallway.From.Origin}|{hallway.To.Origin}");
         InitCells(hallway.Coords);
-        UpdateCombinedMesh();
     }
 
-    public void CalcVertexColor()
+    private void InitVertexColors()
     {
         textureIdx = Random.Range(0, 4);
         var color = (textureIdx == 0 ? 1 : 0, textureIdx == 1 ? 1 : 0, textureIdx == 2 ? 1 : 0, textureIdx == 3 ? 1 : 0);
@@ -166,23 +164,22 @@ public class TileArea : MonoBehaviour
         {
             SpawnTile(cellData);
         }
-        UpdateCombinedMesh();
     }
 
     private void InitCells(IEnumerable<CubeCoord> coords)
     {
-        var cellCnt = coords.ToList().Count; 
-        
-        areaPickups = new GameObject("Pickups");
-        areaPickups.transform.parent = transform;
-        areaPickups.transform.position = transform.position;
+        var thisPos = transform.position;
+
+        areaInteractables = new GameObject("Interactables");
+        areaInteractables.transform.parent = transform;
+        areaInteractables.transform.position = thisPos;
         
         areaDecorations = new GameObject("Decorations");
         areaDecorations.transform.parent = transform;
-        areaDecorations.transform.position = transform.position;
+        areaDecorations.transform.position = thisPos;
 
-        floorPrefabCombiner = new PrefabCombiner<CubeCoord>(transform.position, true, generator.uvFactor);
-        wallPrefabCombiner = new PrefabCombiner<CubeCoord>(transform.position);
+        floorPrefabCombiner = new PrefabCombiner<CubeCoord>(thisPos, true, generator.uvFactor);
+        wallPrefabCombiner = new PrefabCombiner<CubeCoord>(thisPos);
 
         // Init Cell Floor & Walls + store CellData
         foreach (var cellCoord in coords)
@@ -193,24 +190,15 @@ public class TileArea : MonoBehaviour
                 position = cellCoord.FlatTopToWorld(generator.floorHeight, generator.tiledict.TileSize()),
                 walls = GetEdgeWalls(cellCoord)
             };
-            cells[cellCoord] = cellData;
             SpawnTile(cellData);
         }
-        
-        foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt / 20))
-        {
-            SpawnPickup(cells[cellCoord], Random.value > 0.5f ? generator.tiledict.Variant(TileDictionary.TileType.PICKUP_BARREL).prefab : generator.tiledict.Variant(TileDictionary.TileType.PICKUP_CUBE).prefab);
-        }
-        
-        foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt * 2/3))
-        {
-            SpawnDecorations(cells[cellCoord]);
-        }
+      
     }
 
-    private void SpawnPickup(CellData cellData, GameObject prefab)
+    private void SpawnInstance(CellData cellData, TileDictionary.TileType type)
     {
-        SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaPickups);
+        var prefab = generator.tiledict.Variant(type).prefab;
+        SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaInteractables);
     }
 
     private void SpawnDecorations(CellData cellData)
@@ -224,13 +212,8 @@ public class TileArea : MonoBehaviour
         if (TileDictionary.edgeTileMap.TryGetValue(cellData.walls, out var type))
         {
             cellData.type = type;
-            if (cellDecorations.TryGetValue(cellData.coord, out var deco))
-            {
-                cellDecorations.Remove(cellData.coord);
-                Destroy(deco);
-            }
-            
             var floorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
+            cellData.variant = floorVariant;
             wallPrefabCombiner.Remove(cellData.coord);
             floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, floorVariant.prefab);
             
@@ -255,6 +238,7 @@ public class TileArea : MonoBehaviour
                     floorPrefabCombiner.AddPrefab(cellData.coord, pos, rot, hideoutFloorVariant.prefab);
                 }
             }
+            cells[cellData.coord] = cellData;
         }
         else
         {
@@ -262,7 +246,7 @@ public class TileArea : MonoBehaviour
         }
     }
 
-    private void SpawnDecoration(CellData cellData, String decoType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
+    private void SpawnDecoration(CellData cellData, String mountType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
     {
         if (cellData.variant.prefab == null) // No Variant set
         {
@@ -271,7 +255,7 @@ public class TileArea : MonoBehaviour
         var rot = Quaternion.Euler(0, cellData.type.rotation * 60, 0);
         foreach (Transform mountPoint in cellData.variant.prefab.transform)
         {
-            if (mountPoint.CompareTag(decoType) && shouldPlace())
+            if (mountPoint.CompareTag(mountType) && shouldPlace())
             {
                 if (!cellDecorations.TryGetValue(cellData.coord, out var cellDeco))
                 {
@@ -291,13 +275,31 @@ public class TileArea : MonoBehaviour
         }
     }
 
-    private CombineInstance MeshAsCombineInstance(Mesh baseMesh, Vector3 position, Quaternion rotation, int subMesh = 0)
+    public void FinalizeArea()
     {
-        return new CombineInstance
+        UpdateCombinedMesh();
+        
+        var cellCnt = cells.Count;
+        var coords = cells.Keys.ToList();
+        
+        foreach (var cellCoord in coords.Shuffled().Take(cellCnt / 20))
         {
-            mesh = baseMesh,
-            transform = Matrix4x4.TRS(position, rotation, Vector3.one),
-            subMeshIndex = subMesh
-        };
+            SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_BARREL);
+        }
+        
+        foreach (var cellCoord in coords.Shuffled().Take(2))
+        {
+            SpawnInstance(cells[cellCoord], TileDictionary.TileType.PICKUP_CUBE);
+        }
+        
+        foreach (var cellCoord in coords.Shuffled().Take(1))
+        {
+            SpawnInstance(cells[cellCoord], TileDictionary.TileType.CABLES);
+        }
+        
+        foreach (var cellCoord in coords.Shuffled().Take(cellCnt * 2/3))
+        {
+            SpawnDecorations(cells[cellCoord]);
+        }
     }
 }

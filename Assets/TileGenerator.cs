@@ -238,6 +238,12 @@ public class TileGenerator : MonoBehaviour
             }
         }
         
+        Debug.Log("Building Meshes and Spawning Area Content... " + Time.realtimeSinceStartup);
+        foreach (var area in _areas.Values.Distinct())
+        {
+            area.FinalizeArea();
+        }
+        
         Debug.Log("Baking Navmesh... " + Time.realtimeSinceStartup);
         GetComponent<NavMeshSurface>().BuildNavMesh();
         Debug.Log("Done Spawning Level " + Time.realtimeSinceStartup);
