@@ -298,23 +298,30 @@ public class TileGenerator : MonoBehaviour
                 rest.Add(coord);
             }
         }
-        
+
+        var freeSlots = new HashSet<CubeCoord>(room.Coords);
         outline.Shuffle();
         rest.Shuffle();
 
-        for (int i = 0; i < Random.Range(1, outline.Count / 3); i++)
+        for (int i = 0; i < Random.Range(1, room.Centers.Length); i++)
         {
             room.TileArea.SpawnOnFloor(outline[i], PICKUP_CUBE);
+            freeSlots.Remove(outline[i]);
         }
         for (int i = 0; i < Random.Range(1, rest.Count / 3); i++)
         {
             room.TileArea.SpawnOnFloor(rest[i], PICKUP_BARREL);
+            freeSlots.Remove(rest[i]);
         }
 
-        // foreach (var (roomCenter, _) in room.Centers)
-        // {
-        //     room.TileArea.SpawnOnFloor(roomCenter, CABLES);
-        // }
+        foreach (var (roomCenter, _) in room.Centers)
+        {
+            if (freeSlots.Contains(roomCenter))
+            {
+                room.TileArea.SpawnOnFloor(roomCenter, CABLES);
+                freeSlots.Remove(roomCenter);
+            }
+        }
     }
 
     private void PopulateHallway(Hallway hallway)
