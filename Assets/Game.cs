@@ -99,6 +99,7 @@ public class Game : MonoBehaviour
                         timeLeft = 1f;
                         timeLeftTarget = 30f;
                         roundActive = true;
+                        fogOfWar.Reset();
                     }
                     else
                     {
@@ -123,4 +124,19 @@ public class Game : MonoBehaviour
         }
     }
 
+    public static void EnlargeFogOfWar(LeaderAgent agent)
+    {
+        if (INSTANCE.player == agent)
+        {
+            INSTANCE.fogOfWar.lightRange = 7f;
+        }
+    }
+    
+    public static void ResetFogOfWar(LeaderAgent agent)
+    {
+        if (INSTANCE.player == agent)
+        {
+            INSTANCE.fogOfWar.Reset();
+        }
+    }
 }

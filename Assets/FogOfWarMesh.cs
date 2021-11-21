@@ -214,4 +214,10 @@ public class FogOfWarMesh : MonoBehaviour
         //     Gizmos.DrawLine(cam.transform.position, topRight);
         // }
     }
+
+    public void Reset()
+    {
+        lightRange = 4f;
+        gameObject.SetActive(true);
+    }
 }

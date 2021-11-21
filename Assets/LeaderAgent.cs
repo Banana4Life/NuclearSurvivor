@@ -73,6 +73,7 @@ public class LeaderAgent : MonoBehaviour
         if (irradiated < 0)
         {
             radiationLight.Deactivate();
+            Game.ResetFogOfWar(this);
         }
 
         agent.speed = Mathf.Lerp(agent.speed,  boosted > 0 ? boostedSpeed : baseSpeed, Time.deltaTime * 10);
@@ -183,7 +184,8 @@ public class LeaderAgent : MonoBehaviour
                     pickupAudio.PlayOneShot(pickupAudio.clip);
                 }
                 irradiated = 15f;
-                radiationLight.Activate();    
+                radiationLight.Activate();
+                Game.EnlargeFogOfWar(this);
                 break;
             case Interactable.Type.FOOD:
                 Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
