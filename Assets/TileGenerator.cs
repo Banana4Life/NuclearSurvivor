@@ -254,14 +254,14 @@ public class TileGenerator : MonoBehaviour
             }
         }
         
+        Debug.Log("Decorating rooms and hallways... " + Time.realtimeSinceStartup);
+        PopulateLevel(newRooms, hallways);
+        
         Debug.Log("Building Meshes and Spawning Area Content... " + Time.realtimeSinceStartup);
         foreach (var area in _areas.Values.Distinct())
         {
             area.FinalizeArea();
         }
-        
-        Debug.Log("Decorating rooms and hallways... " + Time.realtimeSinceStartup);
-        PopulateLevel(newRooms, hallways);
         
         Debug.Log("Baking Navmesh... " + Time.realtimeSinceStartup);
         GetComponent<NavMeshSurface>().BuildNavMesh();
@@ -323,9 +323,10 @@ public class TileGenerator : MonoBehaviour
         }
 
         var freeSlots = new HashSet<CubeCoord>(room.Coords);
+        
+        // spawn collectibles
         walls.Shuffle();
         rest.Shuffle();
-
         for (int i = 0; i < Random.Range(1, room.Centers.Length); i++)
         {
             room.TileArea.SpawnOnFloor(walls[i], PICKUP_CUBE);
@@ -337,12 +338,22 @@ public class TileGenerator : MonoBehaviour
             freeSlots.Remove(rest[i]);
         }
 
+        // spawn wires
         foreach (var (roomCenter, _) in room.Centers)
         {
             if (freeSlots.Contains(roomCenter))
             {
                 room.TileArea.SpawnOnFloor(roomCenter, CABLES);
                 freeSlots.Remove(roomCenter);
+            }
+        }
+        
+        // final floor decorations on still free tiles
+        foreach (var coord in freeSlots)
+        {
+            if (Random.value < 0.1)
+            {
+                room.TileArea.SpawnOnFloor(coord, FLOOR_DECO);
             }
         }
     }

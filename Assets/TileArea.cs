@@ -5,6 +5,12 @@ using FlatTop;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+enum MountType
+{
+    WALL,
+    FLOOR,
+}
+
 public class TileArea : MonoBehaviour
 {
     public MeshFilter floorMeshFilter;
@@ -194,10 +200,10 @@ public class TileArea : MonoBehaviour
       
     }
 
-    private void SpawnInstance(CellData cellData, TileDictionary.TileType type)
+    private void SpawnInstance(CellData cellData, TileDictionary.TileType tileType, MountType mountType)
     {
-        var prefab = generator.tiledict.Variant(type).prefab;
-        SpawnDecoration(cellData, "FloorDeco", () => prefab, () => true, areaInteractables);
+        var prefab = generator.tiledict.Variant(tileType).prefab;
+        SpawnDecoration(cellData, MountType.FLOOR, () => prefab, () => true, areaInteractables);
     }
 
     private void WithCellData(CubeCoord coord, Action<CellData> f)
@@ -211,18 +217,37 @@ public class TileArea : MonoBehaviour
 
     public void SpawnOnFloor(CubeCoord coord, TileDictionary.TileType type)
     {
-        WithCellData(coord, data => SpawnInstance(data, type));
+        WithCellData(coord, data => SpawnInstance(data, type, MountType.FLOOR));
     }
 
     public void SpawnOnWall(CubeCoord coord, TileDictionary.TileType type)
     {
-        WithCellData(coord, data => SpawnDecoration(data, "WallDeco", () => generator.tiledict.Variant(type).prefab, () => true, areaDecorations));
+        WithCellData(coord, data => SpawnInstance(data, type, MountType.WALL));
     }
 
-    private void SpawnDecorations(CellData cellData)
+    private (Vector3, Quaternion) GetPositionAndRotation(CellData data) => GetPositionAndRotation(data, data.type);
+
+    private (Vector3, Quaternion) GetPositionAndRotation(CellData data, TileDictionary.RotatedTileType type)
     {
-        //SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
+        var rot = Quaternion.Euler(0, type.rotation * 60, 0);
+        var pos = data.position - transform.position;
+        return (pos, rot);
+    }
+
+    public void TransformIntoHideout(CubeCoord coord)
+    {
+        WithCellData(coord, data =>
+        {
+            if (data.type.type != TileDictionary.TileType.WALL1)
+            {
+                throw new Exception("Hideouts can only exist at WALL1 tiles!");
+            }
+            var (pos, rot) = GetPositionAndRotation(data);
+            var hideoutFloorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR_HIDEOUT);
+            data.variant = generator.tiledict.Variant(TileDictionary.TileType.WALL1_HIDEOUT);
+            wallPrefabCombiner.SetPrefab(data.coord, pos, rot, data.variant.prefab);
+            floorPrefabCombiner.AddPrefab(data.coord, pos, rot, hideoutFloorVariant.prefab);
+        });
     }
 
     private void SpawnTile(CellData cellData)
@@ -234,9 +259,8 @@ public class TileArea : MonoBehaviour
             cellData.variant = floorVariant;
             wallPrefabCombiner.Remove(cellData.coord);
             floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, floorVariant.prefab);
-            
-            var rot = Quaternion.Euler(0, type.rotation * 60, 0);
-            var pos = cellData.position - transform.position;
+
+            var (pos, rot) = GetPositionAndRotation(cellData, type);
             
             if (type.type != TileDictionary.TileType.FLOOR)
             {
@@ -247,16 +271,13 @@ public class TileArea : MonoBehaviour
                     var doorVariant = generator.tiledict.Variant(TileDictionary.TileType.DOOR);
                     wallPrefabCombiner.AddPrefab(cellData.coord, pos, rot, doorVariant.prefab);
                 }
-            
-                if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
-                {
-                    var hideoutFloorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR_HIDEOUT);
-                    cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.WALL1_HIDEOUT);
-                    wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
-                    floorPrefabCombiner.AddPrefab(cellData.coord, pos, rot, hideoutFloorVariant.prefab);
-                }
             }
             cells[cellData.coord] = cellData;
+            
+            if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
+            {
+                TransformIntoHideout(cellData.coord);
+            }
         }
         else
         {
@@ -264,8 +285,14 @@ public class TileArea : MonoBehaviour
         }
     }
 
-    private void SpawnDecoration(CellData cellData, String mountType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
+    private void SpawnDecoration(CellData cellData, MountType mountType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
     {
+        var mountTag = mountType switch
+        {
+            MountType.WALL => "WallDeco",
+            MountType.FLOOR => "FloorDeco",
+            _ => ""
+        };
         if (cellData.variant.prefab == null) // No Variant set
         {
             return;
@@ -273,7 +300,7 @@ public class TileArea : MonoBehaviour
         var rot = Quaternion.Euler(0, cellData.type.rotation * 60, 0);
         foreach (Transform mountPoint in cellData.variant.prefab.transform)
         {
-            if (mountPoint.CompareTag(mountType) && shouldPlace())
+            if (mountPoint.CompareTag(mountTag) && shouldPlace())
             {
                 if (!cellDecorations.TryGetValue(cellData.coord, out var cellDeco))
                 {
@@ -312,13 +339,5 @@ public class TileArea : MonoBehaviour
         CombineMeshes();
         floorPrefabCombiner.SpawnAdditionalGo(floorMeshFilter.transform);
         wallPrefabCombiner.SpawnAdditionalGo(wallMeshFilter.transform);
-        
-        var cellCnt = cells.Count;
-        var coords = cells.Keys.ToList();
-        
-        foreach (var cellCoord in coords.Shuffled().Take(cellCnt * 2/3))
-        {
-             SpawnDecorations(cells[cellCoord]);
-        }
     }
 }
