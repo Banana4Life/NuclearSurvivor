@@ -76,6 +76,7 @@ public class TileDictionary : MonoBehaviour
         WALL_DECO_CANDLE,
         WALL_DECO_CHAINS,
         FOOD,
+        ROCKS
     }
     
     public static Dictionary<bool[], TileType> tilemap = new()

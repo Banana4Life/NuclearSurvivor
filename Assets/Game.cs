@@ -128,7 +128,10 @@ public class Game : MonoBehaviour
     {
         if (INSTANCE.player == agent)
         {
-            INSTANCE.fogOfWar.lightRange = 7f;
+            if (INSTANCE.fogOfWar)
+            {
+                INSTANCE.fogOfWar.lightRange = 7f;
+            }
         }
     }
     
@@ -136,7 +139,10 @@ public class Game : MonoBehaviour
     {
         if (INSTANCE.player == agent)
         {
-            INSTANCE.fogOfWar.Reset();
+            if (INSTANCE.fogOfWar)
+            {
+                INSTANCE.fogOfWar.Reset();
+            }
         }
     }
 }

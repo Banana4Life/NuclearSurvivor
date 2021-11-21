@@ -88,8 +88,7 @@ public class LeaderAgent : MonoBehaviour
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    holding = true;
-                }
+                    holding = true; }
                 if (Input.GetMouseButtonUp(0))
                 {
                     holding = false;
