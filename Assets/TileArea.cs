@@ -201,7 +201,7 @@ public class TileArea : MonoBehaviour
         
         foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt / 20))
         {
-            SpawnPickup(cells[cellCoord], Random.value > 0.5f ? generator.tiledict.barrelPickup : generator.tiledict.cubePickup);
+            SpawnPickup(cells[cellCoord], Random.value > 0.5f ? generator.tiledict.Variant(TileDictionary.TileType.PICKUP_BARREL).prefab : generator.tiledict.Variant(TileDictionary.TileType.PICKUP_CUBE).prefab);
         }
         
         foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt * 2/3))
@@ -217,8 +217,8 @@ public class TileArea : MonoBehaviour
 
     private void SpawnDecorations(CellData cellData)
     {
-        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.WallDecorationPrefab(), () => Random.value < 0.3f, areaDecorations);
-        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.FloorDecorationPrefab(), () => Random.value < 0.3f, areaDecorations);
+        SpawnDecoration(cellData, "WallDeco", () => generator.tiledict.Variant(TileDictionary.TileType.WALL_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
+        SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
     }
 
     private void SpawnWall(CellData cellData)
@@ -231,24 +231,31 @@ public class TileArea : MonoBehaviour
                 cellDecorations.Remove(cellData.coord);
                 Destroy(deco);
             }
-            if (type.type == TileDictionary.EdgeTileType.WALL0)
+            if (type.type == TileDictionary.TileType.FLOOR)
             {
-                cellData.variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0);
+                cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
                 wallPrefabCombiner.Remove(cellData.coord);
+            }
+            var rot = Quaternion.Euler(0, type.rotation * 60, 0);
+            var pos = cellData.position - transform.position;
+            if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
+            {
+                var floorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR_HIDEOUT);
+                cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.WALL1_HIDEOUT);
+                wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
+                floorPrefabCombiner.AddPrefab(cellData.coord, pos, Quaternion.identity, floorVariant.prefab);
             }
             else
             {
-                var rot = Quaternion.Euler(0, type.rotation * 60, 0);
-                var pos = cellData.position - transform.position;
-                
                 cellData.variant = generator.tiledict.Variant(type.type);
                 wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
-                if (type.type == TileDictionary.EdgeTileType.WALL2_P && Random.value < 0.5f)
+                if (type.type == TileDictionary.TileType.WALL2_P && Random.value < 0.5f)
                 {
-                    var doorVariant = generator.tiledict.Variant(TileDictionary.EdgeTileType.DOOR);
+                    var doorVariant = generator.tiledict.Variant(TileDictionary.TileType.DOOR);
                     wallPrefabCombiner.AddPrefab(cellData.coord, pos, rot, doorVariant.prefab);
                 }
             }
+
             needsWallMeshCombining = true;
         }
         else
@@ -288,7 +295,7 @@ public class TileArea : MonoBehaviour
 
     private void SpawnFloor(CellData cellData)
     {
-        var variant = generator.tiledict.Variant(TileDictionary.EdgeTileType.WALL0);
+        var variant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
         floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, variant.prefab);
     }
 

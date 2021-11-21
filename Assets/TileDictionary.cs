@@ -8,10 +8,6 @@ public class TileDictionary : MonoBehaviour
 {
     public MeshRenderer referenceTile;
     public TileVariants[] tilePrefabs;
-    public GameObject barrelPickup;
-    public GameObject cubePickup;
-    public GameObject[] wallDecorations;
-    public GameObject[] floorDecorations;
 
     private Vector3 tileSize;
  
@@ -44,17 +40,17 @@ public class TileDictionary : MonoBehaviour
                 }
 
                 var pos = coords.Current.FlatTopToWorld(0, TileSize());
-                var floor = Instantiate(tilePrefabs[(int)EdgeTileType.WALL0].prefabs[0].prefab, transform);
+                var floor = Instantiate(tilePrefabs[(int)TileType.FLOOR].prefabs[0].prefab, transform);
                 floor.transform.position = pos;
                 var wall = Instantiate(tilePrefab.prefab, floor.transform);
-                floor.gameObject.name = ((EdgeTileType)i).ToString();
+                floor.gameObject.name = ((TileType)i).ToString();
             }
         }
     }
 
-    public enum EdgeTileType
+    public enum TileType
     {
-        WALL0,
+        FLOOR,
         WALL1,
         WALL2,
         WALL2_P,
@@ -68,25 +64,32 @@ public class TileDictionary : MonoBehaviour
         WALL4_V2,
         WALL5,
         WALL6,
-        DOOR
+        DOOR,
+        WALL1_HIDEOUT,
+        FLOOR_HIDEOUT,
+        FLOOR_DECO,
+        WALL_DECO,
+        PICKUP_BARREL,
+        PICKUP_CUBE,
+        CABLES
     }
     
-    public static Dictionary<bool[], EdgeTileType> tilemap = new()
+    public static Dictionary<bool[], TileType> tilemap = new()
     {
-        { new[] { false, false, false, false, false ,false}, EdgeTileType.WALL0 },
-        { new[] { true, false, false, false, false ,false}, EdgeTileType.WALL1 },
-        { new[] { true, true, false, false, false, false}, EdgeTileType.WALL2 },
-        { new[] { true, false, false, true, false, false}, EdgeTileType.WALL2_P },
-        { new[] { true, false, true, false, false, false}, EdgeTileType.WALL2_U },
-        { new[] { true, true, true, false, false, false}, EdgeTileType.WALL3_V },
-        { new[] { true, true, false, true, false, false}, EdgeTileType.WALL3_J },
-        { new[] { true, true, false, false, true, false}, EdgeTileType.WALL3_G },
-        { new[] { true, false, true, false, true ,false}, EdgeTileType.WALL3_O },
-        { new[] { true, true, true, true, false, false}, EdgeTileType.WALL4_V },
-        { new[] { true, true, true, false, true, false}, EdgeTileType.WALL4_V2 },
-        { new[] { true, true, false, true, true, false}, EdgeTileType.WALL4_P },
-        { new[] { true, true, true, true, true, false}, EdgeTileType.WALL5},
-        { new[] { true, true, true, true, true, true}, EdgeTileType.WALL6},
+        { new[] { false, false, false, false, false ,false}, TileType.FLOOR },
+        { new[] { true, false, false, false, false ,false}, TileType.WALL1 },
+        { new[] { true, true, false, false, false, false}, TileType.WALL2 },
+        { new[] { true, false, false, true, false, false}, TileType.WALL2_P },
+        { new[] { true, false, true, false, false, false}, TileType.WALL2_U },
+        { new[] { true, true, true, false, false, false}, TileType.WALL3_V },
+        { new[] { true, true, false, true, false, false}, TileType.WALL3_J },
+        { new[] { true, true, false, false, true, false}, TileType.WALL3_G },
+        { new[] { true, false, true, false, true ,false}, TileType.WALL3_O },
+        { new[] { true, true, true, true, false, false}, TileType.WALL4_V },
+        { new[] { true, true, true, false, true, false}, TileType.WALL4_V2 },
+        { new[] { true, true, false, true, true, false}, TileType.WALL4_P },
+        { new[] { true, true, true, true, true, false}, TileType.WALL5},
+        { new[] { true, true, true, true, true, true}, TileType.WALL6},
     };
     
     public static Dictionary<bool[], RotatedTileType> edgeTileMap = CalcEdgeRotatedTileMap();
@@ -116,7 +119,7 @@ public class TileDictionary : MonoBehaviour
     
     public struct RotatedTileType
     {
-        public EdgeTileType type;
+        public TileType type;
         public int rotation;
     }
     private class BoolArrayEqualityComparer : IEqualityComparer<bool[]>
@@ -153,22 +156,13 @@ public class TileDictionary : MonoBehaviour
         }
     }
 
-    public TileVariant Variant(EdgeTileType type)
+    public TileVariant Variant(TileType type)
     {
         var allVariants = tilePrefabs[(int)type].prefabs;
         var variantIndex = Random.Range(0, allVariants.Length);
         return allVariants[variantIndex];;
     }
 
-    public GameObject WallDecorationPrefab()
-    {
-        return wallDecorations[Random.Range(0, wallDecorations.Length)];
-    }
-    
-    public GameObject FloorDecorationPrefab()
-    {
-        return floorDecorations[Random.Range(0, floorDecorations.Length)];
-    }
 }
 
 [Serializable]
@@ -181,5 +175,4 @@ public struct TileVariants
 public struct TileVariant
 {
     public GameObject prefab;
-    public int[] meshOrder;
 } 

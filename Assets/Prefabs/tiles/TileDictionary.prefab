@@ -48,58 +48,47 @@ MonoBehaviour:
   tilePrefabs:
   - prefabs:
     - prefab: {fileID: 6670254331212016185, guid: 74ebb67a717f9b0488776c3737589575, type: 3}
-      meshOrder: 00000000
   - prefabs:
-    - prefab: {fileID: 6986203231764649966, guid: 2600a031623139220a5b14731b43c498, type: 3}
-      meshOrder: 0000000001000000
+    - prefab: {fileID: 6057239614550052433, guid: 9c01372bd35fe04a1a9e563e6883c8c6, type: 3}
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 826e0419904f39aeba16643619d6b08a, type: 3}
-      meshOrder: 0100000000000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 64dc6c27d4317dacd9f7e2eeafa997ae, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: e2cd26b17d3bf61b1b5303322bd40cba, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: ee7a4ffcf57d828c9856e6c2ecea4bd2, type: 3}
-      meshOrder: 0100000000000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 07ada24e40e125531a5f8a296dbc811e, type: 3}
-      meshOrder: 0100000000000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: a392a6ee1768a52e7be71bab3c4b6a91, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: ac8834df6962b6a50b461cc0acef4448, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 8b20e55d8a3561bcda3a20ae37aadf9b, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: f425ff9b68f98ea8b9f9e6791d89b895, type: 3}
-      meshOrder: 0000000001000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 06a84f22e43861f079999056d41e9b66, type: 3}
-      meshOrder: 0100000000000000
   - prefabs:
     - prefab: {fileID: 6986203231764649966, guid: 2449764d0969efc3ea801cb726526d57, type: 3}
-      meshOrder: 0100000000000000
   - prefabs:
     - prefab: {fileID: 3884700127797611449, guid: 8139009456920f91fb1de67bf35d32fb, type: 3}
-      meshOrder: 00000000
   - prefabs:
     - prefab: {fileID: 7952011740274558575, guid: 08e1397365d66c114a5ceb3a8fe6909b, type: 3}
-      meshOrder: 0100000000000000
     - prefab: {fileID: 2092461263707905443, guid: 00dba303df9e1e04d95a3f89ea68f09c, type: 3}
-      meshOrder: 0100000000000000
     - prefab: {fileID: 2746363905325924461, guid: 7e0efb8f927179c5ba62d5265a78dd00, type: 3}
-      meshOrder: 010000000000000002000000
-  barrelPickup: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
-  cubePickup: {fileID: 3071730729852679434, guid: 23eb34415a2f870cb93233f90b79bc9f, type: 3}
-  wallDecorations:
-  - {fileID: 596292639687199706, guid: 92f7f7de45a8ed8c58a5975782456c27, type: 3}
-  - {fileID: 2564170167148306567, guid: 24d763801eababfd8922cc56da52068d, type: 3}
-  floorDecorations:
-  - {fileID: 6020667341606642995, guid: 19c1e228d047cd343a925460a2f6f1cf, type: 3}
-  - {fileID: 5970109467128300569, guid: 79456754789dc9922894c7e5e4ec7035, type: 3}
+  - prefabs:
+    - prefab: {fileID: 6057239614550052433, guid: 9c01372bd35fe04a1a9e563e6883c8c6, type: 3}
+  - prefabs:
+    - prefab: {fileID: 6057239614550052433, guid: 9c01372bd35fe04a1a9e563e6883c8c6, type: 3}
+  - prefabs:
+    - prefab: {fileID: 6020667341606642995, guid: 19c1e228d047cd343a925460a2f6f1cf, type: 3}
+  - prefabs:
+    - prefab: {fileID: 596292639687199706, guid: 92f7f7de45a8ed8c58a5975782456c27, type: 3}
+  - prefabs:
+    - prefab: {fileID: 2750109012108434469, guid: 3748f289a04495fc7b7403cb37303d61, type: 3}
+  - prefabs:
+    - prefab: {fileID: 3071730729852679434, guid: 23eb34415a2f870cb93233f90b79bc9f, type: 3}
+  - prefabs:
+    - prefab: {fileID: 5970109467128300569, guid: 79456754789dc9922894c7e5e4ec7035, type: 3}

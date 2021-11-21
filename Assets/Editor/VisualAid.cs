@@ -164,7 +164,7 @@ public class TileDictionaryEditor : Editor
 
         if (tileDict.tilePrefabs.Length == 0)
         {
-            tileDict.tilePrefabs = new TileVariants[Enum.GetNames(typeof(TileDictionary.EdgeTileType)).Length];
+            tileDict.tilePrefabs = new TileVariants[Enum.GetNames(typeof(TileDictionary.TileType)).Length];
             modified = true;
         }
 
@@ -195,7 +195,7 @@ public class TileDictionaryEditor : Editor
                 EditorGUILayout.EndHorizontal();
            
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.Label(((TileDictionary.EdgeTileType)i).ToString());
+                GUILayout.Label(((TileDictionary.TileType)i).ToString());
                 int deleteAt = -1;
                 var meshPrefab = prefabList[sliderPos];
                 var prefab = meshPrefab.prefab;
@@ -216,40 +216,8 @@ public class TileDictionaryEditor : Editor
                 EditorGUILayout.EndHorizontal();
                 prefab = (GameObject) EditorGUILayout.ObjectField(prefab, typeof(GameObject), false);
                 prefab = (GameObject) DragDropBox(prefab);
-
-                if (prefab != null)
-                {
-                    if (meshPrefab.prefab != prefab || meshPrefab.meshOrder == null) // Prefab Changed
-                    {
-                        var filter = prefab.GetComponentInChildren<MeshFilter>();
-                        meshPrefab.meshOrder = new int[filter.sharedMesh.subMeshCount];
-                        for (var i1 = 0; i1 < meshPrefab.meshOrder.Length; i1++)
-                        {
-                            meshPrefab.meshOrder[i1] = i1;
-                        }
-                        
-                        modified = true;
-                    }
-
-                    var materials1 = prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
-                    var materials = materials1
-                        .Select(m => m.name).ToArray();
-                    
-                    EditorGUILayout.BeginHorizontal();
-                    for (var i1 = 0; i1 < meshPrefab.meshOrder.Length; i1++)
-                    {
-                        var newVal = EditorGUILayout.IntPopup(meshPrefab.meshOrder[i1], materials, Enumerable.Range(0, meshPrefab.meshOrder.Length).ToArray());
-                        if (meshPrefab.meshOrder[i1] != newVal)
-                        {
-                            modified = true;
-                        }
-                        meshPrefab.meshOrder[i1] = newVal;
-                    }
-                    EditorGUILayout.EndHorizontal();
-                }
                 
                 meshPrefab.prefab = prefab;
-                
                 
                 prefabList[sliderPos] = meshPrefab;
 
