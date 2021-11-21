@@ -80,8 +80,9 @@ public class Game : MonoBehaviour
             {
                 if (timeLeft < -4f && endRound)
                 {
-                    if (player.isInHiding) // If player is in Hiding Spot - continue game
+                    if (player.SurvivesEnd()) // If player is in Hiding Spot - continue game
                     {
+                        player.NewFollowers();
                         // TODO only survive with followers? 
                         // TODO kill all followers
                         timeLeft = 1f;

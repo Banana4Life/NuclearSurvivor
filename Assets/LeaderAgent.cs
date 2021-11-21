@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -34,6 +35,8 @@ public class LeaderAgent : MonoBehaviour
 
     private Animator animator;
     public float moving;
+
+    private GameObject followerParent;
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -42,7 +45,19 @@ public class LeaderAgent : MonoBehaviour
         {
             points[pickupType] = 0;
         }
+
+        NewFollowers();
         // agent.destination = Vector3.zero;
+    }
+
+    public void NewFollowers()
+    {
+        if (followerParent)
+        {
+            Destroy(followerParent);
+        }
+        followerParent = new GameObject($"Followers {name}");
+        followerParent.transform.parent = transform.parent;
     }
 
     private void Update()
@@ -168,7 +183,7 @@ public class LeaderAgent : MonoBehaviour
                 }
                 irradiated = 15f;
                 radiationLight.Activate();
-                Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
+                Instantiate(followerPrefab, followerParent.transform).GetComponent<Follower>().Init(this);
                 break;
             case Interactable.Type.HIDEOUT:
                 isInHiding = enter;
@@ -182,5 +197,10 @@ public class LeaderAgent : MonoBehaviour
         }
 
         points[type] = value + 1;
+    }
+
+    public bool SurvivesEnd()
+    {
+        return isInHiding && followerParent.transform.childCount > 0;
     }
 }
