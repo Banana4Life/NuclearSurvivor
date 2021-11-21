@@ -34448,7 +34448,6 @@ GameObject:
   - component: {fileID: 1724424854345510329}
   - component: {fileID: 1724424854345510331}
   - component: {fileID: 1724424854345510328}
-  - component: {fileID: 1724424854345510335}
   - component: {fileID: 1724424854345510334}
   m_Layer: 0
   m_Name: player
@@ -34553,23 +34552,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 4
   m_CollisionDetection: 0
---- !u!114 &1724424854345510335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1724424854345510327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1d1e514c3d3a4c7aa72f11a21c5e476, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  movementThreshold: 10
-  updateRate: 0.2
-  navMeshSize: {x: 150, y: 1, z: 150}
-  active: 0
-  built: 0
 --- !u!82 &1724424854345510334
 AudioSource:
   m_ObjectHideFlags: 0
