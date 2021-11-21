@@ -217,6 +217,10 @@ public class TileDictionaryEditor : Editor
                 prefab = (GameObject) EditorGUILayout.ObjectField(prefab, typeof(GameObject), false);
                 prefab = (GameObject) DragDropBox(prefab);
                 
+                if (meshPrefab.prefab != prefab) // Prefab Changed
+                {
+                    modified = true;
+                }
                 meshPrefab.prefab = prefab;
                 
                 prefabList[sliderPos] = meshPrefab;
