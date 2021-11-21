@@ -6,6 +6,7 @@ public class Follower : MonoBehaviour
     private LeaderAgent _leaderAgent;
     private NavMeshAgent _agent;
     private float _updateTime;
+    public ParticleSystem fryPs;
 
     private void Start()
     {
@@ -38,6 +39,8 @@ public class Follower : MonoBehaviour
         var cablesContact = other.gameObject.GetComponent<CablesContact>();
         if (cablesContact && cablesContact.Fry(this))
         {
+            fryPs.Play();
+            // TODO play sound
             _agent.enabled = false;
         }
     }
