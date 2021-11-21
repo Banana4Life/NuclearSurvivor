@@ -120,6 +120,7 @@ public class LeaderAgent : MonoBehaviour
             {
                 var interactable = currentRoom.TileArea.gameObject.GetComponentsInChildren<Interactable>()
                     .Where(i => (transform.position - i.transform.position).sqrMagnitude < 100 * 100)
+                    .Where(i => i.type == Interactable.Type.CUBE || i.type == Interactable.Type.BARREL)
                     .ToList().Shuffled().FirstOrDefault();
                 if (interactable != null)
                 {
