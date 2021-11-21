@@ -39,4 +39,28 @@ public static class CollectionExt
     {
         return a.Select((x, i) => (x, i));
     }
+
+    public static TSource MaxBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> f) where TKey : IComparable<TKey>
+    {
+        var e = source.GetEnumerator();
+        if (!e.MoveNext())
+        {
+            throw new ArgumentNullException();
+        }
+
+        TSource maxValue = e.Current;
+        TKey max = f(maxValue);
+        while (e.MoveNext())
+        {
+            var nextValue = e.Current;
+            var next = f(nextValue);
+            if (next.CompareTo(max) > 0)
+            {
+                maxValue = maxValue;
+                max = next;
+            }
+        }
+
+        return maxValue;
+    }
 }

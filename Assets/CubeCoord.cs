@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 // Further reading: https://www.redblobgames.com/grids/hexagons/
-public struct CubeCoord : IEquatable<CubeCoord>
+public readonly struct CubeCoord : IEquatable<CubeCoord>
 {
     public static readonly CubeCoord Origin = new(0, 0);
     
@@ -16,8 +16,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
     public static readonly CubeCoord West      = new(-1,  0);
     public static readonly CubeCoord NorthWest = new( -1, 1);
 
-    public static readonly CubeCoord[] PointyTopNeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // counter-clockwiese
-    public static readonly CubeCoord[] FlatTopNeighborOffsets =   { NorthEast, East, SouthEast, SouthWest, West, NorthWest }; // clockwise - top first
+    public static readonly CubeCoord[] NeighborOffsets = { NorthEast, East, SouthEast, SouthWest, West, NorthWest };
     
     public int Q { get; }
     public int R { get; }
@@ -79,7 +78,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
 
     public static bool operator !=(CubeCoord a, CubeCoord b) => a.Q != b.Q || a.R != b.R || a.S != b.S;
 
-    public static int CountCellsInRing(int radius) => Math.Max(1, radius * PointyTopNeighborOffsets.Length);
+    public static int CountCellsInRing(int radius) => Math.Max(1, radius * NeighborOffsets.Length);
 
     public CubeCoord[] Neighbors(CubeCoord[] offsets)
     {
@@ -100,12 +99,12 @@ public struct CubeCoord : IEquatable<CubeCoord>
         }
 
         var cube = (center + (West * radius));
-        var neighborCount = PointyTopNeighborOffsets.Length;
+        var neighborCount = NeighborOffsets.Length;
         var output = new CubeCoord[neighborCount * radius];
         var outputIndex = 0;
         for (var neighborIndex = 0; neighborIndex < neighborCount; neighborIndex++)
         {
-            var direction = PointyTopNeighborOffsets[neighborIndex];
+            var direction = NeighborOffsets[neighborIndex];
             for (var i = 0; i < radius; i++)
             {
                 output[outputIndex++] = cube;
@@ -132,7 +131,7 @@ public struct CubeCoord : IEquatable<CubeCoord>
         var emitted = new HashSet<CubeCoord>();
         foreach (var cubeCoord in coords)
         {
-            foreach (var neighbor in PointyTopNeighborOffsets)
+            foreach (var neighbor in NeighborOffsets)
             {
                 var neighborCoord = cubeCoord + neighbor;
                 if (!coords.Contains(neighborCoord) && !emitted.Contains(neighborCoord))

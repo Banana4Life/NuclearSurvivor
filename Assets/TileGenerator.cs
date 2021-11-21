@@ -96,8 +96,8 @@ public class TileGenerator : MonoBehaviour
 
     public bool IsCell(CubeCoord coord) => _roles.ContainsKey(coord);
     
-    private bool isRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
-    private bool isHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
+    private bool IsRoomCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is RoomRole;
+    private bool IsHallwayCell(CubeCoord coord) => _roles.TryGetValue(coord, out var role) && role is HallwayRole;
 
     private Hallway GenerateHallway(Room from, Room to)
     {
@@ -106,7 +106,7 @@ public class TileGenerator : MonoBehaviour
 
         var thinPath = SearchPath(fromCenter, toCenter);
         var fullPath = thinPath.SelectMany(cellCoord => cellCoord.Neighbors().Shuffled().Take(widePath).Concat(new []{cellCoord})).Distinct().ToList();
-        var path = fullPath.ToLookup(cell => isRoomCell(cell) || isHallwayCell(cell));
+        var path = fullPath.ToLookup(cell => IsRoomCell(cell) || IsHallwayCell(cell));
 
         var nav = Instantiate(roomPrefab, transform).GetComponent<TileArea>();
         var hallway = new Hallway(@from, to, path, nav);
@@ -272,9 +272,24 @@ public class TileGenerator : MonoBehaviour
 
     private void PopulateLevel(List<Room> rooms, List<Hallway> hallways)
     {
-        // only allow WALL1 which have a visible face, rotations 3 and 4 are not generally visible
+        var hideoutRooms = PlaceHideouts(rooms);
+
+        foreach (var room in rooms)
+        {
+            PopulateRoom(room, hideoutRooms);
+        }
+
+        foreach (var hallway in hallways)
+        {
+            PopulateHallway(hallway);
+        }
+    }
+
+    private HashSet<Room> PlaceHideouts(List<Room> rooms)
+    {
+        // only allow WALL1 tiles which have a visible face, rotations 3 and 4 are not generally visible
         var allowedRotations = new[] { 0, 1, 2, 5, 6 };
-        var candidates = rooms.Select(room =>
+        var candidates = rooms.Where(r => r.RoomCoord != CubeCoord.Origin).Select(room =>
         {
             var walls = new List<CubeCoord>();
             foreach (var coord in room.Coords)
@@ -291,20 +306,33 @@ public class TileGenerator : MonoBehaviour
             }
 
             return (room, walls);
-        }).ToList();
+        }).Where(c => c.Item2.Count > 0).ToList();
 
-        foreach (var room in rooms)
+        var hideoutLimit = 8;
+        var hideoutRooms = new HashSet<(Room, List<CubeCoord>)> { candidates[0] };
+        candidates.RemoveAt(0);
+        while (hideoutRooms.Count < hideoutLimit && candidates.Count > 0)
         {
-            PopulateRoom(room);
+            var next = candidates.MaxBy(candidate =>
+                hideoutRooms.Min(existing => existing.Item1.RoomCoord.Distance(candidate.Item1.RoomCoord)));
+            candidates.Remove(next);
+            hideoutRooms.Add(next);
         }
 
-        foreach (var hallway in hallways)
+        var finalRooms = new HashSet<Room>(hideoutRooms.Count);
+        foreach (var (room, coords) in hideoutRooms)
         {
-            PopulateHallway(hallway);
+            finalRooms.Add(room);
+            for (var i = 0; i < Random.Range(1, coords.Count); i++)
+            {
+                room.TileArea.TransformIntoHideout(coords[i]);
+            }
         }
+
+        return finalRooms;
     }
 
-    private void PopulateRoom(Room room)
+    private void PopulateRoom(Room room, HashSet<Room> hideoutRooms)
     {
         var walls = new List<CubeCoord>();
         var rest = new List<CubeCoord>();
