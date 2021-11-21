@@ -6,6 +6,7 @@ public class PrefabCombiner<T>
 {
     private Dictionary<GameObject, MeshFilter> prefabMeshes = new();
     private Dictionary<GameObject, Material[]> prefabMaterials = new();
+    private Dictionary<GameObject, List<GameObject>> prefabTaggedGameobjects = new();
     private List<Material> allMaterials = new();
     
     private Vector3 baseOffset;
@@ -30,6 +31,11 @@ public class PrefabCombiner<T>
         {
             foreach (var c in l)
             {
+                if (c.mesh == null) // Has no Mesh to combine
+                {
+                    continue;
+                }
+
                 for (int subMeshIdx = 0; subMeshIdx < c.mesh.subMeshCount; subMeshIdx++)
                 {
                     var remappedIdx = c.remappedMaterials[subMeshIdx];
@@ -90,19 +96,52 @@ public class PrefabCombiner<T>
     
     public void AddPrefab(T key, Vector3 offset, Quaternion rotation, GameObject prefab)
     {
-        var meshFilter = PrefabMesh(prefab);
-        var materials = PrefabMaterials(prefab, meshFilter);
-        var remappedMaterials = RemapMaterials(materials);
-
-        AddInstance(key, new GameObjectCombineInstance()
+        if (prefab.CompareTag("SpawnAsGo"))
         {
-            offset = offset,
-            rotation = rotation,
-            prefab = prefab,
-            mesh = meshFilter.sharedMesh,
-            materials = materials,
-            remappedMaterials = remappedMaterials
-        });
+            AddInstance(key, new GameObjectCombineInstance()
+            {
+                offset = offset,
+                rotation = rotation,
+                prefab = prefab,
+                taggedGos = new List<GameObject>{prefab}
+            });        
+        }
+        else
+        {
+            var meshFilter = PrefabMesh(prefab);
+            var materials = PrefabMaterials(prefab, meshFilter);
+            var remappedMaterials = RemapMaterials(materials);
+            var taggedGos = TaggedGameObjects(prefab);
+        
+            AddInstance(key, new GameObjectCombineInstance()
+            {
+                offset = offset,
+                rotation = rotation,
+                prefab = prefab,
+                mesh = meshFilter.sharedMesh,
+                materials = materials,
+                remappedMaterials = remappedMaterials,
+                taggedGos = taggedGos
+            });
+        }
+    }
+
+    public List<GameObject> TaggedGameObjects(GameObject prefab)
+    {
+        if (!prefabTaggedGameobjects.TryGetValue(prefab, out var list))
+        {
+            list = new();
+            prefabTaggedGameobjects[prefab] = list;
+
+            foreach (Transform go in prefab.transform)
+            {
+                if (go.CompareTag("SpawnAsGo"))
+                {
+                    list.Add(go.gameObject);
+                }
+            }
+        }
+        return list;
     }
 
     public void SetPrefab(T key, Vector3 offset, Quaternion rotation, GameObject prefab)
@@ -157,6 +196,17 @@ public class PrefabCombiner<T>
     {
         toCombine.Remove(key);
     }
+
+    public void SpawnAdditionalGo(Transform parent)
+    {
+        foreach (var c in toCombine.Values.SelectMany(v => v))
+        {
+            foreach (var gameObject in c.taggedGos)
+            {
+                Object.Instantiate(gameObject, c.offset + baseOffset, c.rotation, parent);
+            }
+        }
+    }
 }
 
 public record GameObjectCombineInstance
@@ -167,4 +217,5 @@ public record GameObjectCombineInstance
     public Mesh mesh;
     public Material[] materials;
     public int[] remappedMaterials;
+    public List<GameObject> taggedGos;
 }

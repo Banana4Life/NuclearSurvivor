@@ -30,6 +30,7 @@ public class LeaderAgent : MonoBehaviour
     public float boostedSpeed = 20f;
 
     public float boosted;
+    public bool isInHiding;
 
     private Animator animator;
     public float moving;
@@ -149,22 +150,29 @@ public class LeaderAgent : MonoBehaviour
         }
     }
 
-    public void Pickup(Interactable.Type type)
+    public void InteractWith(Interactable.Type type, bool enter = true)
     {
-        if (pickupAudio)
-        {
-            pickupAudio.PlayOneShot(pickupAudio.clip);
-        }
-        
         switch (type)
         {
             case Interactable.Type.BARREL:
+                if (pickupAudio)
+                {
+                    pickupAudio.PlayOneShot(pickupAudio.clip);
+                }
                 boosted = 15f;
                 break;
             case Interactable.Type.CUBE:
+                if (pickupAudio)
+                {
+                    pickupAudio.PlayOneShot(pickupAudio.clip);
+                }
                 irradiated = 15f;
                 radiationLight.Activate();
                 Instantiate(followerPrefab, transform.parent).GetComponent<Follower>().Init(this);
+                break;
+            case Interactable.Type.HIDEOUT:
+                isInHiding = enter;
+                // TODO play sound
                 break;
         }
 

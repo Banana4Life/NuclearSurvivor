@@ -38,19 +38,6 @@ public class TileArea : MonoBehaviour
         public TileDictionary.RotatedTileType type;
     }
 
-    private void UpdateCombinedMesh()
-    {       
-        floorMesh = floorPrefabCombiner.CombineMeshes();
-        wallMesh = wallPrefabCombiner.CombineMeshes();
-        floorMeshFilter.sharedMesh = floorMesh;
-        wallMeshFilter.sharedMesh = wallMesh;
-        floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
-        floorMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = floorPrefabCombiner.Materials();
-        wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
-        wallMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = wallPrefabCombiner.Materials();
-
-        InitVertexColors();
-    }
 
     public void InitMeshes(String coord)
     {
@@ -274,10 +261,26 @@ public class TileArea : MonoBehaviour
             }
         }
     }
+    
+    private void CombineMeshes()
+    {       
+        floorMesh = floorPrefabCombiner.CombineMeshes();
+        wallMesh = wallPrefabCombiner.CombineMeshes();
+        floorMeshFilter.sharedMesh = floorMesh;
+        wallMeshFilter.sharedMesh = wallMesh;
+        floorMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = floorMesh;
+        floorMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = floorPrefabCombiner.Materials();
+        wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
+        wallMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = wallPrefabCombiner.Materials();
+
+        InitVertexColors();
+    }
 
     public void FinalizeArea()
     {
-        UpdateCombinedMesh();
+        CombineMeshes();
+        floorPrefabCombiner.SpawnAdditionalGo(floorMeshFilter.transform);
+        wallPrefabCombiner.SpawnAdditionalGo(wallMeshFilter.transform);
         
         var cellCnt = cells.Count;
         var coords = cells.Keys.ToList();

@@ -2,14 +2,27 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    public bool destroyOnInteract = true;
     public Type type;
     private void OnTriggerEnter(Collider other)
     {
         var agent = other.GetComponent<LeaderAgent>();
         if (agent)
         {
-            agent.Pickup(type);
-            Destroy(gameObject);
+            agent.InteractWith(type);
+            if (destroyOnInteract)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+    
+    private void OnTriggerExit(Collider other)
+    {
+        var agent = other.GetComponent<LeaderAgent>();
+        if (agent)
+        {
+            agent.InteractWith(type, false);
         }
     }
 
@@ -17,5 +30,6 @@ public class Interactable : MonoBehaviour
     {
         BARREL,
         CUBE,
+        HIDEOUT
     }
 }

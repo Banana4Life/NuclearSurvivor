@@ -6,6 +6,7 @@ TagManager:
   tags:
   - WallDeco
   - FloorDeco
+  - SpawnAsGo
   layers:
   - Default
   - TransparentFX
