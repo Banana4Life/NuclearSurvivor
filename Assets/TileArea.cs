@@ -284,6 +284,7 @@ public class TileArea : MonoBehaviour
 
     private void SpawnDecoration(CellData cellData, MountType mountType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
     {
+        // TODO allow random direction when it makes sense
         var mountTag = mountType switch
         {
             MountType.WALL => "WallDeco",
