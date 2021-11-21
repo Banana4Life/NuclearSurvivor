@@ -9,7 +9,6 @@ public class TileArea : MonoBehaviour
     public MeshFilter floorMeshFilter;
     public MeshFilter wallMeshFilter;
     
-    private bool needsWallMeshCombining;
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
 
@@ -165,7 +164,7 @@ public class TileArea : MonoBehaviour
         }
         foreach (var cellData in toRespawn)
         {
-            SpawnWall(cellData);
+            SpawnTile(cellData);
         }
         UpdateCombinedMesh();
     }
@@ -195,8 +194,7 @@ public class TileArea : MonoBehaviour
                 walls = GetEdgeWalls(cellCoord)
             };
             cells[cellCoord] = cellData;
-            SpawnFloor(cellData);
-            SpawnWall(cellData);
+            SpawnTile(cellData);
         }
         
         foreach (var cellCoord in coords.ToList().Shuffled().Take(cellCnt / 20))
@@ -221,7 +219,7 @@ public class TileArea : MonoBehaviour
         SpawnDecoration(cellData, "FloorDeco", () => generator.tiledict.Variant(TileDictionary.TileType.FLOOR_DECO).prefab, () => Random.value < 0.3f, areaDecorations);
     }
 
-    private void SpawnWall(CellData cellData)
+    private void SpawnTile(CellData cellData)
     {
         if (TileDictionary.edgeTileMap.TryGetValue(cellData.walls, out var type))
         {
@@ -231,21 +229,15 @@ public class TileArea : MonoBehaviour
                 cellDecorations.Remove(cellData.coord);
                 Destroy(deco);
             }
-            if (type.type == TileDictionary.TileType.FLOOR)
-            {
-                cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
-                wallPrefabCombiner.Remove(cellData.coord);
-            }
+            
+            var floorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
+            wallPrefabCombiner.Remove(cellData.coord);
+            floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, floorVariant.prefab);
+            
             var rot = Quaternion.Euler(0, type.rotation * 60, 0);
             var pos = cellData.position - transform.position;
-            if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
-            {
-                var floorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR_HIDEOUT);
-                cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.WALL1_HIDEOUT);
-                wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
-                floorPrefabCombiner.AddPrefab(cellData.coord, pos, Quaternion.identity, floorVariant.prefab);
-            }
-            else
+            
+            if (type.type != TileDictionary.TileType.FLOOR)
             {
                 cellData.variant = generator.tiledict.Variant(type.type);
                 wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
@@ -254,9 +246,15 @@ public class TileArea : MonoBehaviour
                     var doorVariant = generator.tiledict.Variant(TileDictionary.TileType.DOOR);
                     wallPrefabCombiner.AddPrefab(cellData.coord, pos, rot, doorVariant.prefab);
                 }
+            
+                if (type.type == TileDictionary.TileType.WALL1) // TODO randomly spawn hiding spot
+                {
+                    var hideoutFloorVariant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR_HIDEOUT);
+                    cellData.variant = generator.tiledict.Variant(TileDictionary.TileType.WALL1_HIDEOUT);
+                    wallPrefabCombiner.SetPrefab(cellData.coord, pos, rot, cellData.variant.prefab);
+                    floorPrefabCombiner.AddPrefab(cellData.coord, pos, rot, hideoutFloorVariant.prefab);
+                }
             }
-
-            needsWallMeshCombining = true;
         }
         else
         {
@@ -291,12 +289,6 @@ public class TileArea : MonoBehaviour
                 decoration.transform.rotation *= initialRot;
             }
         }
-    }
-
-    private void SpawnFloor(CellData cellData)
-    {
-        var variant = generator.tiledict.Variant(TileDictionary.TileType.FLOOR);
-        floorPrefabCombiner.SetPrefab(cellData.coord, cellData.position - transform.position, Quaternion.identity, variant.prefab);
     }
 
     private CombineInstance MeshAsCombineInstance(Mesh baseMesh, Vector3 position, Quaternion rotation, int subMesh = 0)
