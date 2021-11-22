@@ -284,18 +284,19 @@ public class TileArea : MonoBehaviour
 
     private void SpawnDecoration(CellData cellData, MountType mountType, Func<GameObject> decorationSupplier, Func<Boolean> shouldPlace, GameObject parent)
     {
-        // TODO allow random direction when it makes sense
-        var mountTag = mountType switch
+        var (mountTag, randomizeDirection) = mountType switch
         {
-            MountType.WALL => "WallDeco",
-            MountType.FLOOR => "FloorDeco",
-            _ => ""
+            MountType.WALL => ("WallDeco", false),
+            MountType.FLOOR => ("FloorDeco", true),
+            _ => ("", false)
         };
         if (cellData.variant.prefab == null) // No Variant set
         {
             return;
         }
-        var rot = Quaternion.Euler(0, cellData.type.rotation * 60, 0);
+        
+        var rotationIndex = randomizeDirection ? Random.Range(0, 6) : cellData.type.rotation;
+        var rot = Quaternion.Euler(0, rotationIndex * 60, 0);
         foreach (Transform mountPoint in cellData.variant.prefab.transform)
         {
             if (mountPoint.CompareTag(mountTag) && shouldPlace())
