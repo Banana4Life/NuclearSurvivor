@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using FlatTop;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
@@ -32,12 +29,9 @@ public class Game : MonoBehaviour
     public bool disableInvisibleRooms;
 
     private FogOfWarMesh fogOfWar;
-    private Dictionary<CubeCoord, GameObject[]> _visibleTileAreaLookup = new();
+    
     private Dictionary<int, GameObject> _currentlyVisibleTileAreas = new();
-    private TileGenerator _tileGenerator;
-
-    private CubeCoord playerRoom = CubeCoord.Origin;
-    private CubeCoord enemyRoom = CubeCoord.Origin;
+    public float viewingDistance = 100f;
 
     void OnGUI()
     {
@@ -60,43 +54,11 @@ public class Game : MonoBehaviour
         floaty.Init(text, pos);
     }
 
-    public static void OnWorldGenerated(List<Room> rooms, List<Hallway> hallways)
-    {
-        INSTANCE.UpdateVisibleTileAreaLookup(rooms, hallways);
-    }
-
-    private void UpdateVisibleTileAreaLookup(List<Room> rooms, List<Hallway> hallways)
-    {
-        _currentlyVisibleTileAreas = new Dictionary<int, GameObject>();
-        _currentlyVisibleTileAreas.AddRange(rooms.Select(r => new KeyValuePair<int, GameObject>(r.TileArea.gameObject.GetInstanceID(), r.TileArea.gameObject)));
-        _currentlyVisibleTileAreas.AddRange(hallways.Select(h => new KeyValuePair<int, GameObject>(h.TileArea.gameObject.GetInstanceID(), h.TileArea.gameObject)));
-        var roomLookup = rooms.ToDictionary(room => room.RoomCoord);
-
-        _visibleTileAreaLookup = rooms.Select(room =>
-        {
-            var neighbors = room.RoomCoord.Neighbors().SelectMany(neighborCoord =>
-            {
-                if (roomLookup.TryGetValue(neighborCoord, out var neighbor))
-                {
-                    return new List<Room> { neighbor };
-                }
-
-                return new List<Room>();
-            }).ToArray();
-
-            var connectingHallways = neighbors.SelectMany(neighbor => hallways.Where(h =>
-                    h.From == room && h.To == neighbor || h.From == neighbor && h.To == room));
-
-            return (room, new List<GameObject> {room.TileArea.gameObject}.Concat(neighbors.Select(r => r.TileArea.gameObject)).Concat(connectingHallways.Select(h => h.TileArea.gameObject)).ToArray());
-        }).ToDictionary(room => room.Item1.RoomCoord, room => room.Item2);
-    }
-
     private void Start()
     {
         audioSourcePool = GetComponent<AudioSourcePool>();
         fogOfWar = GetComponentInChildren<FogOfWarMesh>();
         roundActive = true;
-        _tileGenerator = GetComponent<TileGenerator>();
     }
 
     public static void ExtendTimer()
@@ -175,44 +137,48 @@ public class Game : MonoBehaviour
 
     private void ShowVisibleTileAreas()
     {
-        playerRoom = CubeCoordFlatTop.FromWorld(player.transform.position,
-            _tileGenerator.tiledict.TileSize()) * (1f / TileGenerator.RoomSize);
-        enemyRoom = CubeCoordFlatTop.FromWorld(enemy.transform.position,
-            _tileGenerator.tiledict.TileSize()) * (1f / TileGenerator.RoomSize);
-        var visible = new Dictionary<int, GameObject>();
-        if (_visibleTileAreaLookup.TryGetValue(playerRoom, out var playerVisible))
-        {
-            foreach (var o in playerVisible)
-            {
-                visible[o.GetInstanceID()] = o;
-            }
-        }
-        if (_visibleTileAreaLookup.TryGetValue(enemyRoom, out var enemyVisible))
-        {
-            foreach (var o in enemyVisible)
-            {
-                visible[o.GetInstanceID()] = o;
-            }
-        }
-
         if (!disableInvisibleRooms)
         {
             return;
         }
+        
+        var areas = new Collider[20];
+        var areasFound = Physics.OverlapSphereNonAlloc(player.transform.position, viewingDistance, areas, LayerMask.GetMask("TileArea"));
 
+        var visible = new Dictionary<int, GameObject>();
+        for (int i = 0; i < areasFound; i++)
+        {
+            var go = areas[i].gameObject;
+            visible[go.GetInstanceID()] = go;
+        }
+        
+        areasFound = Physics.OverlapSphereNonAlloc(enemy.transform.position, viewingDistance, areas, LayerMask.GetMask("TileArea"));
+        for (int i = 0; i < areasFound; i++)
+        {
+            var go = areas[i].gameObject;
+            visible[go.GetInstanceID()] = go;
+        }
         
         foreach (var (id, area) in _currentlyVisibleTileAreas)
         {
             if (!visible.ContainsKey(id))
             {
-                area.SetActive(false);
+                for (var i = 0; i < area.transform.childCount; i++)
+                {
+                    var go = area.transform.GetChild(i).gameObject;
+                    go.SetActive(false);
+                }
             }
         }
         foreach (var (id, area) in visible)
         {
             if (!_currentlyVisibleTileAreas.ContainsKey(id))
             {
-                area.SetActive(true);
+                for (var i = 0; i < area.transform.childCount; i++)
+                {
+                    var go = area.transform.GetChild(i).gameObject;
+                    go.SetActive(true);
+                }
             }
         }
 
@@ -221,20 +187,12 @@ public class Game : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (!_tileGenerator)
+        if (disableInvisibleRooms)
         {
-            return;
-        }
-        var size = _tileGenerator.tiledict.TileSize() * TileGenerator.RoomSize;
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(playerRoom.ToWorld(_tileGenerator.floorHeight, size), size.z / 2f);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(enemyRoom.ToWorld(_tileGenerator.floorHeight, size), size.z / 2f);
-        
-        Gizmos.color = Color.yellow;
-        foreach (var (_, go) in _currentlyVisibleTileAreas)
-        {
-            Gizmos.DrawWireSphere(go.transform.position, 4);
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(player.transform.position, viewingDistance);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(enemy.transform.position, viewingDistance);
         }
     }
 

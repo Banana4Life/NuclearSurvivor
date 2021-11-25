@@ -268,8 +268,6 @@ public class TileGenerator : MonoBehaviour
         
         Debug.Log("Done Spawning Level " + Time.realtimeSinceStartup);
         StartCoroutine(ApplyVertexColors());
-        
-        Game.OnWorldGenerated(newRooms, newHallways);
     }
 
     private void PopulateLevel(List<Room> rooms, List<Hallway> hallways)

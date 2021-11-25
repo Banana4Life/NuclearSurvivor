@@ -225,7 +225,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8470511201257494914}
   - component: {fileID: 1809147941557354643}
-  m_Layer: 0
+  - component: {fileID: 8013378304017475967}
+  m_Layer: 9
   m_Name: AreaPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -266,3 +267,17 @@ MonoBehaviour:
   floorMesh: {fileID: 0}
   wallMesh: {fileID: 0}
   textureIdx: 0
+--- !u!64 &8013378304017475967
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470511201257494915}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}

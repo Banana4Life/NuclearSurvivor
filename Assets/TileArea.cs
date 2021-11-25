@@ -16,9 +16,6 @@ public class TileArea : MonoBehaviour
     public MeshFilter floorMeshFilter;
     public MeshFilter wallMeshFilter;
     
-    private MeshFilter meshFilter;
-    private MeshCollider meshCollider;
-
     private TileGenerator generator;
     private Dictionary<CubeCoord, CellData> cells = new();
     private Dictionary<CubeCoord, GameObject> cellDecorations = new();
@@ -330,6 +327,7 @@ public class TileArea : MonoBehaviour
         wallMeshFilter.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
         wallMeshFilter.gameObject.GetComponent<MeshRenderer>().materials = wallPrefabCombiner.Materials();
 
+        floorMeshFilter.gameObject.transform.parent.gameObject.GetComponent<MeshCollider>().sharedMesh = wallMesh;
         InitVertexColors();
     }
 

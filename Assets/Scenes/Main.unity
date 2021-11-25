@@ -8971,7 +8971,8 @@ MonoBehaviour:
   settingsMenu: {fileID: 2118464007}
   endRound: 1
   mainMixer: {fileID: 24100000, guid: 638c76509f6e013e3aba339e94d5622b, type: 2}
-  disableInvisibleRooms: 0
+  disableInvisibleRooms: 1
+  viewingDistance: 50
   roundActive: 0
   muffleValue: 220000
 --- !u!4 &1838390093
