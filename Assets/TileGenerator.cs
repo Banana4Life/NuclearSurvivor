@@ -217,13 +217,13 @@ public class TileGenerator : MonoBehaviour
         HashSet<CubeCoord> connectedSet = new();
         connections = new();
         connectedSet.Add(CubeCoord.Origin);
-        var hallways = new List<Hallway>();
+        var newHallways = new List<Hallway>();
         while (connectedSet.Count < _rooms.Count)
         {
             var hallway = AddRoomConnection(connectedSet, connections);
             if (hallway != null)
             {
-                hallways.Add(hallway);
+                newHallways.Add(hallway);
             }
         }
 
@@ -239,7 +239,7 @@ public class TileGenerator : MonoBehaviour
                     if (HasDirectPathWithoutRoom(startRoom, targetRoom))
                     {
                         var hallway = GenerateAndSpawnHallway(_rooms[startRoom], _rooms[targetRoom]);
-                        hallways.Add(hallway);
+                        newHallways.Add(hallway);
                         if (connections.TryGetValue(hallway.From.RoomCoord, out var neighbors))
                         {
                             neighbors.Add(hallway.To.RoomCoord);
@@ -255,7 +255,7 @@ public class TileGenerator : MonoBehaviour
         }
         
         Debug.Log("Decorating rooms and hallways... " + Time.realtimeSinceStartup);
-        PopulateLevel(newRooms, hallways);
+        PopulateLevel(newRooms, newHallways);
         
         Debug.Log("Building Meshes and Spawning Area Content... " + Time.realtimeSinceStartup);
         foreach (var area in _areas.Values.Distinct())
@@ -268,6 +268,8 @@ public class TileGenerator : MonoBehaviour
         
         Debug.Log("Done Spawning Level " + Time.realtimeSinceStartup);
         StartCoroutine(ApplyVertexColors());
+        
+        Game.OnWorldGenerated(newRooms, newHallways);
     }
 
     private void PopulateLevel(List<Room> rooms, List<Hallway> hallways)

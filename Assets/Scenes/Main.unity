@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.108000405, g: 0.10689006, b: 0.107504405, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -8963,6 +8963,7 @@ MonoBehaviour:
   floatyPrefab: {fileID: 6130327112012316752, guid: cea965e70c4b2293c97006bea14339f7, type: 3}
   canvas: {fileID: 1659697975}
   player: {fileID: 70774108}
+  enemy: {fileID: 8844532981256093569}
   endOfRoundPs: {fileID: 1902807828}
   timeLeft: 60
   timeLeftTarget: 60
@@ -8970,6 +8971,7 @@ MonoBehaviour:
   settingsMenu: {fileID: 2118464007}
   endRound: 1
   mainMixer: {fileID: 24100000, guid: 638c76509f6e013e3aba339e94d5622b, type: 2}
+  disableInvisibleRooms: 0
   roundActive: 0
   muffleValue: 220000
 --- !u!4 &1838390093
@@ -9968,7 +9970,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: e3e837155f155081ea921116f397a637, type: 3}
 --- !u!4 &2092275557 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 6106574227953127387, guid: e3e837155f155081ea921116f397a637, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1023621391066769004, guid: e3e837155f155081ea921116f397a637, type: 3}
   m_PrefabInstance: {fileID: 2092275556}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2118464003
@@ -10634,3 +10636,14 @@ PrefabInstance:
       objectReference: {fileID: 1838390094}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 13487a5a16a7ddec9bbb888ae3c0ff5b, type: 3}
+--- !u!114 &8844532981256093569 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8844532980916146369, guid: 13487a5a16a7ddec9bbb888ae3c0ff5b, type: 3}
+  m_PrefabInstance: {fileID: 8844532981256093568}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e4cedcd43d8e491bac382670329e84c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
