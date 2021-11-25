@@ -4,7 +4,6 @@ using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using Color = UnityEngine.Color;
 
-[RequireComponent(typeof(TileGenerator))]
 public class Game : MonoBehaviour
 {
     private static Game INSTANCE;
@@ -32,6 +31,20 @@ public class Game : MonoBehaviour
     
     private Dictionary<int, GameObject> _currentlyVisibleTileAreas = new();
     public float viewingDistance = 100f;
+
+    public void OnLevelSpawned(List<Room> newRooms, List<Hallway> newHallways)
+    {
+        foreach (var room in newRooms)
+        {
+            var go = room.TileArea.gameObject;
+            _currentlyVisibleTileAreas[go.GetInstanceID()] = go;
+        }
+        foreach (var hallway in newHallways)
+        {
+            var go = hallway.TileArea.gameObject;
+            _currentlyVisibleTileAreas[go.GetInstanceID()] = go;
+        }
+    }
 
     void OnGUI()
     {

@@ -8,6 +8,7 @@ using UnityEngine;
 using static TileDictionary.TileType;
 using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(Game))]
 public class TileGenerator : MonoBehaviour
 {
     public TileDictionary tiledict;
@@ -30,9 +31,11 @@ public class TileGenerator : MonoBehaviour
     public int levelRings = 5;
 
     private Dictionary<CubeCoord, List<CubeCoord>> connections;
+    private Game _game;
 
     void Start()
     {
+        _game = GetComponent<Game>();
         Debug.Log(Random.seed);
         editorTiles.SetActive(false);
         Destroy(editorTiles);
@@ -268,6 +271,8 @@ public class TileGenerator : MonoBehaviour
         
         Debug.Log("Done Spawning Level " + Time.realtimeSinceStartup);
         StartCoroutine(ApplyVertexColors());
+
+        _game.OnLevelSpawned(newRooms, newHallways);
     }
 
     private void PopulateLevel(List<Room> rooms, List<Hallway> hallways)
