@@ -125,7 +125,7 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        EndOfRoundMenu.Score(this, player);
+                        EndOfRoundMenu.InitScore(this, player, enemy);
                         SceneManager.LoadScene("EndOfRound");
                     }
                 }
