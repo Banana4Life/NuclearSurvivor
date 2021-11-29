@@ -39,7 +39,7 @@ public readonly struct CubeCoord : IEquatable<CubeCoord>
     }
 
     public float Length => (Math.Abs(Q) + Math.Abs(R) + Math.Abs(S)) / 2.0f;
-    public double Distance(CubeCoord b) => (this - b).Length;
+    public float Distance(CubeCoord b) => (this - b).Length;
 
     public int ManhattenDistance(CubeCoord b)
     {

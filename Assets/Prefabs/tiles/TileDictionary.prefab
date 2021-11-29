@@ -103,4 +103,7 @@ MonoBehaviour:
   - prefabs:
     - prefab: {fileID: 5127394235667519645, guid: 27750612edaf2cffa99fbbda8ce0e67e, type: 3}
   - prefabs:
-    - prefab: {fileID: 3803249410717705534, guid: a3462b0f10761fba4bdbd7e28dfaf0f8, type: 3}
+    - prefab: {fileID: 100000, guid: f282d9fb9b399dd4384b20aba08642fb, type: 3}
+    - prefab: {fileID: 100000, guid: 5f36b57d675b1444cb2203b7a6cac6cb, type: 3}
+    - prefab: {fileID: 100000, guid: 55f94b3dfaaba26458dbf470efc8cfa4, type: 3}
+    - prefab: {fileID: 100000, guid: ad1f5855a33f0694886cbd301d99cc40, type: 3}

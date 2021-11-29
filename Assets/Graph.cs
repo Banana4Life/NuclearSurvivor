@@ -13,10 +13,11 @@ public static class Graph
         public Dictionary<TNode, TCost> CostLookup { get; }
         public Dictionary<TNode, TNode> PreviousLookup { get; }
         public List<TNode> Path { get; }
+        public TCost TotalCost { get; }
 
         public PathFindingResult(TNode from, TNode to, HashSet<TNode> closedSet,
             SimplePriorityQueue<TNode, TCost> openQueue, Dictionary<TNode, TCost> costLookup,
-            Dictionary<TNode, TNode> previousLookup, List<TNode> path)
+            Dictionary<TNode, TNode> previousLookup, List<TNode> path, TCost totalCost)
         {
             From = from;
             To = to;
@@ -25,6 +26,7 @@ public static class Graph
             CostLookup = costLookup;
             PreviousLookup = previousLookup;
             Path = path;
+            TotalCost = totalCost;
         }
     }
     
@@ -76,6 +78,7 @@ public static class Graph
             }
         }
 
+        var totalCost = exactCosts[to];
         var path = new List<TNode>();
         var end = to;
         while (true)
@@ -88,7 +91,7 @@ public static class Graph
         }
         path.Reverse();
 
-        return new PathFindingResult<TNode, TCost>(from, to, closedSet, openQueue, exactCosts, previousNodes, path);
+        return new PathFindingResult<TNode, TCost>(from, to, closedSet, openQueue, exactCosts, previousNodes, path, totalCost);
     }
 
     public static PathFindingResult<TNode, float> FindPath<TNode>(TNode from, TNode to, Func<TNode, IEnumerable<TNode>> neighbors,

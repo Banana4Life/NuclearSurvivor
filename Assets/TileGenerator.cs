@@ -30,7 +30,7 @@ public class TileGenerator : MonoBehaviour
     public float additionalHallwayChance = 0.1f;
     public int levelRings = 5;
 
-    private Dictionary<CubeCoord, List<CubeCoord>> connections;
+    private Dictionary<CubeCoord, List<CubeCoord>> _connections;
     private Game _game;
 
     void Start()
@@ -218,12 +218,12 @@ public class TileGenerator : MonoBehaviour
         Debug.Log("Connecting Rooms... " + Time.realtimeSinceStartup);
 
         HashSet<CubeCoord> connectedSet = new();
-        connections = new();
+        _connections = new();
         connectedSet.Add(CubeCoord.Origin);
         var newHallways = new List<Hallway>();
         while (connectedSet.Count < _rooms.Count)
         {
-            var hallway = AddRoomConnection(connectedSet, connections);
+            var hallway = AddRoomConnection(connectedSet, _connections);
             if (hallway != null)
             {
                 newHallways.Add(hallway);
@@ -231,26 +231,19 @@ public class TileGenerator : MonoBehaviour
         }
 
         Debug.Log("Connecting More Rooms... " + Time.realtimeSinceStartup);
-        foreach (var (startRoom, _) in connections.Where(e => e.Value.Count == 1).ToList())
+        foreach (var (startRoom, _) in _connections.Where(e => e.Value.Count == 1).ToList())
         {
             if (Random.value > additionalHallwayChance)
             {
                 var cubeCoords = CubeCoord.Spiral(startRoom, 2, 4).Where(c => _rooms.ContainsKey(c));
-                var distances = GetDistances(connections, startRoom);
+                var distances = GetDistances(_connections, startRoom);
                 foreach (var targetRoom in cubeCoords.Where(c => !distances.ContainsKey(c) || distances[c] >= 4d).ToList().Shuffled())
                 {
                     if (HasDirectPathWithoutRoom(startRoom, targetRoom))
                     {
                         var hallway = GenerateAndSpawnHallway(_rooms[startRoom], _rooms[targetRoom]);
                         newHallways.Add(hallway);
-                        if (connections.TryGetValue(hallway.From.RoomCoord, out var neighbors))
-                        {
-                            neighbors.Add(hallway.To.RoomCoord);
-                        }
-                        else
-                        {
-                            connections[hallway.From.RoomCoord] = new List<CubeCoord> { hallway.To.RoomCoord };
-                        }
+                        AddConnection(hallway.From.RoomCoord, hallway.To.RoomCoord);
                     }
                     break;
                 }
@@ -337,8 +330,31 @@ public class TileGenerator : MonoBehaviour
         return finalRooms;
     }
 
+    private (int, Room) FindNearestHideoutRoom(Room room, HashSet<Room> hideoutRooms)
+    {
+        var hideoutRoomDistance = float.PositiveInfinity;
+        Room nearestHideoutRoom = null;
+        Graph.PathFindingResult<CubeCoord, float>? result = null;
+
+        foreach (var hideoutRoom in hideoutRooms)
+        {
+            var newResult = Graph.FindPath(room.RoomCoord, hideoutRoom.RoomCoord, from => _connections[from], (_, from, to) => from.ManhattenDistance(to), (from, to) => from.Distance(to));
+            if (newResult.TotalCost < hideoutRoomDistance)
+            {
+                hideoutRoomDistance = newResult.TotalCost;
+                nearestHideoutRoom = hideoutRoom;
+                result = newResult;
+            }
+        }
+
+        var totalCost = result?.TotalCost ?? float.PositiveInfinity;
+        return (Mathf.RoundToInt(totalCost), nearestHideoutRoom);
+    }
+
     private void PopulateRoom(Room room, HashSet<Room> hideoutRooms)
     {
+        var (distance, nearestHideoutRoom) = FindNearestHideoutRoom(room, hideoutRooms);
+
         var walls = new List<CubeCoord>();
         var rest = new List<CubeCoord>();
         foreach (var coord in room.Coords)
@@ -403,13 +419,9 @@ public class TileGenerator : MonoBehaviour
             }
         }
         
-        // final floor decorations on still free tiles
-        foreach (var coord in freeSlots)
+        foreach (var coord in new List<CubeCoord>(freeSlots).Shuffled().Take(Mathf.Min(5, distance)))
         {
-            if (Random.value < 0.1)
-            {
-                room.TileArea.SpawnOnFloor(coord, FLOOR_DECO);
-            }
+            room.TileArea.SpawnOnFloor(coord, ROCKS);
         }
     }
 
@@ -458,8 +470,10 @@ public class TileGenerator : MonoBehaviour
     private static Dictionary<CubeCoord, double> GetDistances(Dictionary<CubeCoord, List<CubeCoord>> connections, CubeCoord start, int depthToGo = 5)
     {
         var currentSet = new HashSet<CubeCoord>();
-        var result = new Dictionary<CubeCoord, double>();
-        result[start] = 0;
+        var result = new Dictionary<CubeCoord, double>
+        {
+            [start] = 0
+        };
         var nextSet = new HashSet<CubeCoord>();
         currentSet.Add(start);
         for (int i = depthToGo; i > 0; i--)
@@ -484,6 +498,23 @@ public class TileGenerator : MonoBehaviour
         return result;
     }
 
+    private void AddConnection(CubeCoord from, CubeCoord to)
+    {
+        if (!_connections.TryGetValue(from, out var fromConnections))
+        {
+            fromConnections = new();
+            _connections[from] = fromConnections;
+        }
+        fromConnections.Add(to);
+                        
+        if (!_connections.TryGetValue(to, out var toConnections))
+        {
+            toConnections = new();
+            _connections[to] = toConnections;
+        }
+        toConnections.Add(from);
+    }
+
     private Hallway AddRoomConnection(HashSet<CubeCoord> connectedSet, Dictionary<CubeCoord, List<CubeCoord>> connections)
     {
         for (int r = 1; r < 5; r++)
@@ -496,19 +527,7 @@ public class TileGenerator : MonoBehaviour
                     {
                         var hallway = GenerateAndSpawnHallway(_rooms[roomToConnect], _rooms[potentialRoom]);
                         connectedSet.Add(potentialRoom);
-                        if (!connections.TryGetValue(roomToConnect, out var list))
-                        {
-                            list = new();
-                            connections[roomToConnect] = list;
-                        }
-                        list.Add(potentialRoom);
-                        
-                        if (!connections.TryGetValue(potentialRoom, out var list2))
-                        {
-                            list2 = new();
-                            connections[potentialRoom] = list2;
-                        }
-                        list2.Add(roomToConnect);
+                        AddConnection(roomToConnect, potentialRoom);
                         return hallway;
                     }
                 }
